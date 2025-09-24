@@ -13,26 +13,25 @@
 
 === Epic 1: Basis-Tracking System
 
-==== Story 1.1: Aktivitäten erfassen
+==== Story 1.1: Basis Aktivitäten erfassen
 - **Als** Nutzer
-- **möchte ich** meine täglichen Aktivitäten eingeben können (Auto fahren, duschen, Netflix, Gaming)
+- **möchte ich** meine täglichen Aktivitäten in eine einfache Eingabemaske eingeben können (Auto fahren, duschen, Netflix, Gaming)
 - **damit** ich meinen Verbrauch tracken kann
 - **Akzeptanzkriterien:**
-  * Eingabefelder für Kilometer gefahren, Duschzeit, Streaming-Zeit, Gaming-Zeit
-  * Speicherung der Daten pro Tag/Jahr/Monat
-  * Einfache Eingabemaske
-- **Story Points:** 8 (2)
+* Eingabefelder für gefahrene Auto Kilometer Verbrenner/Strom, Duschzeit, Streaming-Zeit, Gaming-Zeit
+* Speicherung der Daten pro Tag/Monat/Jahr
+- **Story Points:** 8
 
 ==== Story 1.2: Verbrauchsberechnung
 - **Als** System
 - **soll ich** basierend auf Nutzeraktivitäten CO2, Wasser und Stromverbrauch berechnen
 - **damit** der Umweltimpact angezeigt werden kann
 - **Akzeptanzkriterien:**
-  * Statische Berechnungsformeln implementiert
-  * CO2, Wasser, Strom als Output
-  * Beispielwerte: 1GB Streaming = 20L Wasser, 1h Gaming = 5kWh
-  * Api Anbindungen implementieren
-- **Story Points:** 8 (2)
+* Statische Berechnungsformeln implementiert
+* CO2, Wasser, Strom als Output
+* Beispielwerte: 1GB Streaming = 20L Wasser, 1h Gaming = 5kWh, CO2 = kilogramm
+* Api Anbindungen implementieren
+- **Story Points:** 5
 
 === Epic 2: Visualisierung
 
@@ -41,20 +40,20 @@
 - **möchte ich** meinen Verbrauch in Diagrammen sehen
 - **damit** ich Trends erkennen kann
 - **Akzeptanzkriterien:**
-  * Tages-, Wochen-, Monatsansicht
-  * Balken- und Liniendiagramme
-  * Aufschlüsselung nach Aktivitätstyp
-- **Story Points:** 5 (2)
+* Tages-, Wochen-, Monatsansicht
+* Balken- und Liniendiagramme
+* Aufschlüsselung nach Aktivitätstyp
+- **Story Points:** 5
 
 ==== Story 2.2: Verbrauchsaufschlüsselung
 - **Als** Nutzer
 - **möchte ich** sehen welche Aktivität wie viel verbraucht
 - **damit** ich Optimierungspotential erkenne
 - **Akzeptanzkriterien:**
-  * Pie-Chart nach Aktivitäten
-  * Ranking der "schlimmsten" Aktivitäten
-  * Absolute und prozentuale Werte
-- **Story Points:** 3 (2)
+* Pie-Chart nach Aktivitäten
+* Ranking der "schlimmsten" Aktivitäten
+* Absolute und prozentuale Werte
+- **Story Points:** 3
 
 ==== Story 2.3: Homepage (Dashboard)
 - **Als** Nutzer
@@ -67,7 +66,7 @@
 * Liste der wichtigsten Treiber (Top-Aktivitäten)
 * Kurzinfo-Box mit Basiswissen
 * Schnellzugriff zum „Aktivität hinzufügen“
-- **Story Points:** 5 (2)
+- **Story Points:** 5
 
 === Epic 3: Sozialer Vergleich
 
@@ -76,30 +75,30 @@
 - **möchte ich** Freunde zu meinem Account hinzufügen
 - **damit** ich mich mit ihnen vergleichen kann
 - **Akzeptanzkriterien:**
-  * Freundschaftssystem per E-Mail/Username
-  * Freundschaftsanfragen senden/akzeptieren
-  * Freundesliste anzeigen
-- **Story Points:** 5 (2)
+* Freundschaftssystem per E-Mail/Username
+* Freundschaftsanfragen senden/akzeptieren
+* Freundesliste anzeigen
+- **Story Points:** 5
 
 ==== Story 3.2: Freunde-Vergleich
 - **Als** Nutzer
 - **möchte ich** meinen Verbrauch mit Freunden vergleichen
 - **damit** ich motiviert werde weniger zu verbrauchen
 - **Akzeptanzkriterien:**
-  * Vergleichsdiagramme mit Freunden
-  * Ranking/Leaderboard
-  * Anonyme Darstellung optional
-- **Story Points:** 8 (2)
+* Vergleichsdiagramme mit Freunden
+* Ranking/Leaderboard
+* Anonyme Darstellung optional
+- **Story Points:** 8
 
 ==== Story 3.3: Weltweiter Durchschnitt
 - **Als** Nutzer
 - **möchte ich** sehen wie ich im Vergleich zum weltweiten Durchschnitt stehe
 - **damit** ich einordnen kann wie gut/schlecht ich bin
 - **Akzeptanzkriterien:**
-  * Statische Durchschnittswerte hinterlegt
-  * Vergleichsvisualisierung
-  * Prozentuale Abweichung anzeigen
-- **Story Points:** 5 (2)
+* Statische Durchschnittswerte hinterlegt
+* Vergleichsvisualisierung
+* Prozentuale Abweichung anzeigen
+- **Story Points:** 5
 
 === Epic 4: Gamification
 
@@ -111,7 +110,7 @@
 * Badges für Meilensteine
 * Streak-System für konsistente Verbesserung
 * Achievement-Übersicht
-- **Story Points:** 5 (2)
+- **Story Points:** 5
 
 ==== Story 4.2: Ziele setzen
 - **Als** Nutzer
@@ -120,7 +119,7 @@
 - **Akzeptanzkriterien:**
 * Wöchentliche/monatliche Ziele
 * Fortschrittsanzeige
-- **Story Points:** 3 (2)
+- **Story Points:** 3
 
 === Epic 5: Benutzerkonten
 
@@ -129,27 +128,27 @@
 - **möchte ich** einen Account erstellen
 - **damit** ich die App nutzen kann
 - **Akzeptanzkriterien:**
-  * Registrierung
-  * Login/Logout Funktionalität
-- **Story Points:** 5 (2)
+* Registrierung
+* Login/Logout Funktionalität
+- **Story Points:** 5
 
 == Prioritäten
 
 === Must Have (Release 1):
-- Story 1.1, 1.2 (Basis Tracking)
-- Story 2.1, Story 2.3 (Visualisierung)
-- Story 5.1 (Login/Registrierung)
+- Story 1.1 (mindestesn 5 Aktivitäten), 1.2 (Basis Tracking)
+- Story 2.1, 2.3 (Visualisierung in verienfachter Form)
 
 === Should Have (Release 2):
 - Story 2.2 (Aufschlüsselung)
 - Story 3.3 (Weltweiter Vergleich)
+- Story 5.1 (Login/Registrierung)
 
 === Could Have (Release 3):
 - Story 3.1, 3.2 (Freunde System)
 - Story 5.2 (Profil Management)
 
 === Features (If Time)
- - Story 4.1, Story 4.2 (Gamification)
+- Story 4.1, Story 4.2 (Gamification)
 
 == Use-Case-Diagramm
 
