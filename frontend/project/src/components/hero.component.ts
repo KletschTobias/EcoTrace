@@ -46,7 +46,7 @@ import { interval, Subscription } from 'rxjs';
             <div class="stat-content">
               <h3>Global CO₂</h3>
               <div class="stat-value">{{ globalStats.co2 | number:'1.0-0' }}</div>
-              <span class="stat-unit">tons today</span>
+              <span class="stat-unit">tons this year</span>
               <div class="stat-trend" [class.increasing]="true">↗ Live</div>
             </div>
           </div>
@@ -55,8 +55,8 @@ import { interval, Subscription } from 'rxjs';
             <div class="stat-icon">⚡</div>
             <div class="stat-content">
               <h3>Energy Usage</h3>
-              <div class="stat-value">{{ globalStats.electricity | number:'1.0-0' }}</div>
-              <span class="stat-unit">MWh today</span>
+              <div class="stat-value">{{ globalStats.electricity | number:'1.2-2' }}</div>
+              <span class="stat-unit">TWh this year</span>
               <div class="stat-trend" [class.increasing]="true">↗ Live</div>
             </div>
           </div>
@@ -66,7 +66,7 @@ import { interval, Subscription } from 'rxjs';
             <div class="stat-content">
               <h3>Water Consumption</h3>
               <div class="stat-value">{{ globalStats.water | number:'1.0-0' }}</div>
-              <span class="stat-unit">M liters today</span>
+              <span class="stat-unit">liters this year</span>
               <div class="stat-trend" [class.increasing]="true">↗ Live</div>
             </div>
           </div>
@@ -321,6 +321,13 @@ export class HeroComponent implements OnInit, OnDestroy {
     electricity: 0,
     water: 0
   };
+
+  // Real-world yearly consumption averages (based on actual global data)
+  private readonly YEARLY_AVERAGES = {
+    co2: 36800000000, // ~36.8 billion tons CO₂ globally per year (IEA data)
+    electricity: 25000, // ~25,000 TWh globally per year (IEA data)
+    water: 4000000000000 // ~4 trillion liters globally per year (based on Worldometers ~4B cubic meters)
+  };
   
   private subscription?: Subscription;
 
@@ -336,12 +343,71 @@ export class HeroComponent implements OnInit, OnDestroy {
 
   initializeTodaysData() {
     const now = new Date();
-    const secondsInDay = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
     
-    // Initialize with current day's accumulated data
-    this.globalStats.co2 = (secondsInDay / 86400) * 45000;
-    this.globalStats.electricity = (secondsInDay / 86400) * 28000000;
-    this.globalStats.water = (secondsInDay / 86400) * 4200000;
+    // Calculate progress through the year (0-1)
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const msElapsedThisYear = now.getTime() - startOfYear.getTime();
+    const secondsElapsedThisYear = msElapsedThisYear / 1000;
+    const secondsInYear = 365 * 24 * 60 * 60;
+    
+    // Calculate realistic accumulated consumption for this year up to now
+    const co2PerSecond = this.YEARLY_AVERAGES.co2 / secondsInYear;
+    const electricityPerSecond = this.YEARLY_AVERAGES.electricity / secondsInYear;
+    const waterPerSecond = this.YEARLY_AVERAGES.water / secondsInYear;
+    
+    // Start with realistic values for how much has been consumed so far this year
+    this.globalStats.co2 = Math.floor(co2PerSecond * secondsElapsedThisYear);
+    this.globalStats.electricity = Math.round((electricityPerSecond * secondsElapsedThisYear) * 100) / 100;
+    this.globalStats.water = Math.floor(waterPerSecond * secondsElapsedThisYear);
+  }
+
+  private getConsumptionPattern(date: Date): number {
+    const hour = date.getHours();
+    
+    // Realistic consumption patterns throughout the day
+    // Peak hours: 8-18 (business hours), Lower at night: 22-6
+    if (hour >= 8 && hour <= 18) {
+      return 1.2; // 20% higher during business hours
+    } else if (hour >= 19 && hour <= 21) {
+      return 1.1; // Evening peak
+    } else if (hour >= 22 || hour <= 5) {
+      return 0.7; // 30% lower during night
+    } else {
+      return 1.0; // Normal consumption
+    }
+  }
+
+  startStatsAnimation() {
+    // Update every 100ms for smooth real-time animation
+    this.subscription = interval(100).subscribe(() => {
+      const now = new Date();
+      
+      // Calculate realistic per-second increments based on yearly consumption
+      const secondsInYear = 365 * 24 * 60 * 60; // ~31.5 million seconds
+      const co2PerSecond = this.YEARLY_AVERAGES.co2 / secondsInYear; // ~1,167 tons per second
+      const electricityPerSecond = this.YEARLY_AVERAGES.electricity / secondsInYear; // ~0.00079 TWh per second
+      const waterPerSecond = this.YEARLY_AVERAGES.water / secondsInYear; // ~126,839 liters per second
+      
+      // Apply time-based consumption patterns
+      const consumptionMultiplier = this.getConsumptionPattern(now);
+      
+      // Add realistic increments every 100ms (0.1 second)
+      const timeIncrement = 0.1; // 100ms = 0.1 seconds
+      
+      // Calculate and add increments with some randomization for realistic variation
+      const co2Increment = co2PerSecond * timeIncrement * consumptionMultiplier * (0.9 + Math.random() * 0.2);
+      const electricityIncrement = electricityPerSecond * timeIncrement * consumptionMultiplier * (0.9 + Math.random() * 0.2);
+      const waterIncrement = waterPerSecond * timeIncrement * consumptionMultiplier * (0.9 + Math.random() * 0.2);
+      
+      this.globalStats.co2 += Math.floor(co2Increment);
+      this.globalStats.electricity += electricityIncrement;
+      this.globalStats.water += Math.floor(waterIncrement);
+      
+      // Ensure values stay realistic and don't go negative
+      this.globalStats.co2 = Math.max(0, this.globalStats.co2);
+      this.globalStats.electricity = Math.max(0, Math.round(this.globalStats.electricity * 100) / 100); // Round to 2 decimals
+      this.globalStats.water = Math.max(0, this.globalStats.water);
+    });
   }
 
   generateParticles() {
@@ -352,26 +418,6 @@ export class HeroComponent implements OnInit, OnDestroy {
         delay: Math.random() * 6
       });
     }
-  }
-
-  startStatsAnimation() {
-    this.subscription = interval(3000).subscribe(() => {
-      // Simulate realistic daily consumption increases
-      const now = new Date();
-      const secondsInDay = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-      
-      // Reset at midnight
-      if (now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() === 0) {
-        this.globalStats.co2 = 0;
-        this.globalStats.electricity = 0;
-        this.globalStats.water = 0;
-      } else {
-        // Simulate realistic daily accumulation
-        this.globalStats.co2 = (secondsInDay / 86400) * 45000 + Math.random() * 100; // Daily CO2 in tons
-        this.globalStats.electricity = (secondsInDay / 86400) * 28000000 + Math.random() * 1000; // Daily electricity in MWh
-        this.globalStats.water = (secondsInDay / 86400) * 4200000 + Math.random() * 500; // Daily water in million liters
-      }
-    });
   }
 
   trackParticle(index: number, particle: any) {
