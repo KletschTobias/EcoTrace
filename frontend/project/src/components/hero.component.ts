@@ -2,6 +2,15 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { interval, Subscription } from 'rxjs';
 
+// Daily consumption targets
+const DAILY_TARGETS = {
+  water: 11_000_000_000_000, // 11 km³ in liters
+  electricity: 75_000_000_000, // 75 billion kWh
+  co2: 100_000_000 // 100 million tonnes
+};
+
+type TimePeriod = 'daily' | 'week' | 'month' | 'year';
+
 @Component({
   selector: 'app-hero',
   standalone: true,
@@ -41,12 +50,32 @@ import { interval, Subscription } from 'rxjs';
         </div>
         
         <div class="hero-stats">
+          <!-- Period Selector -->
+          <div class="period-selector">
+            <button 
+              class="period-btn" 
+              [class.active]="selectedPeriod === 'daily'"
+              (click)="setPeriod('daily')">Daily</button>
+            <button 
+              class="period-btn" 
+              [class.active]="selectedPeriod === 'week'"
+              (click)="setPeriod('week')">Week</button>
+            <button 
+              class="period-btn" 
+              [class.active]="selectedPeriod === 'month'"
+              (click)="setPeriod('month')">Month</button>
+            <button 
+              class="period-btn" 
+              [class.active]="selectedPeriod === 'year'"
+              (click)="setPeriod('year')">Year</button>
+          </div>
+          
           <div class="stat-card co2">
             <div class="stat-icon">🌍</div>
             <div class="stat-content">
               <h3>Global CO₂</h3>
               <div class="stat-value">{{ globalStats.co2 | number:'1.0-0' }}</div>
-              <span class="stat-unit">tons this year</span>
+              <span class="stat-unit">tons {{ periodLabel }}</span>
               <div class="stat-trend" [class.increasing]="true">↗ Live</div>
             </div>
           </div>
@@ -55,8 +84,8 @@ import { interval, Subscription } from 'rxjs';
             <div class="stat-icon">⚡</div>
             <div class="stat-content">
               <h3>Energy Usage</h3>
-              <div class="stat-value">{{ globalStats.electricity | number:'1.2-2' }}</div>
-              <span class="stat-unit">TWh this year</span>
+              <div class="stat-value">{{ globalStats.electricity | number:'1.0-0' }}</div>
+              <span class="stat-unit">kWh {{ periodLabel }}</span>
               <div class="stat-trend" [class.increasing]="true">↗ Live</div>
             </div>
           </div>
@@ -66,7 +95,7 @@ import { interval, Subscription } from 'rxjs';
             <div class="stat-content">
               <h3>Water Consumption</h3>
               <div class="stat-value">{{ globalStats.water | number:'1.0-0' }}</div>
-              <span class="stat-unit">liters this year</span>
+              <span class="stat-unit">liters {{ periodLabel }}</span>
               <div class="stat-trend" [class.increasing]="true">↗ Live</div>
             </div>
           </div>
@@ -218,6 +247,66 @@ import { interval, Subscription } from 'rxjs';
       gap: 1.5rem;
     }
 
+    .period-selector {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      justify-content: center;
+    }
+
+    .period-btn {
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .period-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .period-btn.active {
+      background: linear-gradient(45deg, #4ade80, #22c55e);
+      border-color: #22c55e;
+      box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4);
+    }
+
+    .period-selector {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      justify-content: center;
+    }
+
+    .period-btn {
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .period-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .period-btn.active {
+      background: linear-gradient(45deg, #4ade80, #22c55e);
+      border-color: #22c55e;
+      box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4);
+    }
+
     .stat-card {
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(20px);
@@ -321,44 +410,100 @@ export class HeroComponent implements OnInit, OnDestroy {
     electricity: 0,
     water: 0
   };
-
-  // Real-world yearly consumption averages (based on actual global data)
-  private readonly YEARLY_AVERAGES = {
-    co2: 36800000000, // ~36.8 billion tons CO₂ globally per year (IEA data)
-    electricity: 25000, // ~25,000 TWh globally per year (IEA data)
-    water: 4000000000000 // ~4 trillion liters globally per year (based on Worldometers ~4B cubic meters)
-  };
+  
+  selectedPeriod: TimePeriod = 'daily';
+  periodLabel = 'today';
   
   private subscription?: Subscription;
 
   ngOnInit() {
     this.generateParticles();
-    this.startStatsAnimation();
-    this.initializeTodaysData();
+    this.updateStats();
+    this.subscription = interval(100).subscribe(() => this.updateStats());
   }
 
   ngOnDestroy() {
     this.subscription?.unsubscribe();
   }
 
-  initializeTodaysData() {
+  setPeriod(period: TimePeriod) {
+    this.selectedPeriod = period;
+    this.periodLabel = period === 'daily' ? 'today' : `this ${period}`;
+    this.updateStats();
+  }
+
+  updateStats() {
     const now = new Date();
+    const { progress, totalDays } = this.calculatePeriodProgress(now, this.selectedPeriod);
     
-    // Calculate progress through the year (0-1)
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const msElapsedThisYear = now.getTime() - startOfYear.getTime();
-    const secondsElapsedThisYear = msElapsedThisYear / 1000;
-    const secondsInYear = 365 * 24 * 60 * 60;
+    // Calculate total consumption for the period
+    const periodMultiplier = totalDays;
     
-    // Calculate realistic accumulated consumption for this year up to now
-    const co2PerSecond = this.YEARLY_AVERAGES.co2 / secondsInYear;
-    const electricityPerSecond = this.YEARLY_AVERAGES.electricity / secondsInYear;
-    const waterPerSecond = this.YEARLY_AVERAGES.water / secondsInYear;
-    
-    // Start with realistic values for how much has been consumed so far this year
-    this.globalStats.co2 = Math.floor(co2PerSecond * secondsElapsedThisYear);
-    this.globalStats.electricity = Math.round((electricityPerSecond * secondsElapsedThisYear) * 100) / 100;
-    this.globalStats.water = Math.floor(waterPerSecond * secondsElapsedThisYear);
+    this.globalStats.water = Math.floor(DAILY_TARGETS.water * periodMultiplier * progress);
+    this.globalStats.electricity = Math.floor(DAILY_TARGETS.electricity * periodMultiplier * progress);
+    this.globalStats.co2 = Math.floor(DAILY_TARGETS.co2 * periodMultiplier * progress);
+  }
+
+  private calculatePeriodProgress(now: Date, period: TimePeriod): { progress: number, totalDays: number } {
+    switch (period) {
+      case 'daily': {
+        const startOfDay = new Date(now);
+        startOfDay.setHours(0, 0, 0, 0);
+        
+        const msElapsed = now.getTime() - startOfDay.getTime();
+        const totalMs = 24 * 60 * 60 * 1000; // 24 hours in ms
+        
+        return {
+          progress: msElapsed / totalMs,
+          totalDays: 1
+        };
+      }
+      
+      case 'week': {
+        // Week starts on Monday (1) and ends on Sunday (0)
+        const startOfWeek = new Date(now);
+        const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Monday is start
+        startOfWeek.setDate(now.getDate() - daysToSubtract);
+        startOfWeek.setHours(0, 0, 0, 0);
+        
+        const msElapsed = now.getTime() - startOfWeek.getTime();
+        const totalMs = 7 * 24 * 60 * 60 * 1000; // 7 days in ms
+        
+        return {
+          progress: msElapsed / totalMs,
+          totalDays: 7
+        };
+      }
+      
+      case 'month': {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        
+        const msElapsed = now.getTime() - startOfMonth.getTime();
+        const totalMs = endOfMonth.getTime() - startOfMonth.getTime();
+        
+        return {
+          progress: msElapsed / totalMs,
+          totalDays: endOfMonth.getDate()
+        };
+      }
+      
+      case 'year': {
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const endOfYear = new Date(now.getFullYear() + 1, 0, 0);
+        
+        const msElapsed = now.getTime() - startOfYear.getTime();
+        const totalMs = endOfYear.getTime() - startOfYear.getTime();
+        
+        const isLeapYear = ((now.getFullYear() % 4 === 0) && (now.getFullYear() % 100 !== 0)) || (now.getFullYear() % 400 === 0);
+        
+        return {
+          progress: msElapsed / totalMs,
+          totalDays: isLeapYear ? 366 : 365
+        };
+      }
+    }
   }
 
   private getConsumptionPattern(date: Date): number {
@@ -375,39 +520,6 @@ export class HeroComponent implements OnInit, OnDestroy {
     } else {
       return 1.0; // Normal consumption
     }
-  }
-
-  startStatsAnimation() {
-    // Update every 100ms for smooth real-time animation
-    this.subscription = interval(100).subscribe(() => {
-      const now = new Date();
-      
-      // Calculate realistic per-second increments based on yearly consumption
-      const secondsInYear = 365 * 24 * 60 * 60; // ~31.5 million seconds
-      const co2PerSecond = this.YEARLY_AVERAGES.co2 / secondsInYear; // ~1,167 tons per second
-      const electricityPerSecond = this.YEARLY_AVERAGES.electricity / secondsInYear; // ~0.00079 TWh per second
-      const waterPerSecond = this.YEARLY_AVERAGES.water / secondsInYear; // ~126,839 liters per second
-      
-      // Apply time-based consumption patterns
-      const consumptionMultiplier = this.getConsumptionPattern(now);
-      
-      // Add realistic increments every 100ms (0.1 second)
-      const timeIncrement = 0.1; // 100ms = 0.1 seconds
-      
-      // Calculate and add increments with some randomization for realistic variation
-      const co2Increment = co2PerSecond * timeIncrement * consumptionMultiplier * (0.9 + Math.random() * 0.2);
-      const electricityIncrement = electricityPerSecond * timeIncrement * consumptionMultiplier * (0.9 + Math.random() * 0.2);
-      const waterIncrement = waterPerSecond * timeIncrement * consumptionMultiplier * (0.9 + Math.random() * 0.2);
-      
-      this.globalStats.co2 += Math.floor(co2Increment);
-      this.globalStats.electricity += electricityIncrement;
-      this.globalStats.water += Math.floor(waterIncrement);
-      
-      // Ensure values stay realistic and don't go negative
-      this.globalStats.co2 = Math.max(0, this.globalStats.co2);
-      this.globalStats.electricity = Math.max(0, Math.round(this.globalStats.electricity * 100) / 100); // Round to 2 decimals
-      this.globalStats.water = Math.max(0, this.globalStats.water);
-    });
   }
 
   generateParticles() {
