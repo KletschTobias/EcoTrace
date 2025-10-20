@@ -30,7 +30,7 @@ public class UserRepository implements PanacheRepository<User> {
 
     public UserDto getUserInformation(Long id){
         User user = userRepository.findById(id);
-        return new UserDto(user.firstName, user.lastName, user.email, user.userName);
+        return new UserDto(user);
     }
 
 }

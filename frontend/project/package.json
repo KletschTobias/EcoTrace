@@ -17,7 +17,10 @@
     "ng-zorro-antd": "^20.3.1",
     "rxjs": "^7.8.1",
     "tslib": "^2.5.0",
-    "zone.js": "~0.15.0"
+    "zone.js": "~0.15.0",
+    "chart.js": "^4.4.0",
+    "ng2-charts": "^6.0.1",
+    "date-fns": "^3.0.0"
   },
   "devDependencies": {
     "@angular/build": "^20.0.0",
