@@ -322,11 +322,7 @@ These users have sample activities and are friends with each other.
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+This project is under PROPRIETARY LICENSE.
 
 ---
 
