@@ -1,3 +1,5 @@
+name: eco-tracer
+
 services:
   postgres:
     image: postgres:15
@@ -11,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d appdb"]
+      test: ["CMD-SHELL", "pg_isready -U app -d ET"]
       interval: 10s
       timeout: 5s
       retries: 5

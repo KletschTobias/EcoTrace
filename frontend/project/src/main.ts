@@ -1,14 +1,17 @@
 import { Component } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
-import { HeroComponent } from './components/hero.component';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { RouterOutlet } from '@angular/router';
+import { routes } from './app.routes';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [HeroComponent],
+  imports: [RouterOutlet],
   template: `
     <div class="app">
-      <app-hero></app-hero>
+      <router-outlet></router-outlet>
     </div>
   `,
   styles: [`
@@ -20,4 +23,9 @@ import { HeroComponent } from './components/hero.component';
 export class App {
 }
 
-bootstrapApplication(App);
+bootstrapApplication(App, {
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(withInterceptorsFromDi())
+  ]
+}).catch(err => console.error(err));
