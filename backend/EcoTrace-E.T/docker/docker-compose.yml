@@ -1,3 +1,5 @@
+name: eco-tracer
+
 services:
   postgres:
     image: postgres:15
