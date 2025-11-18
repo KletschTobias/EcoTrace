@@ -33,7 +33,7 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/KletschTobias/EvironmentTracker-ET-.git&quot;,
+    &quot;url&quot;: &quot;https://github.com/KletschTobias/EcoTrace.git&quot;,
     &quot;accountId&quot;: &quot;29e1fdb4-76d1-4908-a3e5-060ca349fd7f&quot;
   }
 }</component>
@@ -56,36 +56,36 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "dev-tobias",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/HTL-Leonding/5CHIF/SYP/Projekt/EnvironmentTracker-ET/EvironmentTracker-ET-/backend/EcoTrace-E.T",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev-tobias&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/HTL-Leonding/5CHIF/SYP/Projekt/EnvironmentTracker-ET/EvironmentTracker-ET-/backend/EcoTrace-E.T&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "postgresql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;
     ],
-    "GitStage.ChangesTree.GroupingKeys": [
-      "directory",
-      "module",
-      "repository"
+    &quot;GitStage.ChangesTree.GroupingKeys&quot;: [
+      &quot;directory&quot;,
+      &quot;module&quot;,
+      &quot;repository&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\HTL-Leonding\5CHIF\SYP\Projekt\EnvironmentTracker-ET\EvironmentTracker-ET-\backend\EcoTrace-E.T" />
@@ -195,8 +195,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.26199.169" />
-        <option value="bundled-js-predefined-d6986cc7102b-9c94529fcfe0-JavaScript-IU-252.26199.169" />
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.27397.103" />
+        <option value="bundled-js-predefined-d6986cc7102b-3aa1da707db6-JavaScript-IU-252.27397.103" />
       </set>
     </attachedChunks>
   </component>
@@ -210,6 +210,7 @@
       <workItem from="1758725244735" duration="1221000" />
       <workItem from="1759302283417" duration="7942000" />
       <workItem from="1759388711837" duration="27000" />
+      <workItem from="1763374629523" duration="7293000" />
     </task>
     <task id="LOCAL-00001" summary="ops: initialize Backend">
       <option name="closed" value="true" />
@@ -219,7 +220,23 @@
       <option name="project" value="LOCAL" />
       <updated>1758726403117</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="change xml files">
+      <option name="closed" value="true" />
+      <created>1762957875343</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1762957875343</updated>
+    </task>
+    <task id="LOCAL-00003" summary="ops: added Keycloak to docker-compose.yml">
+      <option name="closed" value="true" />
+      <created>1763382662508</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1763382662508</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -227,6 +244,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="ops: initialize Backend" />
-    <option name="LAST_COMMIT_MESSAGE" value="ops: initialize Backend" />
+    <MESSAGE value="change xml files" />
+    <MESSAGE value="ops: added Keycloak to docker-compose.yml" />
+    <option name="LAST_COMMIT_MESSAGE" value="ops: added Keycloak to docker-compose.yml" />
   </component>
 </project>

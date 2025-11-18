@@ -7,27 +7,27 @@ import { Friendship, User } from '../models/models';
   providedIn: 'root'
 })
 export class FriendshipService {
-  private apiUrl = 'http://localhost:8080/api/users';
+  private apiUrl = 'http://localhost:8080/api/users/me/friends';
 
   constructor(private http: HttpClient) {}
 
-  getUserFriends(userId: number): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/${userId}/friends`);
+  getUserFriends(): Observable<User[]> {
+    return this.http.get<User[]>(this.apiUrl);
   }
 
-  getUserFriendships(userId: number): Observable<Friendship[]> {
-    return this.http.get<Friendship[]>(`${this.apiUrl}/${userId}/friends/friendships`);
+  getUserFriendships(): Observable<Friendship[]> {
+    return this.http.get<Friendship[]>(`${this.apiUrl}/friendships`);
   }
 
-  getLeaderboard(userId: number): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/${userId}/friends/leaderboard`);
+  getLeaderboard(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/leaderboard`);
   }
 
-  addFriend(userId: number, friendEmail: string): Observable<Friendship> {
-    return this.http.post<Friendship>(`${this.apiUrl}/${userId}/friends`, { friendEmail });
+  addFriend(friendExternalId: string): Observable<Friendship> {
+    return this.http.post<Friendship>(this.apiUrl, { friendExternalId });
   }
 
-  removeFriend(userId: number, friendshipId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${userId}/friends/${friendshipId}`);
+  removeFriend(friendshipId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${friendshipId}`);
   }
 }

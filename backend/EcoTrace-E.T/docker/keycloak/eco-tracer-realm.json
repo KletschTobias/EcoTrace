@@ -440,7 +440,7 @@
           "attributes": {}
         }
       ],
-      "eco-tracer-frontend": []
+      "ecotrace-frontend": []
     }
   },
   "groups": [],
@@ -762,7 +762,7 @@
     },
     {
       "id": "89d311c3-8772-4860-8b81-f89696e8bcf6",
-      "clientId": "eco-tracer-frontend",
+      "clientId": "ecotrace-frontend",
       "name": "Frontend von Eco-Tracer",
       "description": "",
       "rootUrl": "http://localhost:4200",
@@ -773,6 +773,8 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
+        "http://localhost:4200",
+        "http://localhost:4200/",
         "http://localhost:4200/*"
       ],
       "webOrigins": [

@@ -48,15 +48,15 @@ public class FriendshipService {
     }
 
     @Transactional
-    public FriendshipDto addFriend(Long userId, String friendEmail) {
+    public FriendshipDto addFriend(Long userId, String friendExternalId) {
         User user = User.findById(userId);
         if (user == null) {
             throw new NotFoundException("User not found");
         }
 
-        User friend = User.findByEmail(friendEmail);
+        User friend = User.findByExternalId(friendExternalId);
         if (friend == null) {
-            throw new NotFoundException("Friend not found with email: " + friendEmail);
+            throw new NotFoundException("Friend not found with externalId: " + friendExternalId);
         }
 
         if (user.id.equals(friend.id)) {

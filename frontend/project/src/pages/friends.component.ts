@@ -44,13 +44,13 @@ import { User } from '../models/models';
                 <div 
                   class="friend-avatar"
                   [style.background-color]="friend.avatarColor">
-                  {{ friend.fullName?.charAt(0) || friend.email?.charAt(0) }}
+                  {{ friend.externalId.charAt(0) }}
                 </div>
                 <div class="friend-info">
-                  <h3>{{ friend.fullName || 'User' }}</h3>
-                  <p>&#64;{{ friend.username }}</p>
+                  <h3>Friend #{{ friend.id }}</h3>
+                  <p>&#64;user_{{ friend.id }}</p>
                   <div class="friend-stats">
-                    <span>{{ friend.totalCo2?.toFixed(1) || '0.0' }} kg CO₂</span>
+                    <span>{{ friend.totalCo2.toFixed(1) }} kg CO₂</span>
                   </div>
                 </div>
               </div>
@@ -79,11 +79,11 @@ import { User } from '../models/models';
               <div 
                 class="user-avatar"
                 [style.background-color]="user.avatarColor">
-                {{ user.fullName?.charAt(0) || user.email?.charAt(0) }}
+                {{ user.externalId.charAt(0) }}
               </div>
               <div class="user-info">
-                <strong>{{ user.id === currentUser?.id ? 'You' : user.fullName || 'User' }}</strong>
-                <small>{{ user.totalCo2?.toFixed(1) || '0.0' }} kg CO₂</small>
+                <strong>{{ user.id === currentUser?.id ? 'You' : 'User #' + user.id }}</strong>
+                <small>{{ user.totalCo2.toFixed(1) }} kg CO₂</small>
               </div>
             </div>
           </div>
@@ -368,7 +368,7 @@ export class FriendsComponent implements OnInit {
   loadFriends(): void {
     if (!this.currentUser) return;
 
-    this.friendshipService.getUserFriends(this.currentUser.id).subscribe({
+    this.friendshipService.getUserFriends().subscribe({
       next: (friends: User[]) => {
         this.friends = friends;
       },
@@ -379,7 +379,7 @@ export class FriendsComponent implements OnInit {
   loadLeaderboard(): void {
     if (!this.currentUser) return;
 
-    this.friendshipService.getLeaderboard(this.currentUser.id).subscribe({
+    this.friendshipService.getLeaderboard().subscribe({
       next: (users: User[]) => {
         this.leaderboard = users;
       },
@@ -393,13 +393,7 @@ export class FriendsComponent implements OnInit {
     this.isAdding = true;
     this.errorMessage = '';
 
-    if (this.friendEmail === this.currentUser.email) {
-      this.errorMessage = 'You cannot add yourself as a friend!';
-      this.isAdding = false;
-      return;
-    }
-
-    this.friendshipService.addFriend(this.currentUser.id, this.friendEmail).subscribe({
+    this.friendshipService.addFriend(this.friendEmail).subscribe({
       next: () => {
         this.isAdding = false;
         this.friendEmail = '';

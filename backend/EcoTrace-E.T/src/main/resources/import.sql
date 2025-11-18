@@ -35,9 +35,5 @@ INSERT INTO activities (id, name, category, co2_per_unit, water_per_unit, electr
 (nextval('activities_seq'), 'Recycling', 'other', -0.5, 0.0, 0.0, 'kg', '♻️', 'Recycling waste'),
 (nextval('activities_seq'), 'Composting', 'other', -0.3, 0.0, 0.0, 'kg', '🌿', 'Composting organic waste');
 
--- Demo Users
-INSERT INTO users (id, username, email, password, full_name, avatar_color, total_co2, total_water, total_electricity, created_date, updated_date) VALUES
-(nextval('users_seq'), 'demo', 'demo@ecotrace.com', 'demo123', 'Demo User', '#10B981', 45.5, 320.0, 12.5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(nextval('users_seq'), 'john', 'john@example.com', 'pass123', 'John Doe', '#3B82F6', 38.2, 280.0, 10.0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(nextval('users_seq'), 'jane', 'jane@example.com', 'pass123', 'Jane Smith', '#EC4899', 32.8, 250.0, 9.5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-(nextval('users_seq'), 'admin', 'admin@ecotrace.com', 'admin 1234', 'Admin Admin', '#EC4899', 32.8, 250.0, 9.5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+-- NOTE: Users are automatically created via Keycloak OIDC flow and KeycloakUserFilter
+-- when a user logs in for the first time. No need to insert demo users here.

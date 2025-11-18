@@ -1,47 +1,17 @@
 package at.htl.services;
 
-import at.htl.dtos.LoginRequest;
-import at.htl.dtos.RegisterRequest;
 import at.htl.dtos.UserDto;
 import at.htl.entities.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class AuthService {
-
-    @Transactional
-    public UserDto register(RegisterRequest request) {
-        // Check if user already exists
-        if (User.findByEmail(request.email) != null) {
-            throw new BadRequestException("Email already registered");
-        }
-        if (User.findByUsername(request.username) != null) {
-            throw new BadRequestException("Username already taken");
-        }
-
-        User user = new User();
-        user.username = request.username;
-        user.email = request.email;
-        user.password = request.password; // In production, hash this!
-        user.fullName = request.fullName;
-        user.persist();
-
-        return UserDto.from(user);
-    }
-
-    public UserDto login(LoginRequest request) {
-        User user = User.findByEmail(request.email);
-        if (user == null || !user.password.equals(request.password)) {
-            throw new BadRequestException("Invalid credentials");
-        }
-        return UserDto.from(user);
-    }
 
     public UserDto getUserById(Long id) {
         User user = User.findById(id);
@@ -51,8 +21,8 @@ public class AuthService {
         return UserDto.from(user);
     }
 
-    public UserDto getUserByEmail(String email) {
-        User user = User.findByEmail(email);
+    public UserDto getUserByExternalId(String externalId) {
+        User user = User.findByExternalId(externalId);
         if (user == null) {
             throw new NotFoundException("User not found");
         }
@@ -66,27 +36,46 @@ public class AuthService {
     }
 
     @Transactional
-    public UserDto updateUser(Long id, UserDto userDto) {
+    public UserDto updateAvatarColor(Long id, String avatarColor) {
         User user = User.findById(id);
         if (user == null) {
             throw new NotFoundException("User not found");
         }
-
-        if (userDto.fullName != null) user.fullName = userDto.fullName;
-        if (userDto.totalCo2 != null) user.totalCo2 = userDto.totalCo2;
-        if (userDto.totalWater != null) user.totalWater = userDto.totalWater;
-        if (userDto.totalElectricity != null) user.totalElectricity = userDto.totalElectricity;
-
+        user.avatarColor = avatarColor;
         user.persist();
         return UserDto.from(user);
     }
 
     @Transactional
-    public void deleteUser(Long id) {
-        User user = User.findById(id);
-        if (user == null) {
-            throw new NotFoundException("User not found");
+    public void deleteUserByExternalId(String externalId) {
+        User user = User.findByExternalId(externalId);
+        if (user != null) {
+            user.delete();
         }
-        user.delete();
+    }
+
+    /**
+     * Extract current authenticated user from JWT token
+     */
+    public UserDto getCurrentUser(JsonWebToken jwt) {
+        if (jwt == null) {
+            throw new NotFoundException("Not authenticated");
+        }
+        String externalId = jwt.getSubject();
+        if (externalId == null || externalId.isBlank()) {
+            throw new NotFoundException("Invalid JWT token");
+        }
+        User user = User.findByExternalId(externalId);
+        if (user == null) {
+            throw new NotFoundException("User profile not found");
+        }
+        return UserDto.from(user);
+    }
+
+    /**
+     * Get user ID from JWT token (for internal use)
+     */
+    public Long getCurrentUserId(JsonWebToken jwt) {
+        return getCurrentUser(jwt).id;
     }
 }

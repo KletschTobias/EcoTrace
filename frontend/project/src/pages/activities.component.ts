@@ -506,14 +506,14 @@ export class ActivitiesComponent implements OnInit {
     if (!this.user) return;
 
     if (this.selectedCategory === 'all') {
-      this.userActivityService.getUserActivities(this.user.id).subscribe({
+      this.userActivityService.getUserActivities().subscribe({
         next: (activities: UserActivity[]) => {
           this.userActivities = activities;
         },
         error: (error: any) => console.error('Error loading user activities:', error)
       });
     } else {
-      this.userActivityService.getUserActivitiesByCategory(this.user.id, this.selectedCategory).subscribe({
+      this.userActivityService.getUserActivitiesByCategory(this.selectedCategory).subscribe({
         next: (activities: UserActivity[]) => {
           this.userActivities = activities;
         },
@@ -559,21 +559,12 @@ export class ActivitiesComponent implements OnInit {
       date: this.date
     };
 
-    this.userActivityService.createUserActivity(this.user.id, request).subscribe({
+    this.userActivityService.createUserActivity(request).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.showForm = false;
         this.resetForm();
         this.loadUserActivities();
-        
-        // Update user totals
-        if (this.user) {
-          this.authService.updateUser(this.user.id, {
-            totalCo2: (this.user.totalCo2 || 0) + (request.co2Impact || 0),
-            totalWater: (this.user.totalWater || 0) + (request.waterImpact || 0),
-            totalElectricity: (this.user.totalElectricity || 0) + (request.electricityImpact || 0)
-          } as any).subscribe();
-        }
       },
       error: (error: any) => {
         console.error('Error creating activity:', error);
@@ -585,7 +576,7 @@ export class ActivitiesComponent implements OnInit {
   deleteActivity(activityId: number): void {
     if (!this.user || !confirm('Delete this activity?')) return;
 
-    this.userActivityService.deleteUserActivity(this.user.id, activityId).subscribe({
+    this.userActivityService.deleteUserActivity(activityId).subscribe({
       next: () => {
         this.loadUserActivities();
       },

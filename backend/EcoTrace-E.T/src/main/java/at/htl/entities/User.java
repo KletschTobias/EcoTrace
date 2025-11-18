@@ -2,8 +2,6 @@ package at.htl.entities;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
 
@@ -11,21 +9,8 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 public class User extends PanacheEntity {
 
-    @NotBlank(message = "Username is required")
     @Column(unique = true, nullable = false)
-    public String username;
-
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email should be valid")
-    @Column(unique = true, nullable = false)
-    public String email;
-
-    @NotBlank(message = "Password is required")
-    @Column(nullable = false)
-    public String password;
-
-    @Column(name = "full_name")
-    public String fullName;
+    public String externalId; // Keycloak user ID (sub claim from JWT)
 
     @Column(name = "avatar_color")
     public String avatarColor;
@@ -63,11 +48,7 @@ public class User extends PanacheEntity {
     }
 
     // Static methods for queries
-    public static User findByEmail(String email) {
-        return find("email", email).firstResult();
-    }
-
-    public static User findByUsername(String username) {
-        return find("username", username).firstResult();
+    public static User findByExternalId(String externalId) {
+        return find("externalId", externalId).firstResult();
     }
 }

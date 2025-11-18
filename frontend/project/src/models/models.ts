@@ -1,8 +1,6 @@
 export interface User {
   id: number;
-  username: string;
-  email: string;
-  fullName: string;
+  externalId: string;  // Keycloak user ID (sub claim)
   avatarColor: string;
   totalCo2: number;
   totalWater: number;

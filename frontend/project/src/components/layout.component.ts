@@ -17,7 +17,7 @@ import { User } from '../models/models';
             <span class="logo-text">EcoTrace</span>
           </div>
 
-          <nav class="nav">
+          <nav class="nav" *ngIf="isAuthenticated">
             <a 
               routerLink="/dashboard" 
               routerLinkActive="active"
@@ -39,20 +39,45 @@ import { User } from '../models/models';
           </nav>
 
           <div class="user-menu">
-            <div class="user-info">
-              <div 
-                class="user-avatar"
-                [style.background-color]="currentUser?.avatarColor">
-                {{ currentUser?.fullName?.charAt(0) || currentUser?.email?.charAt(0) }}
+            <ng-container *ngIf="isAuthenticated">
+              <div class="user-info">
+                <div 
+                  class="user-avatar"
+                  [style.background-color]="currentUser?.avatarColor"
+                  (click)="openProfileMenu()">
+                  {{ (currentUser?.externalId ?? 'U')[0]?.toUpperCase() }}
+                </div>
+                <div class="user-details">
+                  <strong>{{ currentUser?.externalId || 'User' }}</strong>
+                  <small>ID: {{ currentUser?.id }}</small>
+                </div>
               </div>
-              <div class="user-details">
-                <strong>{{ currentUser?.fullName || 'User' }}</strong>
-                <small>{{ currentUser?.email }}</small>
+
+              <div class="dropdown-menu" *ngIf="profileMenuOpen">
+                <button class="dropdown-btn" (click)="openProfileEdit()">
+                  ⚙️ Edit Profile
+                </button>
+                <button class="dropdown-btn danger" (click)="deleteAccount()">
+                  🗑️ Delete Account
+                </button>
+                <button class="dropdown-btn" (click)="logout()">
+                  🚪 Logout
+                </button>
               </div>
-            </div>
-            <button class="btn-logout" (click)="logout()">
-              🚪 Logout
-            </button>
+
+              <button class="btn-logout" (click)="toggleProfileMenu()">
+                ⋮
+              </button>
+            </ng-container>
+
+            <ng-container *ngIf="!isAuthenticated">
+              <button class="btn-login" (click)="login()">
+                🔓 Login
+              </button>
+              <button class="btn-register" (click)="register()">
+                📝 Register
+              </button>
+            </ng-container>
           </div>
         </div>
       </header>
@@ -156,6 +181,7 @@ import { User } from '../models/models';
       display: flex;
       align-items: center;
       gap: 1rem;
+      position: relative;
     }
 
     .user-info {
@@ -174,6 +200,12 @@ import { User } from '../models/models';
       color: white;
       font-weight: bold;
       font-size: 1.25rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .user-avatar:hover {
+      transform: scale(1.1);
     }
 
     .user-details {
@@ -191,9 +223,52 @@ import { User } from '../models/models';
       font-size: 0.75rem;
     }
 
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      min-width: 180px;
+      margin-top: 0.5rem;
+    }
+
+    .dropdown-btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: none;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      font-weight: 500;
+      color: #374151;
+      transition: all 0.2s;
+      border-bottom: 1px solid #f3f4f6;
+    }
+
+    .dropdown-btn:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-btn:hover {
+      background: #f9fafb;
+      color: #10B981;
+    }
+
+    .dropdown-btn.danger:hover {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .btn-login,
+    .btn-register,
     .btn-logout {
       padding: 0.75rem 1.5rem;
-      background: #ef4444;
+      background: #10B981;
       color: white;
       border: none;
       border-radius: 0.5rem;
@@ -202,9 +277,28 @@ import { User } from '../models/models';
       transition: all 0.2s;
     }
 
+    .btn-logout {
+      background: #ef4444;
+      padding: 0.75rem 1rem;
+      font-size: 1.2rem;
+    }
+
     .btn-logout:hover {
       background: #dc2626;
+    }
+
+    .btn-login:hover,
+    .btn-register:hover {
+      background: #059669;
       transform: translateY(-2px);
+    }
+
+    .btn-register {
+      background: #06B6D4;
+    }
+
+    .btn-register:hover {
+      background: #0891b2;
     }
 
     .main-content {
@@ -283,13 +377,15 @@ import { User } from '../models/models';
 
       .btn-logout {
         padding: 0.5rem 1rem;
-        font-size: 0.875rem;
+        font-size: 1rem;
       }
     }
   `]
 })
 export class LayoutComponent implements OnInit {
   currentUser: User | null = null;
+  isAuthenticated = false;
+  profileMenuOpen = false;
 
   constructor(
     private authService: AuthService,
@@ -297,15 +393,53 @@ export class LayoutComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.isAuthenticated = this.authService.isAuthenticated();
     this.currentUser = this.authService.getCurrentUser();
+
+    // Subscribe to user changes
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.isAuthenticated = this.authService.isAuthenticated();
+    });
   }
 
   navigateTo(path: string): void {
     this.router.navigate([path]);
+    this.profileMenuOpen = false;
+  }
+
+  login(): void {
+    this.authService.login();
+  }
+
+  register(): void {
+    this.authService.register();
   }
 
   logout(): void {
     this.authService.logout();
+    this.profileMenuOpen = false;
     this.router.navigate(['/']);
+  }
+
+  toggleProfileMenu(): void {
+    this.profileMenuOpen = !this.profileMenuOpen;
+  }
+
+  openProfileMenu(): void {
+    this.profileMenuOpen = true;
+  }
+
+  openProfileEdit(): void {
+    this.router.navigate(['/profile']);
+    this.profileMenuOpen = false;
+  }
+
+  deleteAccount(): void {
+    if (confirm('⚠️ Are you sure you want to delete your account? This cannot be undone!')) {
+      this.authService.deleteAccount();
+      this.router.navigate(['/']);
+    }
+    this.profileMenuOpen = false;
   }
 }

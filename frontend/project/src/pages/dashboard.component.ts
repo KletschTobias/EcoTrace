@@ -4,6 +4,7 @@ import { AuthService } from '../services/auth.service';
 import { UserActivityService } from '../services/user-activity.service';
 import { User, Stats, UserActivity } from '../models/models';
 import { format, subDays, startOfDay } from 'date-fns';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -12,7 +13,7 @@ import { format, subDays, startOfDay } from 'date-fns';
   template: `
     <div class="dashboard-container">
       <div class="dashboard-header">
-        <h1>Welcome back, {{ user?.fullName || 'Eco Warrior' }}! 🌱</h1>
+        <h1>Welcome back, Eco Warrior! 🌱</h1>
         <p>Here's your environmental impact summary</p>
       </div>
 
@@ -29,6 +30,8 @@ import { format, subDays, startOfDay } from 'date-fns';
 
       <!-- Stats Overview -->
       <div class="stats-grid">
+        <div *ngIf="isLoading" class="loading-state">Loading your data...</div>
+        <ng-container *ngIf="!isLoading">
         <div class="stat-card co2">
           <div class="stat-icon">🌍</div>
           <div class="stat-content">
@@ -55,6 +58,7 @@ import { format, subDays, startOfDay } from 'date-fns';
             <span class="stat-unit">kWh</span>
           </div>
         </div>
+        </ng-container>
       </div>
 
       <!-- Comparison -->
@@ -356,6 +360,20 @@ import { format, subDays, startOfDay } from 'date-fns';
       font-style: italic;
     }
 
+    .loading-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 2rem;
+      color: #6b7280;
+      font-size: 1.125rem;
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
     @media (max-width: 768px) {
       .dashboard-container {
         padding: 1rem;
@@ -386,6 +404,7 @@ export class DashboardComponent implements OnInit {
   stats: Stats = { co2: 0, water: 0, electricity: 0 };
   recentActivities: UserActivity[] = [];
   selectedRange = 'today';
+  isLoading = true;
 
   dateRanges = [
     { value: 'today', label: 'Today' },
@@ -413,22 +432,23 @@ export class DashboardComponent implements OnInit {
   loadData(): void {
     if (!this.user) return;
 
+    this.isLoading = true;
     const { startDate, endDate } = this.getDateRange();
 
-    // Load stats
-    this.userActivityService.getUserStats(this.user.id, startDate, endDate).subscribe({
-      next: (stats) => {
-        this.stats = stats;
+    // Load stats and activities in parallel
+    forkJoin({
+      stats: this.userActivityService.getUserStats(startDate, endDate),
+      activities: this.userActivityService.getUserActivitiesByDateRange(startDate, endDate)
+    }).subscribe({
+      next: (result) => {
+        this.stats = result.stats;
+        this.recentActivities = result.activities.slice(0, 10);
+        this.isLoading = false;
       },
-      error: (error) => console.error('Error loading stats:', error)
-    });
-
-    // Load recent activities
-    this.userActivityService.getUserActivitiesByDateRange(this.user.id, startDate, endDate).subscribe({
-      next: (activities) => {
-        this.recentActivities = activities.slice(0, 10);
-      },
-      error: (error) => console.error('Error loading activities:', error)
+      error: (error) => {
+        console.error('Error loading data:', error);
+        this.isLoading = false;
+      }
     });
   }
 

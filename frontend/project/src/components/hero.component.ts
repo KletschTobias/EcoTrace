@@ -840,36 +840,30 @@ export class HeroComponent implements OnInit, OnDestroy {
   }
 
   login(): void {
-    this.isLoading = true;
     this.errorMessage = '';
-
-    this.authService.login(this.loginData).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.showAuthModal = false;
-        this.router.navigate(['/dashboard']);
-      },
-      error: (error: any) => {
-        this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Login failed. Please try again.';
-      }
-    });
+    this.isLoading = true;
+    
+    // Redirect to Keycloak login
+    try {
+      this.authService.login();
+    } catch (error) {
+      console.error('Login error:', error);
+      this.isLoading = false;
+      this.errorMessage = 'Failed to initiate login. Please try again.';
+    }
   }
 
   register(): void {
-    this.isLoading = true;
     this.errorMessage = '';
-
-    this.authService.register(this.registerData).subscribe({
-      next: () => {
-        this.isLoading = false;
-        this.showAuthModal = false;
-        this.router.navigate(['/dashboard']);
-      },
-      error: (error: any) => {
-        this.isLoading = false;
-        this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
-      }
-    });
+    this.isLoading = true;
+    
+    // Redirect to Keycloak registration
+    try {
+      this.authService.register();
+    } catch (error) {
+      console.error('Registration error:', error);
+      this.isLoading = false;
+      this.errorMessage = 'Failed to initiate registration. Please try again.';
+    }
   }
 }

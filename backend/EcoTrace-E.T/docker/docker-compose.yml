@@ -1,9 +1,9 @@
-name: eco-trace
+name: eco-tracer
 
 services:
   postgres:
     image: postgres:15
-    container_name: postgres-eco-tracke
+    container_name: postgres-eco-tracker
     environment:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: app
@@ -22,7 +22,7 @@ services:
   keycloak:
     build:
       context: ./keycloak
-    container_name: keycloak-E
+    container_name: keycloak-ET
     command:
         - start-dev
         - --import-realm
