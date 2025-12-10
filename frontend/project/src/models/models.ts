@@ -4,6 +4,10 @@ export interface User {
   email: string;
   fullName: string;
   avatarColor: string;
+  profileImageUrl?: string;
+  biography?: string;
+  hasSolarPanels?: boolean;
+  hasHeatPump?: boolean;
   totalCo2: number;
   totalWater: number;
   totalElectricity: number;
