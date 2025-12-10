@@ -8,6 +8,10 @@ public class UserDto {
     public String email;
     public String fullName;
     public String avatarColor;
+    public String profileImageUrl;
+    public String biography;
+    public Boolean hasSolarPanels;
+    public Boolean hasHeatPump;
     public Double totalCo2;
     public Double totalWater;
     public Double totalElectricity;
@@ -20,6 +24,10 @@ public class UserDto {
         this.email = user.email;
         this.fullName = user.fullName;
         this.avatarColor = user.avatarColor;
+        this.profileImageUrl = user.profileImageUrl;
+        this.biography = user.biography;
+        this.hasSolarPanels = user.hasSolarPanels;
+        this.hasHeatPump = user.hasHeatPump;
         this.totalCo2 = user.totalCo2;
         this.totalWater = user.totalWater;
         this.totalElectricity = user.totalElectricity;

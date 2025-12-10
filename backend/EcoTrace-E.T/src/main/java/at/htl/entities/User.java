@@ -30,6 +30,18 @@ public class User extends PanacheEntity {
     @Column(name = "avatar_color")
     public String avatarColor;
 
+    @Column(name = "profile_image_url")
+    public String profileImageUrl;
+
+    @Column(name = "biography", length = 500)
+    public String biography;
+
+    @Column(name = "has_solar_panels")
+    public Boolean hasSolarPanels = false;
+
+    @Column(name = "has_heat_pump")
+    public Boolean hasHeatPump = false;
+
     @Column(name = "total_co2")
     public Double totalCo2 = 0.0;
 
