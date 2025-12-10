@@ -40,3 +40,18 @@ INSERT INTO users (id, username, email, password, full_name, avatar_color, total
 (nextval('users_seq'), 'demo', 'demo@ecotrace.com', 'demo123', 'Demo User', '#10B981', 45.5, 320.0, 12.5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (nextval('users_seq'), 'john', 'john@example.com', 'pass123', 'John Doe', '#3B82F6', 38.2, 280.0, 10.0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
 (nextval('users_seq'), 'jane', 'jane@example.com', 'pass123', 'Jane Smith', '#EC4899', 32.8, 250.0, 9.5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+-- Bot users for global leaderboard (worldwide eco warriors)
+INSERT INTO users (id, username, email, password, full_name, avatar_color, total_co2, total_water, total_electricity, created_date, updated_date, has_solar_panels, has_heat_pump) VALUES
+(nextval('users_seq'), 'eco_viking', 'bot1@ecotrace.bot', 'botpass', 'Erik Nordstrom', '#10B981', 4.2, 85.0, 2.1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, false),
+(nextval('users_seq'), 'green_lotus', 'bot2@ecotrace.bot', 'botpass', 'Yuki Tanaka', '#6366F1', 5.8, 92.0, 2.8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, true),
+(nextval('users_seq'), 'sustainable_sam', 'bot3@ecotrace.bot', 'botpass', 'Sam Wilson', '#F59E0B', 7.3, 110.0, 3.5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, false),
+(nextval('users_seq'), 'earth_guardian', 'bot4@ecotrace.bot', 'botpass', 'Maria Santos', '#EC4899', 6.1, 98.0, 2.9, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, true),
+(nextval('users_seq'), 'climate_hero', 'bot5@ecotrace.bot', 'botpass', 'Alex Chen', '#8B5CF6', 8.5, 125.0, 4.2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, false),
+(nextval('users_seq'), 'eco_warrior', 'bot6@ecotrace.bot', 'botpass', 'Lena Mueller', '#14B8A6', 5.2, 88.0, 2.4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, false),
+(nextval('users_seq'), 'planet_saver', 'bot7@ecotrace.bot', 'botpass', 'Marco Rossi', '#F43F5E', 9.8, 145.0, 5.1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, false),
+(nextval('users_seq'), 'green_ninja', 'bot8@ecotrace.bot', 'botpass', 'Aiko Yamamoto', '#22C55E', 4.8, 82.0, 2.2, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, true),
+(nextval('users_seq'), 'eco_pioneer', 'bot9@ecotrace.bot', 'botpass', 'Emma Johnson', '#3B82F6', 6.7, 105.0, 3.1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, true),
+(nextval('users_seq'), 'nature_friend', 'bot10@ecotrace.bot', 'botpass', 'Pierre Dubois', '#EAB308', 7.9, 118.0, 3.8, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, false),
+(nextval('users_seq'), 'carbon_cutter', 'bot11@ecotrace.bot', 'botpass', 'Sofia Andersson', '#06B6D4', 5.5, 90.0, 2.6, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, false),
+(nextval('users_seq'), 'eco_champion', 'bot12@ecotrace.bot', 'botpass', 'Lucas Schmidt', '#A855F7', 8.2, 130.0, 4.5, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, false, true);
