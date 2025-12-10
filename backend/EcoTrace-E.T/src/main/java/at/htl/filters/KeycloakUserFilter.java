@@ -19,31 +19,21 @@ public class KeycloakUserFilter implements ContainerRequestFilter {
     @Inject
     JsonWebToken jwt;
 
-
     @Override
-    @Transactional
     public void filter(ContainerRequestContext requestContext) {
         if (jwt == null) {
             return;
         }
 
-        try {
-            // Extract Keycloak subject (sub claim) as externalId
-            String externalId = jwt.getSubject();
-            if (externalId == null || externalId.isBlank()) {
-                return;
-            }
-
-            // If user does not exist, create lightweight local profile with only externalId
-            User existing = User.findByExternalId(externalId);
-            if (existing == null) {
-                User u = new User();
-                u.externalId = externalId;
-                // avatarColor will be auto-generated in @PrePersist
-                u.persist();
-            }
-        } catch (Exception ex) {
-            // Don't block request on provisioning errors
+        // Extract Keycloak subject (sub claim) as externalId
+        String externalId = jwt.getSubject();
+        if (externalId == null || externalId.isBlank()) {
+            return;
         }
+
+        // Check if user exists - if not, they will be auto-created by AuthService.getCurrentUser()
+        // We don't create here to avoid duplicate key race conditions
+        User existing = User.findByExternalId(externalId);
+        // User will be created on-demand by first authenticated endpoint call
     }
 }

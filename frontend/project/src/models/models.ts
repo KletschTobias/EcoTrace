@@ -5,6 +5,10 @@ export interface User {
   totalCo2: number;
   totalWater: number;
   totalElectricity: number;
+  // Optional profile fields (from Keycloak token)
+  username?: string;
+  email?: string;
+  fullName?: string;
 }
 
 export interface Activity {

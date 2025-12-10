@@ -13,6 +13,13 @@ import { format } from 'date-fns';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="activities-container">
+      <!-- Loading Spinner -->
+      <div *ngIf="isLoading" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading activities...</p>
+      </div>
+
+      <div *ngIf="!isLoading" class="activities-content">
       <div class="activities-header">
         <div>
           <h1>Track Your Activities</h1>
@@ -143,6 +150,7 @@ import { format } from 'date-fns';
           <p class="no-data">No activities logged yet. Click "Log Activity" to get started!</p>
         </ng-template>
       </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -150,6 +158,42 @@ import { format } from 'date-fns';
       max-width: 1200px;
       margin: 0 auto;
       padding: 2rem;
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      gap: 1rem;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #10B981;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-container p {
+      color: #6b7280;
+      font-size: 1rem;
+    }
+
+    .activities-content {
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .activities-header {
@@ -468,6 +512,7 @@ export class ActivitiesComponent implements OnInit {
   date = format(new Date(), 'yyyy-MM-dd');
   selectedCategory = 'all';
   isSubmitting = false;
+  isLoading = true;
 
   categories = [
     { value: 'all', label: 'All', icon: '📋' },
@@ -485,41 +530,52 @@ export class ActivitiesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.user = this.authService.getCurrentUser();
-    if (this.user) {
-      this.loadActivities();
-      this.loadUserActivities();
-    }
-  }
-
-  loadActivities(): void {
+    // Load all activities once at start
     this.activityService.getAllActivities().subscribe({
       next: (activities: Activity[]) => {
         this.activities = activities;
         this.filteredActivities = activities;
       },
-      error: (error: any) => console.error('Error loading activities:', error)
+      error: (error: any) => {
+        console.error('Error loading activities:', error);
+        this.activities = [];
+        this.filteredActivities = [];
+      }
     });
-  }
 
-  loadUserActivities(): void {
-    if (!this.user) return;
+    // Subscribe to currentUser$ and load user activities
+    this.authService.currentUser$.subscribe(user => {
+      if (!user) {
+        this.isLoading = false;
+        return;
+      }
+      
+      this.user = user;
+      this.isLoading = true;
+      
+      // Check if user just registered (no activities created yet)
+      const isNewUser = !user.totalCo2 && !user.totalWater && !user.totalElectricity;
+      
+      if (isNewUser) {
+        // Neuer User nach Registration - zeige sofort leere Liste
+        this.userActivities = [];
+        this.isLoading = false;
+        return;
+      }
 
-    if (this.selectedCategory === 'all') {
+      // Load user activities
       this.userActivityService.getUserActivities().subscribe({
         next: (activities: UserActivity[]) => {
           this.userActivities = activities;
+          this.isLoading = false;
         },
-        error: (error: any) => console.error('Error loading user activities:', error)
+        error: (error: any) => {
+          console.error('Error loading user activities:', error);
+          this.userActivities = [];
+          this.isLoading = false;
+        }
       });
-    } else {
-      this.userActivityService.getUserActivitiesByCategory(this.selectedCategory).subscribe({
-        next: (activities: UserActivity[]) => {
-          this.userActivities = activities;
-        },
-        error: (error: any) => console.error('Error loading user activities:', error)
-      });
-    }
+    });
   }
 
   filterActivities(): void {
@@ -541,7 +597,22 @@ export class ActivitiesComponent implements OnInit {
 
   filterByCategory(category: string): void {
     this.selectedCategory = category;
-    this.loadUserActivities();
+    
+    if (this.selectedCategory === 'all') {
+      this.userActivityService.getUserActivities().subscribe({
+        next: (activities: UserActivity[]) => {
+          this.userActivities = activities;
+        },
+        error: (error: any) => console.error('Error loading user activities:', error)
+      });
+    } else {
+      this.userActivityService.getUserActivitiesByCategory(this.selectedCategory).subscribe({
+        next: (activities: UserActivity[]) => {
+          this.userActivities = activities;
+        },
+        error: (error: any) => console.error('Error loading user activities:', error)
+      });
+    }
   }
 
   submitActivity(): void {
@@ -564,7 +635,22 @@ export class ActivitiesComponent implements OnInit {
         this.isSubmitting = false;
         this.showForm = false;
         this.resetForm();
-        this.loadUserActivities();
+        // Reload user activities
+        if (this.selectedCategory === 'all') {
+          this.userActivityService.getUserActivities().subscribe({
+            next: (activities: UserActivity[]) => {
+              this.userActivities = activities;
+            },
+            error: (error: any) => console.error('Error loading user activities:', error)
+          });
+        } else {
+          this.userActivityService.getUserActivitiesByCategory(this.selectedCategory).subscribe({
+            next: (activities: UserActivity[]) => {
+              this.userActivities = activities;
+            },
+            error: (error: any) => console.error('Error loading user activities:', error)
+          });
+        }
       },
       error: (error: any) => {
         console.error('Error creating activity:', error);
@@ -578,7 +664,22 @@ export class ActivitiesComponent implements OnInit {
 
     this.userActivityService.deleteUserActivity(activityId).subscribe({
       next: () => {
-        this.loadUserActivities();
+        // Reload user activities
+        if (this.selectedCategory === 'all') {
+          this.userActivityService.getUserActivities().subscribe({
+            next: (activities: UserActivity[]) => {
+              this.userActivities = activities;
+            },
+            error: (error: any) => console.error('Error loading user activities:', error)
+          });
+        } else {
+          this.userActivityService.getUserActivitiesByCategory(this.selectedCategory).subscribe({
+            next: (activities: UserActivity[]) => {
+              this.userActivities = activities;
+            },
+            error: (error: any) => console.error('Error loading user activities:', error)
+          });
+        }
       },
       error: (error: any) => console.error('Error deleting activity:', error)
     });

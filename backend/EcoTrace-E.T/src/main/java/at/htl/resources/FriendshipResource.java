@@ -17,7 +17,7 @@ import java.util.Map;
 @Path("/api/users/me/friends")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed("ROLE_USER")
+@RolesAllowed({"ROLE_USER", "et-user"})
 public class FriendshipResource {
 
     @Inject

@@ -29,9 +29,19 @@ export class App {
 // Initialize Keycloak client
 const keycloak = new Keycloak({
   url: 'http://localhost:8081',
-  realm: 'eco-tracer',
+  realm: 'Eco-Tracer',
   clientId: 'ecotrace-frontend'
 });
+
+function logStorageState(label: string) {
+  const sessionKeys = Object.keys(sessionStorage);
+  const kcKeys = sessionKeys.filter(k => k.toLowerCase().includes('kc'));
+  console.log(`[Keycloak][${label}] sessionStorage keys (${kcKeys.length}):`, kcKeys);
+  const stateKey = kcKeys.find(k => k.includes('state') || k.includes('nonce'));
+  if (stateKey) {
+    console.log(`[Keycloak][${label}] sample key '${stateKey}' value:`, sessionStorage.getItem(stateKey));
+  }
+}
 
 // Start app immediately, Keycloak initializes in background
 function startApp(kc: any) {
@@ -45,14 +55,46 @@ function startApp(kc: any) {
   }).catch((err: any) => console.error(err));
 }
 
-// Try to initialize Keycloak but don't wait
-keycloak.init({ onLoad: 'check-sso', pkceMethod: 'S256', silentCheckSsoRedirectUri: window.location.origin + '/assets/silent-check-sso.html' })
+// Start app immediately without waiting for Keycloak
+console.log('[App] Starting Angular app immediately (Keycloak loading in background)...');
+
+// Initialize Keycloak with standard flow (Authorization Code) 
+console.log('[Keycloak] Attempting to initialize...');
+
+const initialUrl = window.location.href;
+console.log('[Keycloak] Initial URL:', initialUrl);
+
+// Log storage state before init to diagnose nonce loss
+logStorageState('before-init');
+console.log('[Keycloak][before-init] kc.authenticated =', keycloak.authenticated, 'token?', !!keycloak.token);
+
+keycloak.init({
+  onLoad: 'check-sso',
+  pkceMethod: 'S256',
+  enableLogging: true,
+  redirectUri: window.location.origin + '/activities',
+  adapter: 'default',
+  // Default responseMode (fragment) + standard flow
+  responseMode: 'fragment',
+  flow: 'standard',
+  // Temporär: Nonce-Validierung ausschalten, weil SessionStorage den Nonce verliert
+  useNonce: false,
+  // Reduziert Nebenpfade, die Storage beeinflussen können
+  checkLoginIframe: false
+})
   .then((authenticated) => {
-    console.log('Keycloak initialized. Authenticated:', authenticated);
+    console.log('[Keycloak] ✅ Init success. Authenticated:', authenticated);
+    console.log('[Keycloak] Token exists:', !!keycloak.token);
+    logStorageState('after-init-success');
+    if (authenticated || keycloak.token) {
+      console.log('[Keycloak] ✅ User is authenticated!');
+      console.log('[Keycloak] User:', keycloak.idTokenParsed?.['sub'] || 'N/A');
+    }
+    startApp(keycloak);
   })
   .catch((error) => {
-    console.warn('Keycloak init failed:', error);
+    console.warn('[Keycloak] ❌ Init failed:', error);
+    console.log('[Keycloak] Token available?', !!keycloak.token);
+    logStorageState('after-init-failure');
+    startApp(keycloak);
   });
-
-// Start app immediately without waiting for Keycloak
-startApp(keycloak);

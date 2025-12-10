@@ -43,13 +43,13 @@ import { User } from '../models/models';
               <div class="user-info">
                 <div 
                   class="user-avatar"
-                  [style.background-color]="currentUser?.avatarColor"
-                  (click)="openProfileMenu()">
-                  {{ (currentUser?.externalId ?? 'U')[0]?.toUpperCase() }}
+                  [style.background-color]="currentUser?.avatarColor || '#10B981'"
+                  (click)="toggleProfileMenu()">
+                  {{ ((currentUser?.username || currentUser?.fullName || currentUser?.externalId || '').charAt(0) || '?').toUpperCase() }}
                 </div>
                 <div class="user-details">
-                  <strong>{{ currentUser?.externalId || 'User' }}</strong>
-                  <small>ID: {{ currentUser?.id }}</small>
+                  <strong>{{ currentUser?.username || currentUser?.fullName || currentUser?.externalId || '' }}</strong>
+                  <small>{{ currentUser?.email || currentUser?.externalId || '' }}</small>
                 </div>
               </div>
 
@@ -64,10 +64,6 @@ import { User } from '../models/models';
                   🚪 Logout
                 </button>
               </div>
-
-              <button class="btn-logout" (click)="toggleProfileMenu()">
-                ⋮
-              </button>
             </ng-container>
 
             <ng-container *ngIf="!isAuthenticated">

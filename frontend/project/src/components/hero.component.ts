@@ -107,107 +107,25 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
       
       <!-- Auth Modal -->
       <div class="modal-overlay" *ngIf="showAuthModal" (click)="showAuthModal = false">
-        <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-content auth-modal" (click)="$event.stopPropagation()">
           <button class="close-btn" (click)="showAuthModal = false">✕</button>
           
-          <div class="auth-tabs">
-            <button 
-              class="tab-btn"
-              [class.active]="authMode === 'login'"
-              (click)="authMode = 'login'">Login</button>
-            <button 
-              class="tab-btn"
-              [class.active]="authMode === 'register'"
-              (click)="authMode = 'register'">Register</button>
-          </div>
-
-          <!-- Login Form -->
-          <form *ngIf="authMode === 'login'" (ngSubmit)="login()" class="auth-form">
-            <h2>Welcome Back!</h2>
-            <p class="form-subtitle">Sign in to continue tracking your impact</p>
-            
-            <div class="form-group">
-              <label>Email</label>
-              <input 
-                type="email" 
-                [(ngModel)]="loginData.email"
-                name="loginEmail"
-                placeholder="your@email.com"
-                required>
+          <div class="auth-modal-simple">
+            <div class="modal-buttons">
+              <button class="modal-btn login-btn" (click)="authService.login()">
+                🔓 Login
+              </button>
+              <button class="modal-btn register-btn" (click)="authService.register()">
+                📝 Register
+              </button>
             </div>
             
-            <div class="form-group">
-              <label>Password</label>
-              <input 
-                type="password" 
-                [(ngModel)]="loginData.password"
-                name="loginPassword"
-                placeholder="••••••••"
-                required>
-            </div>
-
-            <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
-
-            <button type="submit" class="submit-btn" [disabled]="isLoading">
-              {{ isLoading ? 'Signing in...' : 'Sign In' }}
-            </button>
-
-            <p class="demo-hint">
-              💡 Try demo account: <strong>demo&#64;ecotrace.com</strong> / <strong>demo123</strong>
+            <p class="modal-demo-info">
+              <strong>Try Demo Accounts:</strong><br>
+              <strong>User:</strong> demo&#64;ecotrace.com / app<br>
+              <strong>Admin:</strong> admin&#64;ecotrace.com / pass
             </p>
-          </form>
-
-          <!-- Register Form -->
-          <form *ngIf="authMode === 'register'" (ngSubmit)="register()" class="auth-form">
-            <h2>Join EcoTrace</h2>
-            <p class="form-subtitle">Start your journey to a sustainable future</p>
-            
-            <div class="form-group">
-              <label>Full Name</label>
-              <input 
-                type="text" 
-                [(ngModel)]="registerData.fullName"
-                name="registerFullName"
-                placeholder="John Doe"
-                required>
-            </div>
-
-            <div class="form-group">
-              <label>Username</label>
-              <input 
-                type="text" 
-                [(ngModel)]="registerData.username"
-                name="registerUsername"
-                placeholder="johndoe"
-                required>
-            </div>
-            
-            <div class="form-group">
-              <label>Email</label>
-              <input 
-                type="email" 
-                [(ngModel)]="registerData.email"
-                name="registerEmail"
-                placeholder="your@email.com"
-                required>
-            </div>
-            
-            <div class="form-group">
-              <label>Password</label>
-              <input 
-                type="password" 
-                [(ngModel)]="registerData.password"
-                name="registerPassword"
-                placeholder="••••••••"
-                required>
-            </div>
-
-            <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
-
-            <button type="submit" class="submit-btn" [disabled]="isLoading">
-              {{ isLoading ? 'Creating Account...' : 'Create Account' }}
-            </button>
-          </form>
+          </div>
         </div>
       </div>
     </section>
@@ -324,7 +242,9 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
 
     .cta-buttons {
       display: flex;
+      gap: 1rem;
       justify-content: flex-start;
+      margin-bottom: 1rem;
     }
 
     .btn-primary, .btn-secondary {
@@ -348,6 +268,34 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
     .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(74, 222, 128, 0.6);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .demo-account-info {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(74, 222, 128, 0.1);
+      border-left: 3px solid #4ade80;
+      border-radius: 8px;
+    }
+
+    .demo-account-info strong {
+      color: #4ade80;
+      font-weight: 600;
     }
 
     .hero-stats {
@@ -663,6 +611,79 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
       color: #10B981;
     }
 
+    /* Simple Auth Modal Styles */
+    .auth-modal {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 2px solid rgba(16, 185, 129, 0.2);
+      max-width: 500px;
+    }
+
+    .auth-modal-simple {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding-top: 1rem;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 1.2rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .login-btn {
+      background: linear-gradient(135deg, #22C55E, #16A34A);
+      color: white;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+    }
+
+    .register-btn {
+      background: linear-gradient(135deg, #60A5FA, #3B82F6);
+      color: white;
+    }
+
+    .register-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(96, 165, 250, 0.3);
+    }
+
+    .modal-demo-info {
+      text-align: left;
+      font-size: 0.875rem;
+      color: #1f2937;
+      background: linear-gradient(135deg, #dbeafe 0%, #ecfdf5 100%);
+      padding: 1.2rem;
+      border-radius: 12px;
+      border-left: 4px solid #16A34A;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .modal-demo-info strong {
+      color: #16A34A;
+      display: inline;
+    }
+
+    .modal-demo-info strong:first-child {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
     @media (max-width: 768px) {
       .hero-content {
         grid-template-columns: 1fr;
@@ -699,6 +720,7 @@ export class HeroComponent implements OnInit, OnDestroy {
   authMode: 'login' | 'register' = 'login';
   isLoading = false;
   errorMessage = '';
+  isAuthenticated = false;
 
   loginData = {
     email: '',
@@ -715,7 +737,7 @@ export class HeroComponent implements OnInit, OnDestroy {
   private subscription?: Subscription;
 
   constructor(
-    private authService: AuthService,
+    public authService: AuthService,
     private router: Router
   ) {}
 
@@ -723,6 +745,15 @@ export class HeroComponent implements OnInit, OnDestroy {
     this.generateParticles();
     this.updateStats();
     this.subscription = interval(100).subscribe(() => this.updateStats());
+    
+    // Check if user is authenticated
+    this.authService.currentUser$.subscribe(user => {
+      this.isAuthenticated = !!user;
+      if (user) {
+        // If authenticated, go to activities
+        this.router.navigate(['/activities']);
+      }
+    });
   }
 
   ngOnDestroy() {

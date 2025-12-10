@@ -47,7 +47,7 @@ public class AuthResource {
      */
     @GET
     @Path("/me")
-    @RolesAllowed("ROLE_USER")
+    @RolesAllowed({"ROLE_USER", "et-user"})
     public UserDto getCurrentUser() {
         return authService.getCurrentUser(jwt);
     }
@@ -57,7 +57,7 @@ public class AuthResource {
      */
     @PATCH
     @Path("/me/avatar")
-    @RolesAllowed("ROLE_USER")
+    @RolesAllowed({"ROLE_USER", "et-user"})
     public UserDto updateMyAvatar(Map<String, String> body) {
         String avatarColor = body.get("avatarColor");
         if (avatarColor == null || avatarColor.trim().isEmpty()) {
@@ -79,6 +79,19 @@ public class AuthResource {
             throw new BadRequestException("avatarColor is required");
         }
         return authService.updateAvatarColor(id, avatarColor);
+    }
+
+    /**
+     * Delete current user account (authenticated USER)
+     * This will delete the user and all related data (activities, friendships)
+     */
+    @DELETE
+    @Path("/me")
+    @RolesAllowed({"ROLE_USER", "et-user"})
+    public void deleteMyAccount() {
+        System.out.println("🚨 DELETE /api/auth/me endpoint called!");
+        authService.deleteCurrentUser(jwt);
+        System.out.println("✅ DELETE /api/auth/me completed");
     }
 
     /**

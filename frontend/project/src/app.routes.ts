@@ -9,29 +9,18 @@ import { FriendsComponent } from './pages/friends.component';
 export const routes: Routes = [
   {
     path: '',
-    component: HeroComponent
+    component: HeroComponent,
+    pathMatch: 'full'
   },
   {
     path: '',
     component: LayoutComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard],  // ✅ Re-enabled: only authenticated users can access
     children: [
-      {
-        path: 'dashboard',
-        component: DashboardComponent
-      },
-      {
-        path: 'activities',
-        component: ActivitiesComponent
-      },
-      {
-        path: 'friends',
-        component: FriendsComponent
-      }
+      { path: 'dashboard', component: DashboardComponent },
+      { path: 'activities', component: ActivitiesComponent },
+      { path: 'friends', component: FriendsComponent }
     ]
   },
-  {
-    path: '**',
-    redirectTo: ''
-  }
+  { path: '**', redirectTo: '' }
 ];

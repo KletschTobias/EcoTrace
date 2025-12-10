@@ -34,6 +34,3 @@ INSERT INTO activities (id, name, category, co2_per_unit, water_per_unit, electr
 (nextval('activities_seq'), 'Paper Usage', 'other', 0.004, 10.0, 0.0, 'sheets', '📄', 'Using paper'),
 (nextval('activities_seq'), 'Recycling', 'other', -0.5, 0.0, 0.0, 'kg', '♻️', 'Recycling waste'),
 (nextval('activities_seq'), 'Composting', 'other', -0.3, 0.0, 0.0, 'kg', '🌿', 'Composting organic waste');
-
--- NOTE: Users are automatically created via Keycloak OIDC flow and KeycloakUserFilter
--- when a user logs in for the first time. No need to insert demo users here.

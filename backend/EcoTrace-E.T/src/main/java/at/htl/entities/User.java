@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 public class User extends PanacheEntity {
 
     @Column(unique = true, nullable = false)
-    public String externalId; // Keycloak user ID (sub claim from JWT)
+    public String externalId;
 
     @Column(name = "avatar_color")
     public String avatarColor;
