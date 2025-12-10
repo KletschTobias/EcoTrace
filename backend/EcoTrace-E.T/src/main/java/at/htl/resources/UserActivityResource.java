@@ -3,6 +3,8 @@ package at.htl.resources;
 import at.htl.dtos.CreateUserActivityRequest;
 import at.htl.dtos.StatsDto;
 import at.htl.dtos.UserActivityDto;
+import at.htl.entities.User;
+import at.htl.services.LeaderboardService;
 import at.htl.services.UserActivityService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -20,6 +22,9 @@ public class UserActivityResource {
 
     @Inject
     UserActivityService userActivityService;
+
+    @Inject
+    LeaderboardService leaderboardService;
 
     @GET
     public List<UserActivityDto> getUserActivities(@PathParam("userId") Long userId) {
@@ -65,6 +70,13 @@ public class UserActivityResource {
             @PathParam("userId") Long userId,
             @Valid CreateUserActivityRequest request) {
         UserActivityDto created = userActivityService.createUserActivity(userId, request);
+        
+        // Update leaderboard entries for all periods
+        User user = User.findById(userId);
+        if (user != null) {
+            leaderboardService.updateLeaderboardForUser(user, LocalDate.now());
+        }
+        
         return Response.status(Response.Status.CREATED).entity(created).build();
     }
 
@@ -74,6 +86,10 @@ public class UserActivityResource {
             @PathParam("userId") Long userId,
             @PathParam("activityId") Long activityId) {
         userActivityService.deleteUserActivity(userId, activityId);
+        
+        // Recalculate leaderboard after deletion
+        leaderboardService.recalculateUserLeaderboard(userId);
+        
         return Response.noContent().build();
     }
 }
