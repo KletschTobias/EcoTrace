@@ -1,0 +1,44 @@
+name: eco-tracer
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres-eco-tracker
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: ET
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d ET"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 8s
+
+  keycloak:
+    build:
+      context: ./keycloak
+    container_name: keycloak-ET
+    command:
+        - start-dev
+        - --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_USERNAME: app
+      KC_DB_PASSWORD: app
+      KC_DB_URL: jdbc:postgresql://postgres:5432/ET
+      KC_HOSTNAME: localhost
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
