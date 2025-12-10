@@ -48,7 +48,8 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
             Join the movement towards a sustainable future with real-time environmental insights.
           </p>
           <div class="cta-buttons">
-            <button class="btn-primary" (click)="showAuthModal = true">Start Tracking</button>
+            <button class="btn-primary" (click)="startTracking()">Start Tracking</button>
+            <button class="btn-secondary" (click)="learnMore()">Learn More</button>
           </div>
         </div>
         
@@ -325,6 +326,7 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
     .cta-buttons {
       display: flex;
       justify-content: flex-start;
+      gap: 1rem;
     }
 
     .btn-primary, .btn-secondary {
@@ -348,6 +350,19 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
     .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(74, 222, 128, 0.6);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: white;
+      transform: translateY(-2px);
     }
 
     .hero-stats {
@@ -473,6 +488,8 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
       font-weight: 700;
       line-height: 1;
       margin-bottom: 0.25rem;
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Roboto Mono', 'Consolas', monospace;
+      font-variant-numeric: tabular-nums;
     }
 
     .stat-unit {
@@ -871,5 +888,18 @@ export class HeroComponent implements OnInit, OnDestroy {
         this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
       }
     });
+  }
+
+  startTracking(): void {
+    // Navigate directly to dashboard - auth guard will handle permissions
+    this.router.navigate(['/dashboard']);
+  }
+
+  learnMore(): void {
+    // Scroll to stats section or show info
+    const statsElement = document.querySelector('.hero-stats');
+    if (statsElement) {
+      statsElement.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 }
