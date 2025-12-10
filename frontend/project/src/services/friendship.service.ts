@@ -7,7 +7,7 @@ import { Friendship, User } from '../models/models';
   providedIn: 'root'
 })
 export class FriendshipService {
-  private apiUrl = 'http://localhost:8080/api/users';
+  private apiUrl = 'http://localhost:8081/api/users';
 
   constructor(private http: HttpClient) {}
 
