@@ -3,6 +3,7 @@ package at.htl.resources;
 import at.htl.dtos.CreateUserActivityRequest;
 import at.htl.dtos.StatsDto;
 import at.htl.dtos.UserActivityDto;
+import at.htl.services.AchievementService;
 import at.htl.services.UserActivityService;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -20,6 +21,9 @@ public class UserActivityResource {
 
     @Inject
     UserActivityService userActivityService;
+
+    @Inject
+    AchievementService achievementService;
 
     @GET
     public List<UserActivityDto> getUserActivities(@PathParam("userId") Long userId) {
@@ -65,6 +69,10 @@ public class UserActivityResource {
             @PathParam("userId") Long userId,
             @Valid CreateUserActivityRequest request) {
         UserActivityDto created = userActivityService.createUserActivity(userId, request);
+        
+        // Check and unlock achievements after creating activity
+        achievementService.checkAndUnlockAchievements(userId);
+        
         return Response.status(Response.Status.CREATED).entity(created).build();
     }
 

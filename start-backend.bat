@@ -4,8 +4,8 @@ echo Starting EcoTrace Backend (Quarkus)
 echo ========================================
 echo.
 
-:: Set JAVA_HOME to Java 21
-set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot"
+:: Set JAVA_HOME to Java 23
+set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-23.0.2.7-hotspot"
 set "PATH=%JAVA_HOME%\bin;%PATH%"
 
 :: Verify Java version

@@ -69,3 +69,20 @@ export interface RegisterRequest {
   password: string;
   fullName?: string;
 }
+
+export interface Achievement {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  targetValue: number;
+  targetType: string;
+  specificActivity?: string;
+  badgeColor: string;
+  points: number;
+  unlockedAt?: string;
+  progress: number;
+  isNew?: boolean;
+  isUnlocked: boolean;
+}

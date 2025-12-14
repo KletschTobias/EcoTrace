@@ -1,19 +1,19 @@
-name: eco-tracer
+version: '3.8'
 
 services:
   postgres:
     image: postgres:15
     container_name: postgres-eco-tracker
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-      POSTGRES_DB: ET
+      POSTGRES_USER: ecotrace
+      POSTGRES_PASSWORD: ecotrace
+      POSTGRES_DB: ecotrace
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d ET"]
+      test: ["CMD-SHELL", "pg_isready -U ecotrace -d ecotrace"]
       interval: 10s
       timeout: 5s
       retries: 5

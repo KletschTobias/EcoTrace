@@ -5,6 +5,7 @@ import { LayoutComponent } from './components/layout.component';
 import { DashboardComponent } from './pages/dashboard.component';
 import { ActivitiesComponent } from './pages/activities.component';
 import { FriendsComponent } from './pages/friends.component';
+import { AchievementsComponent } from './pages/achievements.component';
 
 export const routes: Routes = [
   {
@@ -27,6 +28,10 @@ export const routes: Routes = [
       {
         path: 'friends',
         component: FriendsComponent
+      },
+      {
+        path: 'achievements',
+        component: AchievementsComponent
       }
     ]
   },

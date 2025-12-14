@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoTrace - Business Case</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reset.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/theme/white.css">
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #2196F3;
+            --accent: #FF9800;
+        }
+
+        .reveal {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .reveal h1 {
+            color: var(--secondary);
+            font-size: 2em;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.3em;
+        }
+
+        .reveal h2 {
+            color: var(--secondary);
+            font-size: 1.3em;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.3em;
+        }
+
+        .reveal h3 {
+            color: var(--primary);
+            font-size: 1em;
+            margin-bottom: 0.2em;
+        }
+
+        .reveal .subtitle {
+            color: #999;
+            font-size: 1.2em;
+            margin-top: -0.2em;
+        }
+
+        .reveal .slides section {
+            text-align: left;
+            padding: 0.3em 1.2em;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .reveal .slides section.center {
+            text-align: center;
+        }
+
+        .divider {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            margin: 0.2em 0 0.4em 0;
+        }
+
+        .box {
+            padding: 0.5em;
+            margin: 0.3em 0;
+            border-radius: 6px;
+            font-size: 0.8em;
+            border-left: 3px solid;
+        }
+
+        .box-red {
+            background: linear-gradient(135deg, #ffebee, #fce4ec);
+            border-color: #F44336;
+        }
+
+        .box-orange {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            border-color: #FF9800;
+        }
+
+        .box-green {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-color: var(--primary);
+        }
+
+        .box h3 {
+            margin: 0 0 0.2em 0;
+            font-size: 0.95em;
+        }
+
+        .box ul {
+            margin: 0.2em 0 0 1em;
+        }
+
+        .box ul li {
+            margin: 0.15em 0;
+        }
+
+        .card {
+            background: white;
+            padding: 0.4em;
+            margin: 0.2em 0;
+            border-radius: 6px;
+            border-left: 3px solid var(--secondary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            font-size: 0.8em;
+        }
+
+        .card-icon {
+            font-size: 1.8em;
+            min-width: 35px;
+            text-align: center;
+        }
+
+        .card h4 {
+            margin: 0 0 0.2em 0;
+            font-size: 1em;
+            color: var(--secondary);
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1em;
+            margin-top: 1em;
+        }
+
+        .metric {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.8em;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: 700;
+            margin: 0.1em 0;
+        }
+
+        .metric-label {
+            font-size: 0.8em;
+            opacity: 0.95;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8em;
+            margin-top: 0.8em;
+        }
+
+        .tech-item {
+            text-align: center;
+            padding: 0.3em;
+        }
+
+        .tech-item .icon {
+            font-size: 1.8em;
+            margin-bottom: 0.15em;
+        }
+
+        .tech-item h3 {
+            font-size: 0.95em;
+            margin: 0.15em 0;
+        }
+
+        .tech-item p {
+            font-size: 0.75em;
+            line-height: 1.2;
+            margin: 0.05em 0;
+        }
+
+        .reveal ul {
+            font-size: 0.8em;
+            line-height: 1.4;
+        }
+
+        .reveal ul li {
+            margin: 0.2em 0;
+        }
+
+        .reveal strong {
+            color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <!-- Slide 1: Titel -->
+            <section class="center">
+                <h1>BUSINESS CASE</h1>
+                <p class="subtitle">Projektziele und Nutzen</p>
+                <div style="margin: 2em 0;">
+                    <div style="width: 120px; height: 120px; margin: 0 auto; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">✓</div>
+                </div>
+                <h2 style="color: var(--primary); margin-top: 1em;">EcoTrace</h2>
+                <p style="font-size: 1.1em; color: #666;">CO₂-Tracking mit Belohnungssystem</p>
+            </section>
+
+            <!-- Slide 2: Das Problem -->
+            <section>
+                <h2>DAS PROBLEM</h2>
+                <div class="divider"></div>
+                
+                <div class="box box-red">
+                    <h3>🌍 Klimawandel trifft auf digitale Überforderung</h3>
+                    <p>Menschen wollen nachhaltiger leben, aber bestehende Apps sind:</p>
+                    <ul>
+                        <li>Zu kompliziert und wissenschaftlich</li>
+                        <li>Keine klare Visualisierung des persönlichen Impacts</li>
+                        <li>Fehlende Motivation zum Dranbleiben</li>
+                        <li>Kein sozialer Aspekt - User fühlen sich allein gelassen</li>
+                    </ul>
+                </div>
+
+                <div class="box box-orange">
+                    <h3>📊 Das Ergebnis</h3>
+                    <p><strong>87% der Klimaschutz-Apps werden nach 2 Wochen nicht mehr genutzt.</strong> Erfolge bleiben unsichtbar.</p>
+                </div>
+            </section>
+
+            <!-- Slide 3: Die Lösung -->
+            <section>
+                <h2>ECOTRACE - DIE LÖSUNG</h2>
+                <div class="divider"></div>
+
+                <div class="box box-green">
+                    <h3>🎯 Intelligentes CO₂-Tracking</h3>
+                    <p>Automatische Berechnung deines CO₂-Fußabdrucks.</p>
+                </div>
+
+                <div class="box box-green">
+                    <h3>🏆 Belohnungssystem & Fortschritt</h3>
+                    <p>Meilensteine erreichen, Abzeichen sammeln, Streaks aufbauen.</p>
+                </div>
+
+                <div class="box box-green">
+                    <h3>👥 Community & Wettbewerb</h3>
+                    <p>Mit Freunden vergleichen und in Ranglisten aufsteigen.</p>
+                </div>
+            </section>
+
+            <!-- Slide 4: Der Nutzen -->
+            <section>
+                <h2>WAS BRINGT ECOTRACE?</h2>
+                <div class="divider"></div>
+
+                <div class="card">
+                    <div class="card-icon">💡</div>
+                    <div>
+                        <h4>Bewusstsein schaffen</h4>
+                        <p>Nutzer sehen ihren echten CO₂-Impact</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">🔄</div>
+                    <div>
+                        <h4>Verhalten ändern</h4>
+                        <p>Belohnungen motivieren zu Nachhaltigkeit</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">🤝</div>
+                    <div>
+                        <h4>Gemeinsam stärker</h4>
+                        <p>Community-Gefühl durch Social Features</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">📈</div>
+                    <div>
+                        <h4>Messbare Erfolge</h4>
+                        <p>15-20% CO₂-Reduktion in 6 Monaten</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 5: Zielgruppe -->
+            <section>
+                <h2>ZIELGRUPPE & ANWENDUNG</h2>
+                <div class="divider"></div>
+
+                <ul style="font-size: 0.85em; line-height: 1.4;">
+                    <li><strong>Primär:</strong> Millennials (25-40 Jahre) und Gen Z</li>
+                    <li><strong>Sekundär:</strong> Unternehmen (CSR)</li>
+                    <li><strong>USP:</strong> CO₂-Tracking mit Belohnungssystem</li>
+                    <li><strong>Skalierbarkeit:</strong> B2C Freemium + B2B Enterprise</li>
+                </ul>
+
+                <div class="grid-2" style="margin-top: 0.6em;">
+                    <div class="metric">
+                        <div class="metric-label">Jahr 1 Ziel</div>
+                        <div class="metric-value">100K</div>
+                        <div class="metric-label">Aktive User</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Jahr 5 Projektion</div>
+                        <div class="metric-value">5M+</div>
+                        <div class="metric-label">User weltweit</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 6: Aktueller Stand -->
+            <section>
+                <h2>AKTUELLER STAND (DEZ 2025)</h2>
+                <div class="divider"></div>
+
+                <div class="card">
+                    <div class="card-icon" style="color: var(--primary);">✓</div>
+                    <div>
+                        <h4>Fertiggestellt</h4>
+                        <p>Frontend (Angular PWA), Backend (Quarkus), PostgreSQL</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon" style="color: var(--primary);">✓</div>
+                    <div>
+                        <h4>Fertiggestellt</h4>
+                        <p>User Auth, Activity Tracking, CO₂-Berechnung</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon" style="color: var(--primary);">✓</div>
+                    <div>
+                        <h4>Fertiggestellt</h4>
+                        <p>Belohnungssystem mit 18 verschiedenen Abzeichen</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon" style="color: var(--accent);">⏳</div>
+                    <div>
+                        <h4>In Arbeit</h4>
+                        <p>Social Features (Friends, Leaderboards, Challenges)</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 7: Technologie -->
+            <section>
+                <h2>TECHNOLOGIE-STACK</h2>
+                <div class="divider"></div>
+
+                <div class="tech-grid">
+                    <div class="tech-item">
+                        <div class="icon">🎨</div>
+                        <h3>Frontend</h3>
+                        <p>Angular 18<br>TypeScript<br>PWA</p>
+                    </div>
+                    <div class="tech-item">
+                        <div class="icon">⚙️</div>
+                        <h3>Backend</h3>
+                        <p>Quarkus 3.28<br>Java<br>REST APIs</p>
+                    </div>
+                    <div class="tech-item">
+                        <div class="icon">🗄️</div>
+                        <h3>Database</h3>
+                        <p>PostgreSQL<br>Docker</p>
+                    </div>
+                    <div class="tech-item">
+                        <div class="icon">🚀</div>
+                        <h3>Deploy</h3>
+                        <p>Cloud Ready<br>CI/CD</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide 8: Wettbewerbsvorteil -->
+            <section>
+                <h2>WETTBEWERBSVORTEIL</h2>
+                <div class="divider"></div>
+
+                <h3>Was macht EcoTrace einzigartig?</h3>
+
+                <ul style="font-size: 0.8em; margin-top: 0.5em; line-height: 1.3;">
+                    <li><strong>🎮 Komplettes Belohnungssystem:</strong> Motivierendes Spielerlebnis</li>
+                    <li><strong>👥 Social-First Ansatz:</strong> Community von Anfang an</li>
+                    <li><strong>📱 Native App-Feeling:</strong> PWA Performance</li>
+                    <li><strong>🔬 Präzise CO₂-Daten:</strong> Wissenschaftlich fundiert</li>
+                    <li><strong>🚀 Schnelle Innovation:</strong> Moderne Technologie</li>
+                </ul>
+
+                <div style="margin-top: 0.8em; padding: 0.8em; background: linear-gradient(135deg, #E8F5E9, #E1F5FE); border-radius: 8px; text-align: center;">
+                    <strong style="font-size: 0.95em;">
+                        Keine andere App kombiniert all diese Faktoren in einer Plattform
+                    </strong>
+                </div>
+            </section>
+
+            <!-- Slide 9: Call to Action -->
+            <section class="center">
+                <h2 style="color: var(--primary); font-size: 1.4em; margin-bottom: 0.2em;">GEMEINSAM FÜR EINE<br>NACHHALTIGE ZUKUNFT</h2>
+                <div class="divider"></div>
+                
+                <p style="margin-top: 0.5em; font-size: 0.85em;">
+                    <strong>EcoTrace macht Klimaschutz messbar, motivierend und sozial.</strong>
+                </p>
+                <p style="margin-top: 0.3em; font-size: 0.75em;">
+                    Wir helfen Millionen Menschen, ihren CO₂-Fußabdruck zu reduzieren –<br>
+                    eine spielerische Aktivität nach der anderen.
+                </p>
+
+                <div class="grid-2" style="margin-top: 0.6em; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    <div class="metric" style="padding: 0.6em;">
+                        <div class="metric-value" style="font-size: 1.8em;">€25M</div>
+                        <div class="metric-label" style="font-size: 0.75em;">Umsatz-Potenzial Jahr 5</div>
+                    </div>
+                    <div class="metric" style="padding: 0.6em;">
+                        <div class="metric-value" style="font-size: 1.8em;">5M+</div>
+                        <div class="metric-label" style="font-size: 0.75em;">User bis 2030</div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            transition: 'slide',
+            transitionSpeed: 'default',
+            backgroundTransition: 'fade',
+            center: false,
+            width: 960,
+            height: 700,
+            margin: 0.1,
+            minScale: 0.5,
+            maxScale: 3.0,
+            controls: true,
+            progress: true,
+            slideNumber: true,
+            keyboard: true,
+            overview: true,
+            touch: true
+        });
+    </script>
+</body>
+</html>

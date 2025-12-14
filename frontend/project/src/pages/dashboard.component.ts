@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { UserActivityService } from '../services/user-activity.service';
-import { User, Stats, UserActivity } from '../models/models';
+import { AchievementService } from '../services/achievement.service';
+import { User, Stats, UserActivity, Achievement } from '../models/models';
 import { format, subDays, startOfDay } from 'date-fns';
 
 @Component({
@@ -106,6 +108,25 @@ import { format, subDays, startOfDay } from 'date-fns';
                   {{ getPercentageDiff(stats.electricity, 11) }}%
                 </span>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Achievements -->
+      <div class="achievements-preview" *ngIf="achievements.length > 0">
+        <div class="section-header">
+          <h2>🏆 Recent Achievements</h2>
+          <button class="view-all-btn" (click)="viewAllAchievements()">View All →</button>
+        </div>
+        <div class="achievements-scroll">
+          <div *ngFor="let achievement of achievements" class="achievement-badge">
+            <div class="badge-icon" [style.background]="achievement.badgeColor">
+              {{achievement.icon}}
+            </div>
+            <div class="badge-info">
+              <strong>{{achievement.name}}</strong>
+              <small>+{{achievement.points}} pts</small>
             </div>
           </div>
         </div>
@@ -228,7 +249,7 @@ import { format, subDays, startOfDay } from 'date-fns';
       margin-left: 0.5rem;
     }
 
-    .comparison-section, .recent-activities {
+    .comparison-section, .recent-activities, .achievements-preview {
       background: white;
       border-radius: 1rem;
       padding: 2rem;
@@ -356,6 +377,79 @@ import { format, subDays, startOfDay } from 'date-fns';
       font-style: italic;
     }
 
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .section-header h2 {
+      font-size: 1.5rem;
+      margin: 0;
+      color: #111827;
+    }
+
+    .view-all-btn {
+      padding: 0.5rem 1rem;
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .view-all-btn:hover {
+      background: #059669;
+    }
+
+    .achievements-scroll {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .achievement-badge {
+      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 200px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .badge-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .badge-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .badge-info strong {
+      font-size: 0.875rem;
+      color: #111827;
+    }
+
+    .badge-info small {
+      font-size: 0.75rem;
+      color: #f59e0b;
+      font-weight: 600;
+    }
+
     @media (max-width: 768px) {
       .dashboard-container {
         padding: 1rem;
@@ -385,6 +479,7 @@ export class DashboardComponent implements OnInit {
   user: User | null = null;
   stats: Stats = { co2: 0, water: 0, electricity: 0 };
   recentActivities: UserActivity[] = [];
+  achievements: Achievement[] = [];
   selectedRange = 'today';
 
   dateRanges = [
@@ -395,13 +490,16 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private authService: AuthService,
-    private userActivityService: UserActivityService
+    private userActivityService: UserActivityService,
+    private achievementService: AchievementService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
     this.user = this.authService.getCurrentUser();
     if (this.user) {
       this.loadData();
+      this.loadAchievements();
     }
   }
 
@@ -430,6 +528,21 @@ export class DashboardComponent implements OnInit {
       },
       error: (error) => console.error('Error loading activities:', error)
     });
+  }
+
+  loadAchievements(): void {
+    if (!this.user) return;
+    
+    this.achievementService.getUserAchievements(this.user.id).subscribe({
+      next: (achievements) => {
+        this.achievements = achievements.filter(a => a.isUnlocked).slice(0, 6);
+      },
+      error: (error) => console.error('Error loading achievements:', error)
+    });
+  }
+
+  viewAllAchievements(): void {
+    this.router.navigate(['/achievements']);
   }
 
   getDateRange(): { startDate: string; endDate: string } {

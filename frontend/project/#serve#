@@ -1,0 +1,6 @@
+echo "=== Backend Test ===" && curl -s http://localhost:8080/api/activities | head -c 200 && echo -e "\n\n=== Frontend Test ===" && curl -s http://localhost:4200 | head -c 100 && echo -e "\n\n=== Prozesse ===" && ps aux | grep -E 'java.*quarkus|node.*angular' | grep -v grep
+cd ~/Dokumente/EcoTrace/EcoTrace/frontend/project && npm install
+sleep 3 && ps aux | grep 'npm install' | grep -v grep && echo "Installation luft..." || echo "Installation beendet"
+cd ~/Dokumente/EcoTrace/EcoTrace/frontend/project && ls -la node_modules 2>/dev/null | head -5 && echo "Dependencies vorhanden!" || echo "Warte auf npm install..."
+sleep 30 && cd ~/Dokumente/EcoTrace/EcoTrace/frontend/project && test -d node_modules &&  npm install abgeschlossen" ||  node_modules fehlt noch"
+echo "echo "

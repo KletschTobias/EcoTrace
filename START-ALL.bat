@@ -30,8 +30,8 @@ if %errorlevel% neq 0 (
 echo [OK] PostgreSQL is running
 echo.
 
-:: Set Java 21
-set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.8.9-hotspot"
+:: Set Java 23
+set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-23.0.2.7-hotspot"
 set "PATH=%JAVA_HOME%\bin;%PATH%"
 
 :: Start Backend

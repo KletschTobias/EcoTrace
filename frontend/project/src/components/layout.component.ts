@@ -36,6 +36,12 @@ import { User } from '../models/models';
               class="nav-link">
               👥 Friends
             </a>
+            <a 
+              routerLink="/achievements" 
+              routerLinkActive="active"
+              class="nav-link">
+              🏆 Achievements
+            </a>
           </nav>
 
           <div class="user-menu">
