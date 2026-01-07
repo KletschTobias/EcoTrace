@@ -9,57 +9,86 @@ export type SmileyStatus = 'good' | 'neutral' | 'bad';
   imports: [CommonModule],
   template: `
     <div class="smiley-container" [ngClass]="status" [title]="tooltipText">
-      <!-- Happy / Good (Green) -->
-      <svg *ngIf="status === 'good'" viewBox="0 0 100 100" class="smiley">
-        <circle cx="50" cy="50" r="45" fill="#10B981" stroke="#059669" stroke-width="3"/>
+      <!-- Happy / Good (Green Smiley) -->
+      <svg *ngIf="status === 'good'" viewBox="0 0 36 36" class="smiley">
+        <circle cx="18" cy="18" r="17" fill="#4ade80"/>
+        <circle cx="18" cy="18" r="17" fill="url(#greenGrad)"/>
         <!-- Eyes -->
-        <circle cx="35" cy="40" r="5" fill="#064E3B"/>
-        <circle cx="65" cy="40" r="5" fill="#064E3B"/>
-        <!-- Smile -->
-        <path d="M 30 60 Q 50 80 70 60" stroke="#064E3B" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <!-- Leaf -->
-        <path d="M 50 5 Q 65 20 50 35 Q 35 20 50 5" fill="#34D399" stroke="#064E3B" stroke-width="2"/>
+        <ellipse cx="12" cy="14" rx="2" ry="2.5" fill="#166534"/>
+        <ellipse cx="24" cy="14" rx="2" ry="2.5" fill="#166534"/>
+        <!-- Eye shine -->
+        <circle cx="12.5" cy="13" r="0.8" fill="white" opacity="0.6"/>
+        <circle cx="24.5" cy="13" r="0.8" fill="white" opacity="0.6"/>
+        <!-- Happy Smile -->
+        <path d="M10 21 Q18 28 26 21" stroke="#166534" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- Gradient -->
+        <defs>
+          <radialGradient id="greenGrad" cx="30%" cy="30%">
+            <stop offset="0%" stop-color="#86efac"/>
+            <stop offset="100%" stop-color="#22c55e"/>
+          </radialGradient>
+        </defs>
       </svg>
 
-      <!-- Neutral / Average (Yellow) -->
-      <svg *ngIf="status === 'neutral'" viewBox="0 0 100 100" class="smiley">
-        <circle cx="50" cy="50" r="45" fill="#FBBF24" stroke="#D97706" stroke-width="3"/>
+      <!-- Neutral / Average (Yellow Smiley) -->
+      <svg *ngIf="status === 'neutral'" viewBox="0 0 36 36" class="smiley">
+        <circle cx="18" cy="18" r="17" fill="url(#yellowGrad)"/>
         <!-- Eyes -->
-        <circle cx="35" cy="40" r="5" fill="#78350F"/>
-        <circle cx="65" cy="40" r="5" fill="#78350F"/>
-        <!-- Mouth -->
-        <line x1="35" y1="65" x2="65" y2="65" stroke="#78350F" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="12" cy="14" rx="2" ry="2.5" fill="#854d0e"/>
+        <ellipse cx="24" cy="14" rx="2" ry="2.5" fill="#854d0e"/>
+        <!-- Eye shine -->
+        <circle cx="12.5" cy="13" r="0.8" fill="white" opacity="0.6"/>
+        <circle cx="24.5" cy="13" r="0.8" fill="white" opacity="0.6"/>
+        <!-- Neutral Mouth -->
+        <line x1="12" y1="23" x2="24" y2="23" stroke="#854d0e" stroke-width="2" stroke-linecap="round"/>
+        <!-- Gradient -->
+        <defs>
+          <radialGradient id="yellowGrad" cx="30%" cy="30%">
+            <stop offset="0%" stop-color="#fef08a"/>
+            <stop offset="100%" stop-color="#facc15"/>
+          </radialGradient>
+        </defs>
       </svg>
 
-      <!-- Angry / Bad (Red) -->
-      <svg *ngIf="status === 'bad'" viewBox="0 0 100 100" class="smiley">
-        <circle cx="50" cy="50" r="45" fill="#EF4444" stroke="#B91C1C" stroke-width="3"/>
-        <!-- Eyes (Angry) -->
-        <path d="M 25 35 L 40 45" stroke="#7F1D1D" stroke-width="4" stroke-linecap="round"/>
-        <path d="M 75 35 L 60 45" stroke="#7F1D1D" stroke-width="4" stroke-linecap="round"/>
-        <circle cx="35" cy="50" r="4" fill="#7F1D1D"/>
-        <circle cx="65" cy="50" r="4" fill="#7F1D1D"/>
-        <!-- Mouth (Frown) -->
-        <path d="M 35 75 Q 50 60 65 75" stroke="#7F1D1D" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- Sad / Bad (Red Smiley) -->
+      <svg *ngIf="status === 'bad'" viewBox="0 0 36 36" class="smiley">
+        <circle cx="18" cy="18" r="17" fill="url(#redGrad)"/>
+        <!-- Eyes -->
+        <ellipse cx="12" cy="14" rx="2" ry="2.5" fill="#7f1d1d"/>
+        <ellipse cx="24" cy="14" rx="2" ry="2.5" fill="#7f1d1d"/>
+        <!-- Eye shine -->
+        <circle cx="12.5" cy="13" r="0.8" fill="white" opacity="0.6"/>
+        <circle cx="24.5" cy="13" r="0.8" fill="white" opacity="0.6"/>
+        <!-- Sad Frown -->
+        <path d="M11 25 Q18 20 25 25" stroke="#7f1d1d" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <!-- Gradient -->
+        <defs>
+          <radialGradient id="redGrad" cx="30%" cy="30%">
+            <stop offset="0%" stop-color="#fca5a5"/>
+            <stop offset="100%" stop-color="#ef4444"/>
+          </radialGradient>
+        </defs>
       </svg>
     </div>
   `,
   styles: [`
     .smiley-container {
-      width: 40px;
-      height: 40px;
-      display: inline-block;
-      transition: transform 0.3s ease;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s ease;
     }
     
     .smiley-container:hover {
-      transform: scale(1.1);
+      transform: scale(1.15);
     }
 
     .smiley {
       width: 100%;
       height: 100%;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
     }
   `]
 })
@@ -68,9 +97,9 @@ export class EcoSmileyComponent {
   
   get tooltipText(): string {
     switch (this.status) {
-      case 'good': return 'Great job! Your consumption is low.';
-      case 'neutral': return 'Average consumption. Room for improvement!';
-      case 'bad': return 'High consumption! Try to reduce your impact.';
+      case 'good': return 'Great job! Below average consumption.';
+      case 'neutral': return 'Average consumption.';
+      case 'bad': return 'Above average! Try to reduce your impact.';
       default: return '';
     }
   }

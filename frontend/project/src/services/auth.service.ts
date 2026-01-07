@@ -55,6 +55,11 @@ export class AuthService {
     return this.currentUserSubject.value !== null;
   }
 
+  isAdmin(): boolean {
+    const user = this.currentUserSubject.value;
+    return user !== null && user.isAdmin === true;
+  }
+
   getAllUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/users`);
   }

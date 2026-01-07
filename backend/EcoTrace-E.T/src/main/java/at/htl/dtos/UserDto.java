@@ -15,6 +15,7 @@ public class UserDto {
     public Double totalCo2;
     public Double totalWater;
     public Double totalElectricity;
+    public Boolean isAdmin;
 
     public UserDto() {}
 
@@ -31,6 +32,7 @@ public class UserDto {
         this.totalCo2 = user.totalCo2;
         this.totalWater = user.totalWater;
         this.totalElectricity = user.totalElectricity;
+        this.isAdmin = user.isAdmin;
     }
 
     public static UserDto from(User user) {

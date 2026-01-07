@@ -51,6 +51,9 @@ public class User extends PanacheEntity {
     @Column(name = "total_electricity")
     public Double totalElectricity = 0.0;
 
+    @Column(name = "is_admin")
+    public Boolean isAdmin = false;
+
     @Column(name = "created_date")
     public LocalDateTime createdDate;
 

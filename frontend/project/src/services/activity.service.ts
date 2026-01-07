@@ -30,4 +30,17 @@ export class ActivityService {
   deleteActivity(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  // Import/Export methods
+  exportActivities(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export`, {
+      responseType: 'blob'
+    });
+  }
+
+  importActivities(file: File, mode: 'append' | 'overwrite'): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/import?mode=${mode}`, formData);
+  }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
@@ -20,9 +20,60 @@ import { Subscription } from 'rxjs';
           <h1>Track Your Activities</h1>
           <p>Log your daily actions and see their environmental impact</p>
         </div>
-        <button class="btn-primary" (click)="toggleForm()">
-          {{ showForm ? 'Cancel' : '+ Log Activity' }}
-        </button>
+        <div class="header-actions">
+          <button class="btn-secondary" (click)="exportActivities()" title="Export to Excel">
+            📥 Export
+          </button>
+          <button *ngIf="isAdmin" class="btn-secondary btn-admin" (click)="triggerImport()" title="Import from Excel (Admin only)">
+            📤 Import
+          </button>
+          <input 
+            type="file" 
+            #fileInput 
+            (change)="onFileSelected($event)"
+            accept=".xlsx,.xls"
+            style="display: none;">
+          <button class="btn-primary" (click)="toggleForm()">
+            {{ showForm ? 'Cancel' : '+ Log Activity' }}
+          </button>
+        </div>
+      </div>
+      
+      <!-- Import Modal -->
+      <div *ngIf="showImportModal" class="modal-overlay" (click)="closeImportModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <h2>📤 Import Activities</h2>
+          <p class="modal-description">Choose how to handle the imported activities:</p>
+          
+          <div class="import-options">
+            <label class="import-option" [class.selected]="importMode === 'append'">
+              <input type="radio" name="importMode" value="append" [(ngModel)]="importMode">
+              <div class="option-content">
+                <strong>➕ Append</strong>
+                <span>Add new activities, skip duplicates</span>
+              </div>
+            </label>
+            
+            <label class="import-option" [class.selected]="importMode === 'overwrite'">
+              <input type="radio" name="importMode" value="overwrite" [(ngModel)]="importMode">
+              <div class="option-content">
+                <strong>🔄 Overwrite</strong>
+                <span>Replace all existing activities</span>
+              </div>
+            </label>
+          </div>
+          
+          <div *ngIf="selectedFile" class="selected-file">
+            <span>📄 {{ selectedFile.name }}</span>
+          </div>
+          
+          <div class="modal-actions">
+            <button class="btn-cancel" (click)="closeImportModal()">Cancel</button>
+            <button class="btn-import" (click)="confirmImport()" [disabled]="isImporting">
+              {{ isImporting ? 'Importing...' : 'Import' }}
+            </button>
+          </div>
+        </div>
       </div>
       
       <!-- Guest Info Banner -->
@@ -89,18 +140,60 @@ import { Subscription } from 'rxjs';
                   required>
               </div>
             </div>
+            
+            <!-- Recurring Activity Toggle -->
+            <div class="recurring-section">
+              <label class="toggle-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="isRecurring"
+                  name="isRecurring"
+                  class="toggle-checkbox">
+                <span class="toggle-text">🔄 Recurring Activity</span>
+              </label>
+              
+              <div *ngIf="isRecurring" class="recurring-options">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Times per Week</label>
+                    <input 
+                      type="number" 
+                      [(ngModel)]="timesPerWeek"
+                      name="timesPerWeek"
+                      min="1"
+                      max="21"
+                      class="form-control"
+                      required>
+                  </div>
+                  <div class="form-group">
+                    <label>Weeks per Year</label>
+                    <input 
+                      type="number" 
+                      [(ngModel)]="weeksPerYear"
+                      name="weeksPerYear"
+                      min="1"
+                      max="52"
+                      class="form-control"
+                      required>
+                  </div>
+                </div>
+                <p class="recurring-info">
+                  📊 Total occurrences: <strong>{{ timesPerWeek * weeksPerYear }}</strong> times/year
+                </p>
+              </div>
+            </div>
 
             <div class="impact-preview">
-              <h4>Estimated Impact:</h4>
+              <h4>Estimated Impact{{ isRecurring ? ' (per year)' : '' }}:</h4>
               <div class="impacts">
                 <span *ngIf="selectedActivity.co2PerUnit > 0" class="impact co2">
-                  {{ (selectedActivity.co2PerUnit * quantity).toFixed(2) }} kg CO₂
+                  {{ calculateTotalImpact(selectedActivity.co2PerUnit * quantity).toFixed(2) }} kg CO₂
                 </span>
                 <span *ngIf="selectedActivity.waterPerUnit > 0" class="impact water">
-                  {{ (selectedActivity.waterPerUnit * quantity).toFixed(0) }} L Water
+                  {{ calculateTotalImpact(selectedActivity.waterPerUnit * quantity).toFixed(0) }} L Water
                 </span>
                 <span *ngIf="selectedActivity.electricityPerUnit > 0" class="impact electricity">
-                  {{ (selectedActivity.electricityPerUnit * quantity).toFixed(2) }} kWh
+                  {{ calculateTotalImpact(selectedActivity.electricityPerUnit * quantity).toFixed(2) }} kWh
                 </span>
               </div>
             </div>
@@ -132,18 +225,30 @@ import { Subscription } from 'rxjs';
         <h2>Your Preview Activities</h2>
         <p class="preview-note">These activities are temporary and will disappear on refresh</p>
         <div class="activity-cards">
-          <div *ngFor="let activity of guestActivities" class="activity-card">
+          <div *ngFor="let activity of guestActivities" class="activity-card" [class.recurring-card]="activity.isRecurring">
             <div class="activity-main">
               <div>
-                <h3>{{ activity.activityName }}</h3>
+                <h3>
+                  {{ activity.activityName }}
+                  <span *ngIf="activity.isRecurring" class="recurring-badge">🔄 {{ activity.timesPerWeek }}x/week</span>
+                </h3>
                 <p>{{ activity.quantity }} {{ activity.unit }} - {{ formatDate(activity.date) }}</p>
               </div>
               <button class="btn-delete" (click)="removeGuestActivity(activity.id)">X</button>
             </div>
             <div class="activity-impacts">
-              <span *ngIf="activity.co2Impact > 0" class="impact co2">{{ activity.co2Impact.toFixed(1) }} kg CO2</span>
-              <span *ngIf="activity.waterImpact > 0" class="impact water">{{ activity.waterImpact.toFixed(0) }} L</span>
-              <span *ngIf="activity.electricityImpact > 0" class="impact electricity">{{ activity.electricityImpact.toFixed(1) }} kWh</span>
+              <span *ngIf="(activity.totalCo2Impact || activity.co2Impact) > 0" class="impact co2">
+                {{ (activity.totalCo2Impact || activity.co2Impact).toFixed(1) }} kg CO2
+                <small *ngIf="activity.isRecurring">/year</small>
+              </span>
+              <span *ngIf="(activity.totalWaterImpact || activity.waterImpact) > 0" class="impact water">
+                {{ (activity.totalWaterImpact || activity.waterImpact).toFixed(0) }} L
+                <small *ngIf="activity.isRecurring">/year</small>
+              </span>
+              <span *ngIf="(activity.totalElectricityImpact || activity.electricityImpact) > 0" class="impact electricity">
+                {{ (activity.totalElectricityImpact || activity.electricityImpact).toFixed(1) }} kWh
+                <small *ngIf="activity.isRecurring">/year</small>
+              </span>
             </div>
           </div>
         </div>
@@ -155,18 +260,30 @@ import { Subscription } from 'rxjs';
         <div *ngIf="!isGuest" class="activities-list">
           <h2>Your Activities</h2>
           <div *ngIf="userActivities.length > 0" class="activity-cards">
-            <div *ngFor="let activity of userActivities" class="activity-card">
+            <div *ngFor="let activity of userActivities" class="activity-card" [class.recurring-card]="activity.isRecurring">
               <div class="activity-main">
                 <div>
-                  <h3>{{ activity.activityName }}</h3>
+                  <h3>
+                    {{ activity.activityName }}
+                    <span *ngIf="activity.isRecurring" class="recurring-badge">🔄 {{ activity.timesPerWeek }}x/week</span>
+                  </h3>
                   <p>{{ activity.quantity }} {{ activity.unit }} - {{ formatDate(activity.date) }}</p>
                 </div>
                 <button class="btn-delete" (click)="deleteActivity(activity.id)">X</button>
               </div>
               <div class="activity-impacts">
-                <span *ngIf="activity.co2Impact > 0" class="impact co2">{{ activity.co2Impact.toFixed(1) }} kg CO2</span>
-                <span *ngIf="activity.waterImpact > 0" class="impact water">{{ activity.waterImpact.toFixed(0) }} L</span>
-                <span *ngIf="activity.electricityImpact > 0" class="impact electricity">{{ activity.electricityImpact.toFixed(1) }} kWh</span>
+                <span *ngIf="(activity.totalCo2Impact || activity.co2Impact) > 0" class="impact co2">
+                  {{ (activity.totalCo2Impact || activity.co2Impact).toFixed(1) }} kg CO2
+                  <small *ngIf="activity.isRecurring">/year</small>
+                </span>
+                <span *ngIf="(activity.totalWaterImpact || activity.waterImpact) > 0" class="impact water">
+                  {{ (activity.totalWaterImpact || activity.waterImpact).toFixed(0) }} L
+                  <small *ngIf="activity.isRecurring">/year</small>
+                </span>
+                <span *ngIf="(activity.totalElectricityImpact || activity.electricityImpact) > 0" class="impact electricity">
+                  {{ (activity.totalElectricityImpact || activity.electricityImpact).toFixed(1) }} kWh
+                  <small *ngIf="activity.isRecurring">/year</small>
+                </span>
               </div>
             </div>
           </div>
@@ -318,6 +435,168 @@ import { Subscription } from 'rxjs';
       justify-content: space-between;
       align-items: center;
       margin-bottom: 2rem;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .btn-secondary {
+      padding: 0.75rem 1rem;
+      background: white;
+      color: #374151;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      border-color: #10B981;
+      color: #10B981;
+      transform: translateY(-2px);
+    }
+
+    .btn-admin {
+      border-color: #f59e0b;
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      color: #92400e;
+    }
+
+    .btn-admin:hover {
+      border-color: #d97706;
+      color: #78350f;
+      background: linear-gradient(135deg, #fde68a, #fcd34d);
+    }
+
+    /* Import Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-content h2 {
+      margin-bottom: 0.5rem;
+      color: #111827;
+    }
+
+    .modal-description {
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+    }
+
+    .import-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .import-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .import-option:hover {
+      border-color: #10B981;
+    }
+
+    .import-option.selected {
+      border-color: #10B981;
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .import-option input {
+      accent-color: #10B981;
+    }
+
+    .option-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .option-content strong {
+      color: #111827;
+    }
+
+    .option-content span {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .selected-file {
+      padding: 0.75rem;
+      background: #f3f4f6;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      color: #374151;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    .btn-cancel {
+      padding: 0.75rem 1.5rem;
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-cancel:hover {
+      background: #e5e7eb;
+    }
+
+    .btn-import {
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #10B981, #06B6D4);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .btn-import:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    .btn-import:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
 
     .activities-header h1 {
@@ -480,6 +759,53 @@ import { Subscription } from 'rxjs';
       color: #92400e;
     }
 
+    /* Recurring Activity Styles */
+    .recurring-section {
+      margin: 1.5rem 0;
+      padding: 1rem;
+      background: white;
+      border-radius: 0.5rem;
+      border: 2px solid #e5e7eb;
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .toggle-checkbox {
+      width: 1.25rem;
+      height: 1.25rem;
+      accent-color: #10B981;
+    }
+
+    .toggle-text {
+      font-size: 1rem;
+    }
+
+    .recurring-options {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .recurring-info {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-top: 0.75rem;
+      padding: 0.5rem;
+      background: #f3f4f6;
+      border-radius: 0.25rem;
+    }
+
+    .recurring-info strong {
+      color: #10B981;
+    }
+
     .btn-submit {
       width: 100%;
       padding: 1rem;
@@ -554,6 +880,23 @@ import { Subscription } from 'rxjs';
       transform: translateX(4px);
     }
 
+    .activity-card.recurring-card {
+      background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+      border-left: 4px solid #10B981;
+    }
+
+    .recurring-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #10B981, #06B6D4);
+      color: white;
+      padding: 0.15rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+
     .activity-main {
       display: flex;
       justify-content: space-between;
@@ -616,6 +959,8 @@ import { Subscription } from 'rxjs';
   `]
 })
 export class ActivitiesComponent implements OnInit, OnDestroy {
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  
   user: User | null = null;
   activities: Activity[] = [];
   private guestSubscription?: Subscription;
@@ -636,6 +981,18 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   showPrompt = false;
   guestActivities: UserActivity[] = [];
 
+  // Import/Export
+  showImportModal = false;
+  importMode: 'append' | 'overwrite' = 'append';
+  selectedFile: File | null = null;
+  isImporting = false;
+  isAdmin = false;
+
+  // Recurring activity
+  isRecurring = false;
+  timesPerWeek = 1;
+  weeksPerYear = 52;
+
   categories = [
     { value: 'all', label: 'All', icon: '📋' },
     { value: 'transport', label: 'Transport', icon: '🚗' },
@@ -655,11 +1012,13 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.isGuest = this.guestService.isGuest();
     this.user = this.authService.getCurrentUser();
+    this.isAdmin = this.authService.isAdmin();
     
     // Subscribe to guest mode changes (for when user logs in)
     this.guestSubscription = this.guestService.isGuestMode$.subscribe(isGuest => {
       this.isGuest = isGuest;
       this.user = this.authService.getCurrentUser();
+      this.isAdmin = this.authService.isAdmin();
       if (this.user && !this.isGuest) {
         this.loadUserActivities();
       }
@@ -746,6 +1105,7 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
 
     // Guest mode - add to temporary preview list
     if (this.isGuest) {
+      const multiplier = this.isRecurring ? this.timesPerWeek * this.weeksPerYear : 1;
       const guestActivity: UserActivity = {
         id: Date.now(), // temporary ID
         userId: 0, // guest user
@@ -756,7 +1116,13 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
         co2Impact: this.selectedActivity.co2PerUnit * this.quantity,
         waterImpact: this.selectedActivity.waterPerUnit * this.quantity,
         electricityImpact: this.selectedActivity.electricityPerUnit * this.quantity,
-        date: this.date
+        date: this.date,
+        isRecurring: this.isRecurring,
+        timesPerWeek: this.isRecurring ? this.timesPerWeek : undefined,
+        weeksPerYear: this.isRecurring ? this.weeksPerYear : undefined,
+        totalCo2Impact: this.selectedActivity.co2PerUnit * this.quantity * multiplier,
+        totalWaterImpact: this.selectedActivity.waterPerUnit * this.quantity * multiplier,
+        totalElectricityImpact: this.selectedActivity.electricityPerUnit * this.quantity * multiplier
       };
       this.guestActivities.unshift(guestActivity);
       this.showForm = false;
@@ -775,9 +1141,14 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
       co2Impact: this.selectedActivity.co2PerUnit * this.quantity,
       waterImpact: this.selectedActivity.waterPerUnit * this.quantity,
       electricityImpact: this.selectedActivity.electricityPerUnit * this.quantity,
-      date: this.date
+      date: this.date,
+      isRecurring: this.isRecurring,
+      timesPerWeek: this.isRecurring ? this.timesPerWeek : undefined,
+      weeksPerYear: this.isRecurring ? this.weeksPerYear : undefined
     };
 
+    const multiplier = this.isRecurring ? this.timesPerWeek * this.weeksPerYear : 1;
+    
     this.userActivityService.createUserActivity(this.user.id, request).subscribe({
       next: () => {
         this.isSubmitting = false;
@@ -785,12 +1156,12 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
         this.resetForm();
         this.loadUserActivities();
         
-        // Update user totals
+        // Update user totals (with multiplier for recurring)
         if (this.user) {
           this.authService.updateUser(this.user.id, {
-            totalCo2: (this.user.totalCo2 || 0) + (request.co2Impact || 0),
-            totalWater: (this.user.totalWater || 0) + (request.waterImpact || 0),
-            totalElectricity: (this.user.totalElectricity || 0) + (request.electricityImpact || 0)
+            totalCo2: (this.user.totalCo2 || 0) + (request.co2Impact || 0) * multiplier,
+            totalWater: (this.user.totalWater || 0) + (request.waterImpact || 0) * multiplier,
+            totalElectricity: (this.user.totalElectricity || 0) + (request.electricityImpact || 0) * multiplier
           } as any).subscribe();
         }
       },
@@ -821,9 +1192,81 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
     this.searchTerm = '';
     this.quantity = 1;
     this.date = format(new Date(), 'yyyy-MM-dd');
+    this.isRecurring = false;
+    this.timesPerWeek = 1;
+    this.weeksPerYear = 52;
+  }
+  
+  calculateTotalImpact(baseImpact: number): number {
+    if (this.isRecurring) {
+      return baseImpact * this.timesPerWeek * this.weeksPerYear;
+    }
+    return baseImpact;
   }
 
   formatDate(dateString: string): string {
     return format(new Date(dateString), 'MMM dd, yyyy');
+  }
+
+  // Import/Export Methods
+  exportActivities(): void {
+    this.activityService.exportActivities().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `activities_export_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error: any) => {
+        console.error('Error exporting activities:', error);
+        alert('Failed to export activities. Please try again.');
+      }
+    });
+  }
+
+  triggerImport(): void {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0];
+      this.showImportModal = true;
+    }
+  }
+
+  closeImportModal(): void {
+    this.showImportModal = false;
+    this.selectedFile = null;
+    this.importMode = 'append';
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+  }
+
+  confirmImport(): void {
+    if (!this.selectedFile) return;
+
+    this.isImporting = true;
+    this.activityService.importActivities(this.selectedFile, this.importMode).subscribe({
+      next: (response: any) => {
+        this.isImporting = false;
+        this.closeImportModal();
+        this.loadActivities();
+        
+        const message = response.message || `Successfully imported activities!`;
+        alert(message);
+      },
+      error: (error: any) => {
+        console.error('Error importing activities:', error);
+        this.isImporting = false;
+        alert('Failed to import activities. Please check the file format and try again.');
+      }
+    });
   }
 }
