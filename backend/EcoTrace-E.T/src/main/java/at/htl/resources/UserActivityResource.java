@@ -4,6 +4,8 @@ import at.htl.dtos.CreateUserActivityRequest;
 import at.htl.dtos.StatsDto;
 import at.htl.dtos.UserActivityDto;
 import at.htl.services.AuthService;
+import at.htl.entities.User;
+import at.htl.services.LeaderboardService;
 import at.htl.services.UserActivityService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -24,6 +26,9 @@ public class UserActivityResource {
 
     @Inject
     UserActivityService userActivityService;
+
+    @Inject
+    LeaderboardService leaderboardService;
 
     @Inject
     AuthService authService;
@@ -74,6 +79,13 @@ public class UserActivityResource {
     public Response createUserActivity(@Valid CreateUserActivityRequest request) {
         Long userId = authService.getCurrentUserId(jwt);
         UserActivityDto created = userActivityService.createUserActivity(userId, request);
+
+        // Update leaderboard entries for all periods
+        User user = User.findById(userId);
+        if (user != null) {
+            leaderboardService.updateLeaderboardForUser(user, LocalDate.now());
+        }
+
         return Response.status(Response.Status.CREATED).entity(created).build();
     }
 
@@ -82,6 +94,10 @@ public class UserActivityResource {
     public Response deleteUserActivity(@PathParam("activityId") Long activityId) {
         Long userId = authService.getCurrentUserId(jwt);
         userActivityService.deleteUserActivity(userId, activityId);
+
+        // Recalculate leaderboard after deletion
+        leaderboardService.recalculateUserLeaderboard(userId);
+
         return Response.noContent().build();
     }
 }

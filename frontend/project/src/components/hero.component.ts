@@ -48,7 +48,8 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
             Join the movement towards a sustainable future with real-time environmental insights.
           </p>
           <div class="cta-buttons">
-            <button class="btn-primary" (click)="showAuthModal = true">Start Tracking</button>
+            <button class="btn-primary" (click)="startTracking()">Start Tracking</button>
+            <button class="btn-secondary" (click)="learnMore()">Learn More</button>
           </div>
         </div>
         
@@ -421,6 +422,8 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
       font-weight: 700;
       line-height: 1;
       margin-bottom: 0.25rem;
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Roboto Mono', 'Consolas', monospace;
+      font-variant-numeric: tabular-nums;
     }
 
     .stat-unit {
@@ -745,7 +748,7 @@ export class HeroComponent implements OnInit, OnDestroy {
     this.generateParticles();
     this.updateStats();
     this.subscription = interval(100).subscribe(() => this.updateStats());
-    
+
     // Check if user is authenticated
     this.authService.currentUser$.subscribe(user => {
       this.isAuthenticated = !!user;
@@ -873,7 +876,7 @@ export class HeroComponent implements OnInit, OnDestroy {
   login(): void {
     this.errorMessage = '';
     this.isLoading = true;
-    
+
     // Redirect to Keycloak login
     try {
       this.authService.login();
@@ -887,7 +890,7 @@ export class HeroComponent implements OnInit, OnDestroy {
   register(): void {
     this.errorMessage = '';
     this.isLoading = true;
-    
+
     // Redirect to Keycloak registration
     try {
       this.authService.register();

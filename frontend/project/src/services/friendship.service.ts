@@ -11,10 +11,9 @@ export class FriendshipService {
 
   constructor(private http: HttpClient) {}
 
-  getUserFriends(): Observable<User[]> {
-    return this.http.get<User[]>(this.apiUrl);
-  }
-
+    getUserFriends(): Observable<User[]> {
+        return this.http.get<User[]>(this.apiUrl);
+    }
   getUserFriendships(): Observable<Friendship[]> {
     return this.http.get<Friendship[]>(`${this.apiUrl}/friendships`);
   }

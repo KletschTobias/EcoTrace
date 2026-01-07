@@ -51,10 +51,10 @@ export class AuthService {
   private watchKeycloakAuthChanges(): void {
     let lastAuthState = this.kc?.authenticated ?? false;
     console.log('[Auth][watcher] starting. kc.authenticated =', this.kc?.authenticated, 'token?', !!this.kc?.token, 'tokenParsed?', !!this.kc?.tokenParsed);
-    
+
     const authCheckInterval = setInterval(() => {
       const currentAuthState = this.kc?.authenticated ?? false;
-      
+
       // ALSO check if we have a valid token, even if Keycloak says not authenticated
       // (can happen when nonce validation fails but token is still valid)
       const hasValidToken = !!this.kc?.token && this.kc?.tokenParsed;
@@ -62,14 +62,14 @@ export class AuthService {
         console.log('[Auth][watcher] kc.authenticated=false; token?', !!this.kc?.token, 'tokenParsed?', !!this.kc?.tokenParsed);
       }
       const effectiveAuthState = currentAuthState || hasValidToken;
-      
+
       if (effectiveAuthState && !lastAuthState) {
         // Keycloak just authenticated (or we detected a valid token)
         const username = this.kc?.idTokenParsed?.['preferred_username'] || this.kc?.idTokenParsed?.['sub'] || this.kc?.tokenParsed?.['sub'] || 'Unknown';
         console.log('[Auth] ✅ Authentication detected! User:', username);
         console.log('[Auth] Token exists:', !!this.kc?.token);
         lastAuthState = effectiveAuthState;
-        
+
         // Fetch user from backend with the new token
         this.fetchCurrentUser().subscribe(
           user => {
@@ -190,6 +190,11 @@ export class AuthService {
   /**
    * Check if user is authenticated
    */
+  updateCurrentUser(user: User): void {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    this.currentUserSubject.next(user);
+  }
+
   isAuthenticated(): boolean {
     const isAuth = this.kc?.authenticated === true;
     if (!isAuth && this.kc) {

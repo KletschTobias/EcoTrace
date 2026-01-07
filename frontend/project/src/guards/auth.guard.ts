@@ -1,9 +1,11 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { GuestService } from '../services/guest.service';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
+  const guestService = inject(GuestService);
   const router = inject(Router);
 
   // Wenn nicht eingeloggt → Hero
@@ -16,8 +18,12 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   // Wenn eingeloggt und versucht "/" oder "" aufzurufen → Activities
   if (path === '/' || path === '') {
-    return router.parseUrl('/activities');
+      guestService.exitGuestMode();
+      return router.parseUrl('/activities');
   }
 
+  // If not authenticated, enter guest mode and allow access
+  // Users can browse the app but some features are locked
+  guestService.enterGuestMode();
   return true;
 };

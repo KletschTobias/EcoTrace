@@ -2,6 +2,10 @@ export interface User {
   id: number;
   externalId: string;  // Keycloak user ID (sub claim)
   avatarColor: string;
+  profileImageUrl?: string;
+  biography?: string;
+  hasSolarPanels?: boolean;
+  hasHeatPump?: boolean;
   totalCo2: number;
   totalWater: number;
   totalElectricity: number;
