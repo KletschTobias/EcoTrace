@@ -48,19 +48,20 @@ import { format } from 'date-fns';
         <div *ngIf="selectedFile" class="file-info">
           <span>📄 {{ selectedFile.name }}</span>
           <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="overwriteExisting">
-            Overwrite existing activities
+            <input type="checkbox" [(ngModel)]="overwriteExisting" [checked]="true">
+            Full Sync (replace all activities)
           </label>
           <button class="btn-upload" (click)="uploadExcel()" [disabled]="isUploading">
-            {{ isUploading ? 'Uploading...' : 'Import Now' }}
+            {{ isUploading ? 'Uploading...' : 'Import & Sync' }}
           </button>
         </div>
         <div *ngIf="importResult" class="import-result">
           <strong>{{ importResult.message }}</strong>
           <ul>
+            <li *ngIf="importResult.deletedCount > 0">🗑️ Deleted old: {{ importResult.deletedCount }}</li>
             <li>✅ New: {{ importResult.importedCount }}</li>
-            <li>🔄 Updated: {{ importResult.updatedCount }}</li>
-            <li>⚠️ Duplicates: {{ importResult.duplicateCount }}</li>
+            <li *ngIf="importResult.updatedCount > 0">🔄 Updated: {{ importResult.updatedCount }}</li>
+            <li *ngIf="importResult.duplicateCount > 0">⚠️ Duplicates: {{ importResult.duplicateCount }}</li>
             <li *ngIf="importResult.skippedCount > 0">❌ Errors: {{ importResult.skippedCount }}</li>
             <li *ngIf="importResult.sqlSynced">🔗 import.sql synced!</li>
           </ul>
@@ -609,7 +610,7 @@ export class ActivitiesComponent implements OnInit {
 
   // CSV Import/Export
   selectedFile: File | null = null;
-  overwriteExisting = false;
+  overwriteExisting = true; // Default: Full sync mode
   isUploading = false;
   importResult: any = null;
   private apiUrl = 'http://localhost:8080/api/activities';
@@ -792,7 +793,7 @@ export class ActivitiesComponent implements OnInit {
     this.isUploading = true;
     const formData = new FormData();
     formData.append('file', this.selectedFile);
-    formData.append('overwrite', this.overwriteExisting.toString());
+    formData.append('syncMode', this.overwriteExisting.toString());
 
     this.http.post(`${this.apiUrl}/import`, formData)
       .subscribe({
@@ -803,7 +804,7 @@ export class ActivitiesComponent implements OnInit {
           // Reload activities to show imported ones in dropdown
           this.loadActivities();
           alert('✅ Import successful!\n\n' + result.message + '\n\n' +
-                'New activities are now available in the dropdown.\n' +
+                'Activities synced with Excel file.\n' +
                 '🔗 import.sql has been automatically synced!');
         },
         error: (err) => {

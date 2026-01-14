@@ -81,10 +81,10 @@ public class ActivityResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response importActivities(
             @org.jboss.resteasy.reactive.RestForm("file") FileUpload file,
-            @org.jboss.resteasy.reactive.RestForm("overwrite") @DefaultValue("false") boolean overwrite) {
+            @org.jboss.resteasy.reactive.RestForm("syncMode") @DefaultValue("true") boolean syncMode) {
         try {
             ActivityImportExportService.ImportResult result = 
-                importExportService.importActivities(new FileInputStream(file.uploadedFile().toFile()), overwrite);
+                importExportService.importActivities(new FileInputStream(file.uploadedFile().toFile()), syncMode);
             
             // Auto-sync import.sql after successful import
             importExportService.syncImportSql();
@@ -95,6 +95,7 @@ public class ActivityResource {
                 "updatedCount", result.updatedCount,
                 "duplicateCount", result.duplicateCount,
                 "skippedCount", result.skippedCount,
+                "deletedCount", result.deletedCount,
                 "duplicates", result.duplicates,
                 "errors", result.errors,
                 "sqlSynced", true

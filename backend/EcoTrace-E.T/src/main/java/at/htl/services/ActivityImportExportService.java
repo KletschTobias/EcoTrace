@@ -79,12 +79,19 @@ public class ActivityImportExportService {
     /**
      * Import activities from Excel file
      * @param inputStream Excel file input stream
-     * @param overwrite If true, overwrites existing activities with same name
+     * @param syncMode If true, deletes all existing activities first (full sync)
      * @return ImportResult with statistics
      */
     @Transactional
-    public ImportResult importActivities(InputStream inputStream, boolean overwrite) throws Exception {
+    public ImportResult importActivities(InputStream inputStream, boolean syncMode) throws Exception {
         ImportResult result = new ImportResult();
+        
+        // If sync mode: delete all existing activities first
+        if (syncMode) {
+            long deletedCount = Activity.deleteAll();
+            result.deletedCount = (int) deletedCount;
+            LOG.info("Sync mode: Deleted " + deletedCount + " existing activities");
+        }
         
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
@@ -119,11 +126,10 @@ public class ActivityImportExportService {
                     continue;
                 }
                 
-                // Check for existing activity
-                Activity existing = Activity.findByName(name);
-                
-                if (existing != null) {
-                    if (overwrite) {
+                // In sync mode, always create new. Otherwise check for existing
+                if (!syncMode) {
+                    Activity existing = Activity.findByName(name);
+                    if (existing != null) {
                         // Update existing activity
                         existing.category = category;
                         existing.co2PerUnit = co2PerUnit;
@@ -135,26 +141,23 @@ public class ActivityImportExportService {
                         existing.persist();
                         result.updatedCount++;
                         LOG.info("Updated activity: " + name);
-                    } else {
-                        // Duplicate, skip
-                        result.duplicateCount++;
-                        result.duplicates.add(name);
+                        continue;
                     }
-                } else {
-                    // Create new activity
-                    Activity newActivity = new Activity();
-                    newActivity.name = name;
-                    newActivity.category = category;
-                    newActivity.co2PerUnit = co2PerUnit;
-                    newActivity.waterPerUnit = waterPerUnit;
-                    newActivity.electricityPerUnit = electricityPerUnit;
-                    newActivity.unit = unit;
-                    newActivity.icon = icon;
-                    newActivity.description = description;
-                    newActivity.persist();
-                    result.importedCount++;
-                    LOG.info("Imported new activity: " + name);
                 }
+                
+                // Create new activity
+                Activity newActivity = new Activity();
+                newActivity.name = name;
+                newActivity.category = category;
+                newActivity.co2PerUnit = co2PerUnit;
+                newActivity.waterPerUnit = waterPerUnit;
+                newActivity.electricityPerUnit = electricityPerUnit;
+                newActivity.unit = unit;
+                newActivity.icon = icon;
+                newActivity.description = description;
+                newActivity.persist();
+                result.importedCount++;
+                LOG.info("Imported new activity: " + name);
             }
         }
         
@@ -303,12 +306,16 @@ public class ActivityImportExportService {
         public int updatedCount = 0;
         public int duplicateCount = 0;
         public int skippedCount = 0;
+        public int deletedCount = 0;
         public List<String> duplicates = new ArrayList<>();
         public List<String> errors = new ArrayList<>();
         
         public String getMessage() {
             StringBuilder sb = new StringBuilder();
             sb.append("Import completed: ");
+            if (deletedCount > 0) {
+                sb.append(deletedCount).append(" deleted, ");
+            }
             sb.append(importedCount).append(" new, ");
             sb.append(updatedCount).append(" updated, ");
             sb.append(duplicateCount).append(" duplicates skipped, ");

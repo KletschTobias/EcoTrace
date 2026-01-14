@@ -38,9 +38,9 @@ INSERT INTO activities (id, name, category, co2_per_unit, water_per_unit, electr
 (nextval('activities_seq'), 'Train Journey', 'transport', 41,0, 0,0, 0,0, 'km', '🚆', 'Traveling by train'),
 (nextval('activities_seq'), 'Flight', 'transport', 255,0, 0,0, 0,0, 'km', '✈️', 'Air travel'),
 (nextval('activities_seq'), 'E-Bike Ride', 'transport', 15,0, 0,0, 0,0, 'km', '🚲', 'Riding an electric bicycle'),
-(nextval('activities_seq'), 'Test', 'test', 1,0, 1000,0, 0,0, 'times', 'f', 'danffnsdnfjd'),
-(nextval('activities_seq'), 'fsfsdf', 'sdfsdfsd', 0,0, 0,0, 0,0, 'sdfsddsf', 'f', 'sdfsd'),
-(nextval('activities_seq'), 'test1', 'sdfsdfsd', 0,0, 0,0, 0,0, 'sdfsddsf', 'f', 'sdfsd');
+(nextval('activities_seq'), 'Test', 'test', 1,0, 1000,0, 0,0, 'km', 'f', 'danffnsdnfjd'),
+(nextval('activities_seq'), 'fsfsdf', 'sdfsdfsd', 0,0, 0,0, 0,0, 'km', 'f', 'sdfsd'),
+(nextval('activities_seq'), 'hello', 'sdfsdfsd', 0,0, 0,0, 0,0, 'km', 'f', 'sdfsd');
 
 -- Demo Users
 INSERT INTO users (id, username, email, password, full_name, avatar_color, total_co2, total_water, total_electricity, created_date, updated_date) VALUES
