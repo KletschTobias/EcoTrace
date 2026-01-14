@@ -263,4 +263,12 @@ export class AuthService {
   getUserById(userId: number): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/users/${userId}`);
   }
+
+  /**
+   * Check if current user is admin
+   */
+  isAdmin(): boolean {
+    const user = this.currentUserSubject.value;
+    return user !== null && user.isAdmin === true;
+  }
 }

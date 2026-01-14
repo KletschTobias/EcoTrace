@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
@@ -31,6 +31,57 @@ import { Subscription } from 'rxjs';
         <button class="btn-primary" (click)="toggleForm()">
           {{ showForm ? 'Cancel' : '+ Log Activity' }}
         </button>
+      </div>
+      
+      <!-- Admin Import Section -->
+      <div *ngIf="isAdmin" class="admin-import-section">
+        <button class="btn-import-admin" (click)="triggerImport()" title="Import Activities from Excel">
+          📤 Import Activities
+        </button>
+      </div>
+      
+      <!-- Admin Import Section -->
+      <div *ngIf="isAdmin" class="admin-import-section">
+        <button class="btn-import-admin" (click)="triggerImport()" title="Import Activities from Excel">
+          📤 Import Activities
+        </button>
+      </div>
+      
+      <!-- Import Modal -->
+      <div *ngIf="showImportModal" class="modal-overlay" (click)="closeImportModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <h2>📤 Import Activities</h2>
+          <p class="modal-description">Choose how to handle the imported activities:</p>
+          
+          <div class="import-options">
+            <label class="import-option" [class.selected]="importMode === 'append'">
+              <input type="radio" name="importMode" value="append" [(ngModel)]="importMode">
+              <div class="option-content">
+                <strong>➕ Append</strong>
+                <span>Add new activities, skip duplicates</span>
+              </div>
+            </label>
+            
+            <label class="import-option" [class.selected]="importMode === 'overwrite'">
+              <input type="radio" name="importMode" value="overwrite" [(ngModel)]="importMode">
+              <div class="option-content">
+                <strong>🔄 Overwrite</strong>
+                <span>Update existing activities with same name</span>
+              </div>
+            </label>
+          </div>
+          
+          <div *ngIf="selectedFile" class="selected-file">
+            <span>📄 {{ selectedFile.name }}</span>
+          </div>
+          
+          <div class="modal-actions">
+            <button class="btn-cancel" (click)="closeImportModal()">Cancel</button>
+            <button class="btn-import" (click)="confirmImport()" [disabled]="isImporting">
+              {{ isImporting ? 'Importing...' : 'Import' }}
+            </button>
+          </div>
+        </div>
       </div>
       
       <!-- Guest Info Banner -->
@@ -654,13 +705,209 @@ import { Subscription } from 'rxjs';
         gap: 1rem;
       }
 
+      .header-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .header-actions button {
+        width: 100%;
+      }
+
       .form-row {
         grid-template-columns: 1fr;
       }
     }
+
+    /* Import/Export Styles */
+    .admin-import-section {
+      background: linear-gradient(135deg, #10B981, #059669);
+      padding: 1.5rem;
+      border-radius: 1rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: center;
+    }
+
+    .btn-import-admin {
+      padding: 1rem 2rem;
+      background: white;
+      color: #10B981;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-import-admin:hover {
+      background: #f0fdf4;
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-secondary {
+      padding: 0.75rem 1.5rem;
+      background: white;
+      color: #10B981;
+      border: 2px solid #10B981;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: #10B981;
+      color: white;
+    }
+
+    .btn-admin {
+      border-color: #8b5cf6;
+      color: #8b5cf6;
+    }
+
+    .btn-admin:hover {
+      background: #8b5cf6;
+      color: white;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-content h2 {
+      margin: 0 0 0.5rem 0;
+      color: #111827;
+    }
+
+    .modal-description {
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+    }
+
+    .import-options {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .import-option {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .import-option:hover {
+      border-color: #10B981;
+    }
+
+    .import-option.selected {
+      border-color: #10B981;
+      background: #f0fdf4;
+    }
+
+    .import-option input[type="radio"] {
+      margin-right: 1rem;
+    }
+
+    .option-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .option-content strong {
+      color: #111827;
+      margin-bottom: 0.25rem;
+    }
+
+    .option-content span {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    .selected-file {
+      background: #f3f4f6;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.875rem;
+      color: #374151;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+
+    .btn-cancel {
+      padding: 0.75rem 1.5rem;
+      background: white;
+      color: #6b7280;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-cancel:hover {
+      background: #f3f4f6;
+    }
+
+    .btn-import {
+      padding: 0.75rem 1.5rem;
+      background: #10B981;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-import:hover:not(:disabled) {
+      background: #059669;
+    }
+
+    .btn-import:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   `]
 })
 export class ActivitiesComponent implements OnInit, OnDestroy {
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+  
   user: User | null = null;
   activities: Activity[] = [];
   private guestSubscription?: Subscription;
@@ -683,6 +930,13 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   guestActivities: UserActivity[] = [];
   isLoading = true;
 
+  // Import/Export
+  showImportModal = false;
+  importMode: 'append' | 'overwrite' = 'append';
+  selectedFile: File | null = null;
+  isImporting = false;
+  isAdmin = false;
+
   categories = [
     { value: 'all', label: 'All', icon: '📋' },
     { value: 'transport', label: 'Transport', icon: '🚗' },
@@ -703,6 +957,7 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.isGuest = this.guestService.isGuest();
     this.user = this.authService.getCurrentUser();
+    this.isAdmin = this.authService.isAdmin();
 
     // Load all activities available
     this.loadActivities();
@@ -1031,5 +1286,67 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
 
   formatDate(dateString: string): string {
     return format(new Date(dateString), 'MMM dd, yyyy');
+  }
+
+  // Import/Export Methods
+  exportActivities(): void {
+    this.activityService.exportActivities().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `activities_export_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error: any) => {
+        console.error('Error exporting activities:', error);
+        alert('Failed to export activities. Please try again.');
+      }
+    });
+  }
+
+  triggerImport(): void {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFile = input.files[0];
+      this.showImportModal = true;
+    }
+  }
+
+  closeImportModal(): void {
+    this.showImportModal = false;
+    this.selectedFile = null;
+    this.importMode = 'append';
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+  }
+
+  confirmImport(): void {
+    if (!this.selectedFile) return;
+
+    this.isImporting = true;
+    this.activityService.importActivities(this.selectedFile, this.importMode).subscribe({
+      next: (response: any) => {
+        this.isImporting = false;
+        this.closeImportModal();
+        this.loadActivities();
+        
+        const message = response.message || `Successfully imported activities!`;
+        alert(message);
+      },
+      error: (error: any) => {
+        console.error('Error importing activities:', error);
+        this.isImporting = false;
+        alert('Failed to import activities. Please check the file format and try again.');
+      }
+    });
   }
 }

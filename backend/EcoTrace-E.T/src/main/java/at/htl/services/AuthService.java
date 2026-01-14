@@ -133,6 +133,12 @@ public class AuthService {
             // Auto-create user if doesn't exist
             user = createNewUser(externalId, username, fullName, email);
         }
+        
+        // Check if user has et-admin role in JWT token
+        boolean isAdmin = jwt.getGroups() != null && jwt.getGroups().contains("et-admin");
+        user.isAdmin = isAdmin;
+        user.persist();
+        
         return UserDto.from(user);
     }
 

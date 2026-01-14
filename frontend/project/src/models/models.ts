@@ -9,6 +9,7 @@ export interface User {
   totalCo2: number;
   totalWater: number;
   totalElectricity: number;
+  isAdmin?: boolean;  // Admin flag
   // Optional profile fields (from Keycloak token)
   username?: string;
   email?: string;
