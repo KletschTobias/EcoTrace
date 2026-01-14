@@ -19,21 +19,18 @@ public class ActivityResource {
     ActivityService activityService;
 
     @GET
-    @RolesAllowed({"ROLE_USER", "et-user"})
     public List<ActivityDto> getAllActivities() {
         return activityService.getAllActivities();
     }
 
     @GET
     @Path("/{id}")
-    @RolesAllowed({"ROLE_USER", "et-user"})
     public ActivityDto getActivityById(@PathParam("id") Long id) {
         return activityService.getActivityById(id);
     }
 
     @GET
     @Path("/category/{category}")
-    @RolesAllowed({"ROLE_USER", "et-user"})
     public List<ActivityDto> getActivitiesByCategory(@PathParam("category") String category) {
         return activityService.getActivitiesByCategory(category);
     }

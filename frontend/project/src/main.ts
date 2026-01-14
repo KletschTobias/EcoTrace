@@ -72,7 +72,8 @@ keycloak.init({
   onLoad: 'check-sso',
   pkceMethod: 'S256',
   enableLogging: true,
-  redirectUri: window.location.origin + '/activities',
+  // Keep current location after refresh (don't redirect)
+  redirectUri: window.location.href,
   adapter: 'default',
   // Default responseMode (fragment) + standard flow
   responseMode: 'fragment',

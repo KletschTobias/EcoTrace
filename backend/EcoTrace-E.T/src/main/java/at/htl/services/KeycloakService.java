@@ -71,6 +71,49 @@ public class KeycloakService {
 	}
 
 	/**
+	 * Update user's full name in Keycloak
+	 */
+	public void updateKeycloakUserName(String userId, String firstName, String lastName) {
+		try {
+			LOGGER.info("Attempting to update Keycloak user: " + userId + " with name: " + firstName + " " + lastName);
+			String accessToken = getAdminAccessToken();
+			if (accessToken == null) {
+				LOGGER.warning("Failed to get admin access token for Keycloak user update");
+				return;
+			}
+
+			Client client = ClientBuilder.newClient();
+			String updateUrl = String.format("%s/admin/realms/%s/users/%s", keycloakUrl, realm, userId);
+			LOGGER.info("PUT URL: " + updateUrl);
+
+			// Build JSON payload manually
+			String jsonPayload = String.format("{\"firstName\":\"%s\",\"lastName\":\"%s\"}", 
+				firstName != null ? firstName : "", 
+				lastName != null ? lastName : "");
+
+			var response = client.target(updateUrl)
+					.request(MediaType.APPLICATION_JSON)
+					.header("Authorization", "Bearer " + accessToken)
+					.put(Entity.json(jsonPayload));
+			
+			int status = response.getStatus();
+			LOGGER.info("Keycloak update response status: " + status);
+			
+			if (status == 204 || status == 200) {
+				LOGGER.info("✅ Successfully updated Keycloak user: " + userId);
+			} else {
+				String body = response.readEntity(String.class);
+				LOGGER.warning("❌ Failed to update Keycloak user " + userId + " - Status: " + status + " Body: " + body);
+			}
+            
+			response.close();
+			client.close();
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "❌ Exception updating Keycloak user: " + userId, e);
+		}
+	}
+
+	/**
 	 * Get admin access token from Keycloak
 	 */
 	private String getAdminAccessToken() {

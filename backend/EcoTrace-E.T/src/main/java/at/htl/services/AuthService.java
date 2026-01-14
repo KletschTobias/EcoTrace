@@ -11,15 +11,17 @@ import jakarta.ws.rs.NotFoundException;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class AuthService {
 
+    private static final Logger LOGGER = Logger.getLogger(AuthService.class.getName());
+
     @Inject
     KeycloakService keycloakService;
-
-    private static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger(AuthService.class.getName());
 
     public UserDto getUserById(Long id) {
         User user = User.findById(id);
@@ -98,8 +100,15 @@ public class AuthService {
         user.delete();
         LOGGER.info(() -> "User entity deleted from database");
 
-        // Delete from Keycloak
-        keycloakService.deleteKeycloakUser(externalId);
+        // Delete from Keycloak - MUST be after database deletion to prevent rollback
+        LOGGER.info(() -> "🔴 Attempting to delete user from Keycloak: " + externalId);
+        try {
+            keycloakService.deleteKeycloakUser(externalId);
+            LOGGER.info(() -> "✅ Keycloak deletion initiated for: " + externalId);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "❌ Failed to delete user from Keycloak: " + externalId, e);
+            // Don't throw - database deletion should succeed even if Keycloak fails
+        }
     }
 
     /**
@@ -116,8 +125,13 @@ public class AuthService {
         }
         User user = User.findByExternalId(externalId);
         if (user == null) {
+            // Extract user info from JWT token
+            String username = jwt.getName(); // preferred_username claim
+            String fullName = (String) jwt.getClaim("name");
+            String email = (String) jwt.getClaim("email");
+            
             // Auto-create user if doesn't exist
-            user = createNewUser(externalId);
+            user = createNewUser(externalId, username, fullName, email);
         }
         return UserDto.from(user);
     }
@@ -126,12 +140,23 @@ public class AuthService {
      * Create a new user with auto-generated avatar color
      */
     @Transactional
-    public User createNewUser(String externalId) {
+    public User createNewUser(String externalId, String username, String fullName, String email) {
         User user = new User();
         user.externalId = externalId;
+        user.username = username;
+        user.fullName = fullName;
+        user.email = email;
         // Avatar color will be auto-generated in @PrePersist
         user.persist();
         return user;
+    }
+
+    /**
+     * Create user with minimal info (fallback)
+     */
+    @Transactional
+    public User createNewUser(String externalId) {
+        return createNewUser(externalId, externalId, "User", null);
     }
 
     /**

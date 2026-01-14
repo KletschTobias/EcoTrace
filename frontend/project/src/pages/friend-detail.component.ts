@@ -22,7 +22,7 @@ Chart.register(...registerables);
             class="friend-avatar"
             *ngIf="!friend.profileImageUrl"
             [style.background-color]="friend.avatarColor">
-            {{ friend.fullName.charAt(0) || friend.email.charAt(0) }}
+            {{ (friend.fullName || friend.username || friend.externalId || 'U').charAt(0) }}
           </div>
           <img 
             *ngIf="friend.profileImageUrl"

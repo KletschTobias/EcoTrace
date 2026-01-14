@@ -89,14 +89,14 @@ import { Subscription } from 'rxjs';
                     <img 
                       *ngIf="friend.profileImageUrl" 
                       [src]="getProfileImageUrl(friend.profileImageUrl)"
-                      [alt]="friend.fullName"
+                      [alt]="friend.fullName || friend.username || 'User'"
                       class="avatar-image">
                     <span *ngIf="!friend.profileImageUrl">
-                      {{ friend.fullName.charAt(0) || friend.email.charAt(0) }}
+                      {{ (friend.fullName || friend.username || 'U').charAt(0) }}
                     </span>
                   </div>
                   <div class="friend-info">
-                    <h3>{{ friend.fullName || 'User' }}</h3>
+                    <h3>{{ friend.fullName || friend.username || 'User' }}</h3>
                     <p>&#64;{{ friend.username }}</p>
                     <div class="friend-stats">
                       <span>{{ friend.totalCo2.toFixed(1) || '0.0' }} kg CO₂</span>
@@ -972,7 +972,7 @@ export class FriendsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.friendshipService.addFriend(this.currentUser.id, this.friendEmail).subscribe({
+    this.friendshipService.addFriend(this.friendEmail).subscribe({
       next: () => {
         this.isAdding = false;
         this.friendEmail = '';

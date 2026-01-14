@@ -5,6 +5,7 @@ import { AuthService } from '../services/auth.service';
 import { GuestService } from '../services/guest.service';
 import { ActivityService } from '../services/activity.service';
 import { UserActivityService } from '../services/user-activity.service';
+import { GuestActivityStoreService } from '../services/guest-activity-store.service';
 import { User, Activity, UserActivity, CreateUserActivityRequest } from '../models/models';
 import { format } from 'date-fns';
 import { Subscription } from 'rxjs';
@@ -663,6 +664,7 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   user: User | null = null;
   activities: Activity[] = [];
   private guestSubscription?: Subscription;
+  private userSubscription?: Subscription;
   userActivities: UserActivity[] = [];
   filteredActivities: Activity[] = [];
   
@@ -694,32 +696,126 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private guestService: GuestService,
     private activityService: ActivityService,
-    private userActivityService: UserActivityService
+    private userActivityService: UserActivityService,
+    private guestActivityStore: GuestActivityStoreService
   ) {}
 
   ngOnInit(): void {
     this.isGuest = this.guestService.isGuest();
     this.user = this.authService.getCurrentUser();
 
-    // Subscribe to guest mode changes (for when user logs in)
-    this.guestSubscription = this.guestService.isGuestMode$.subscribe(isGuest => {
-      this.isGuest = isGuest;
-      this.user = this.authService.getCurrentUser();
-      if (this.user && !this.isGuest) {
+    // Load all activities available
+    this.loadActivities();
+
+    // Subscribe to user changes - when user logs in, save guest activities to DB
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.user = user;
+      
+      if (user && !this.isGuest) {
+        // USER JUST LOGGED IN - check if this was a signup or login
+        console.log('[Activities] User logged in, checking for pending guest activities...');
+        
+        const isSignup = sessionStorage.getItem('isSignup') === 'true';
+        const savedActivities = sessionStorage.getItem('guestActivities');
+        
+        if (isSignup && savedActivities) {
+          // This was a SIGNUP - save guest activities to DB
+          try {
+            const pendingActivities = JSON.parse(savedActivities);
+            if (pendingActivities.length > 0) {
+              console.log('[Activities] Signup detected! Saving ' + pendingActivities.length + ' guest activities to database...');
+              this.saveGuestActivitiesFromService(pendingActivities);
+            }
+          } catch (e) {
+            console.error('[Activities] Failed to parse guest activities from sessionStorage');
+          }
+        } else if (!isSignup && savedActivities) {
+          // This was a LOGIN - just clear sessionStorage without saving
+          console.log('[Activities] Login detected, clearing guest activities without saving');
+          sessionStorage.removeItem('guestActivities');
+        }
+        
+        // Clear signup flag
+        sessionStorage.removeItem('isSignup');
+        
         this.loadUserActivities();
       }
     });
 
-    // Always load activities for display
-    this.loadActivities();
+    // Subscribe to guest mode changes
+    this.guestSubscription = this.guestService.isGuestMode$.subscribe(isGuest => {
+      console.log('[Activities] Guest mode changed:', isGuest);
+      this.isGuest = isGuest;
+    });
 
     if (this.user && !this.isGuest) {
       this.loadUserActivities();
     }
   }
 
+  saveGuestActivitiesFromService(activitiesToSave: UserActivity[]): void {
+    if (activitiesToSave.length === 0) {
+      console.log('[Activities] No guest activities to save');
+      return;
+    }
+
+    console.log('[Activities] Starting to save ' + activitiesToSave.length + ' guest activities...');
+    
+    activitiesToSave.forEach((activity, index) => {
+      setTimeout(() => {
+        const request: CreateUserActivityRequest = {
+          activityName: activity.activityName,
+          category: activity.category,
+          quantity: activity.quantity,
+          unit: activity.unit,
+          co2Impact: activity.co2Impact,
+          waterImpact: activity.waterImpact,
+          electricityImpact: activity.electricityImpact,
+          date: activity.date
+        };
+
+        this.userActivityService.createUserActivity(request).subscribe({
+          next: () => {
+            console.log('[Activities] ✅ Guest activity saved to DB: ' + activity.activityName);
+            
+            // After all activities are saved
+            if (index === activitiesToSave.length - 1) {
+              setTimeout(() => {
+                console.log('[Activities] All guest activities saved, clearing service + sessionStorage...');
+                this.guestActivityStore.clearActivities();
+                sessionStorage.removeItem('guestActivities');
+                this.loadUserActivities();
+              }, 500);
+            }
+          },
+          error: (error: any) => {
+            console.error('[Activities] ❌ Failed to save guest activity:', error);
+          }
+        });
+      }, index * 300); // 300ms delay between each
+    });
+  }
+
   ngOnDestroy(): void {
     this.guestSubscription?.unsubscribe();
+    this.userSubscription?.unsubscribe();
+  }
+
+  loadUserActivities(): void {
+    if (!this.user || this.isGuest) {
+      this.userActivities = [];
+      return;
+    }
+
+    this.userActivityService.getUserActivities().subscribe({
+      next: (activities: UserActivity[]) => {
+        this.userActivities = activities;
+      },
+      error: (error: any) => {
+        console.error('Error loading user activities:', error);
+        this.userActivities = [];
+      }
+    });
   }
 
   toggleForm(): void {
@@ -727,11 +823,16 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   }
 
   goToRegister(): void {
-    window.dispatchEvent(new CustomEvent('openAuthModal', { detail: { mode: 'register' } }));
+    // Set flag that this is a signup (not login)
+    sessionStorage.setItem('isSignup', 'true');
+    this.authService.register();
   }
 
   goToLogin(): void {
-    window.dispatchEvent(new CustomEvent('openAuthModal', { detail: { mode: 'login' } }));
+    // Clear guest activities on login (user already has account)
+    sessionStorage.removeItem('guestActivities');
+    sessionStorage.removeItem('isSignup');
+    this.authService.login();
   }
 
   loadActivities(): void {
@@ -822,7 +923,7 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   submitActivity(): void {
     if (!this.selectedActivity) return;
 
-    // Guest mode - add to temporary preview list
+    // Guest mode - add to temporary preview list and service
     if (this.isGuest) {
       const guestActivity: UserActivity = {
         id: Date.now(), // temporary ID
@@ -837,6 +938,12 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
         date: this.date
       };
       this.guestActivities.unshift(guestActivity);
+      
+      // Save to service AND sessionStorage for signup redirect
+      this.guestActivityStore.addActivity(guestActivity);
+      sessionStorage.setItem('guestActivities', JSON.stringify(this.guestActivityStore.getActivities()));
+      console.log('[Activities] Guest activity saved to service + sessionStorage');
+      
       this.showForm = false;
       this.resetForm();
       return;

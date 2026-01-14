@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { GuestService } from '../services/guest.service';
 import { User } from '../models/models';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-layout',
@@ -19,7 +20,7 @@ import { User } from '../models/models';
             <span class="logo-text">EcoTrace</span>
           </div>
 
-          <nav class="nav" *ngIf="isAuthenticated">
+          <nav class="nav">
             <a 
               routerLink="/dashboard" 
               routerLinkActive="active"
@@ -47,51 +48,37 @@ import { User } from '../models/models';
             </a>
           </nav>
 
-          <div class="user-menu">
-            <ng-container *ngIf="isAuthenticated">
-              <div class="user-info">
-                <div 
-                  class="user-avatar"
-                  [style.background-color]="currentUser?.avatarColor || '#10B981'"
-                  (click)="toggleProfileMenu()">
-                  {{ ((currentUser?.username || currentUser?.fullName || currentUser?.externalId || '').charAt(0) || '?').toUpperCase() }}
-                </div>
-                <div class="user-details">
-                  <strong>{{ currentUser?.username || currentUser?.fullName || currentUser?.externalId || '' }}</strong>
-                  <small>{{ currentUser?.email || currentUser?.externalId || '' }}</small>
-                </div>
+          <!-- Logged in user menu -->
+          <div *ngIf="!isGuest" class="user-menu">
+            <div class="user-info" (click)="navigateTo('/profile')">
+              <div 
+                class="user-avatar"
+                [style.background-color]="currentUser?.avatarColor || '#10B981'">
+                <img 
+                  *ngIf="currentUser?.profileImageUrl" 
+                  [src]="getProfileImageUrl(currentUser?.profileImageUrl || '')"
+                  [alt]="currentUser?.username || 'User'"
+                  class="avatar-image">
+                <span *ngIf="!currentUser?.profileImageUrl">
+                  {{ (currentUser?.username || currentUser?.externalId || 'U').charAt(0) }}
+                </span>
               </div>
-
-              <div class="dropdown-menu" *ngIf="profileMenuOpen">
-                <button class="dropdown-btn" (click)="openProfileEdit()">
-                  ⚙️ Edit Profile
-                </button>
-                <button class="dropdown-btn danger" (click)="deleteAccount()">
-                  🗑️ Delete Account
-                </button>
-                <button class="dropdown-btn" (click)="logout()">
-                  🚪 Logout
-                </button>
+              <div class="user-details">
+                <strong>{{ currentUser?.username || currentUser?.externalId }}</strong>
               </div>
-            </ng-container>
-
-            <ng-container *ngIf="!isAuthenticated">
-              <button class="btn-login" (click)="login()">
-                🔓 Login
-              </button>
-              <button class="btn-register" (click)="register()">
-                📝 Register
-              </button>
-            </ng-container>
+            </div>
+            <button class="btn-logout" (click)="logout()">
+              🚪 Logout
+            </button>
           </div>
 
           <!-- Guest user - Login/Register buttons top right -->
           <div *ngIf="isGuest" class="guest-menu">
-            <button class="btn-login" (click)="showAuthModal = true; isLoginMode = true">
-              Sign In
+            <button class="btn-login" (click)="login()">
+              🔓 Sign In
             </button>
-            <button class="btn-register" (click)="showAuthModal = true; isLoginMode = false">
-              Sign Up
+            <button class="btn-login" (click)="register()">
+              📝 Sign Up
             </button>
           </div>
         </div>
@@ -112,59 +99,6 @@ import { User } from '../models/models';
         </p>
       </footer>
     </div>
-
-    <!-- Auth Modal for Guests -->
-    <div *ngIf="showAuthModal" class="modal-overlay" (click)="showAuthModal = false">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <button class="modal-close" (click)="showAuthModal = false">×</button>
-        
-        <div class="auth-header">
-          <h2>{{ isLoginMode ? 'Welcome Back' : 'Join EcoTrace' }}</h2>
-          <p>{{ isLoginMode ? 'Sign in to continue tracking your impact' : 'Start your sustainability journey today' }}</p>
-        </div>
-
-        <form (ngSubmit)="isLoginMode ? login() : register()">
-          <div *ngIf="!isLoginMode" class="form-row">
-            <div class="form-group">
-              <label>First Name</label>
-              <input type="text" [(ngModel)]="firstname" name="firstname" placeholder="John" required>
-            </div>
-            <div class="form-group">
-              <label>Last Name</label>
-              <input type="text" [(ngModel)]="lastname" name="lastname" placeholder="Doe" required>
-            </div>
-          </div>
-
-          <div *ngIf="!isLoginMode" class="form-group">
-            <label>Username</label>
-            <input type="text" [(ngModel)]="username" name="username" placeholder="johndoe" required>
-          </div>
-
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" [(ngModel)]="email" name="email" placeholder="your@email.com" required>
-          </div>
-
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" [(ngModel)]="password" name="password" placeholder="••••••••" required>
-          </div>
-
-          <p *ngIf="errorMessage" class="error-message">{{ errorMessage }}</p>
-
-          <button type="submit" class="btn-submit" [disabled]="isLoading">
-            {{ isLoading ? 'Please wait...' : (isLoginMode ? 'Sign In' : 'Create Account') }}
-          </button>
-        </form>
-
-        <p class="auth-switch">
-          {{ isLoginMode ? "Don't have an account?" : 'Already have an account?' }}
-          <a (click)="isLoginMode = !isLoginMode">
-            {{ isLoginMode ? 'Sign up' : 'Sign in' }}
-          </a>
-        </p>
-      </div>
-    </div>
   `,
   styles: [`
     .layout-container {
@@ -172,33 +106,6 @@ import { User } from '../models/models';
       flex-direction: column;
       min-height: 100vh;
       background: linear-gradient(135deg, #e0f2fe 0%, #d1fae5 100%);
-    }
-
-    .guest-banner {
-      background: linear-gradient(135deg, #fbbf24, #f59e0b);
-      color: white;
-      padding: 0.75rem 2rem;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 1rem;
-      font-weight: 600;
-    }
-
-    .btn-register-banner {
-      background: white;
-      color: #f59e0b;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-register-banner:hover {
-      transform: scale(1.05);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .header {
@@ -243,167 +150,6 @@ import { User } from '../models/models';
       -webkit-text-fill-color: transparent;
     }
 
-    .guest-menu {
-      display: flex;
-      gap: 0.75rem;
-    }
-
-    .btn-login {
-      padding: 0.75rem 1.5rem;
-      border: 2px solid #10B981;
-      background: transparent;
-      color: #10B981;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-login:hover {
-      background: #10B981;
-      color: white;
-    }
-
-    .btn-register {
-      padding: 0.75rem 1.5rem;
-      background: linear-gradient(135deg, #10B981, #06B6D4);
-      color: white;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-register:hover {
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-    }
-
-    /* Modal Styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .modal-content {
-      background: white;
-      border-radius: 1rem;
-      padding: 2rem;
-      max-width: 400px;
-      width: 90%;
-      max-height: 90vh;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: #6b7280;
-    }
-
-    .auth-header {
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .auth-header h2 {
-      font-size: 1.5rem;
-      color: #111827;
-      margin-bottom: 0.5rem;
-    }
-
-    .auth-header p {
-      color: #6b7280;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: #374151;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 0.75rem;
-      border: 2px solid #e5e7eb;
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      transition: border-color 0.2s;
-    }
-
-    .form-group input:focus {
-      outline: none;
-      border-color: #10B981;
-    }
-
-    .error-message {
-      color: #dc2626;
-      font-size: 0.875rem;
-      margin-bottom: 1rem;
-    }
-
-    .btn-submit {
-      width: 100%;
-      padding: 1rem;
-      background: linear-gradient(135deg, #10B981, #06B6D4);
-      color: white;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-submit:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-    }
-
-    .btn-submit:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .auth-switch {
-      text-align: center;
-      margin-top: 1rem;
-      color: #6b7280;
-    }
-
-    .auth-switch a {
-      color: #10B981;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
     .nav {
       display: flex;
       gap: 1rem;
@@ -418,9 +164,6 @@ import { User } from '../models/models';
       color: #6b7280;
       font-weight: 600;
       transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
     }
 
     .nav-link:hover {
@@ -470,17 +213,6 @@ import { User } from '../models/models';
 
     .user-avatar:hover {
       transform: scale(1.1);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .avatar-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      position: absolute;
-      top: 0;
-      left: 0;
     }
 
     .user-details {
@@ -491,11 +223,6 @@ import { User } from '../models/models';
     .user-details strong {
       color: #111827;
       font-size: 0.875rem;
-    }
-
-    .user-details small {
-      color: #6b7280;
-      font-size: 0.75rem;
     }
 
     .dropdown-menu {
@@ -539,11 +266,9 @@ import { User } from '../models/models';
       color: #dc2626;
     }
 
-    .btn-login,
-    .btn-register,
-    .btn-logout {
+    .btn-login {
       padding: 0.75rem 1.5rem;
-      background: #10B981;
+      background: linear-gradient(135deg, #10B981, #06B6D4);
       color: white;
       border: none;
       border-radius: 0.5rem;
@@ -552,70 +277,52 @@ import { User } from '../models/models';
       transition: all 0.2s;
     }
 
+    .btn-login:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+
     .btn-logout {
-      background: #ef4444;
-      padding: 0.75rem 1rem;
-      font-size: 1.2rem;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
     }
 
     .btn-logout:hover {
-      background: #dc2626;
-    }
-
-    .btn-login:hover,
-    .btn-register:hover {
-      background: #059669;
-      transform: translateY(-2px);
-    }
-
-    .btn-register {
-      background: #06B6D4;
-    }
-
-    .btn-register:hover {
-      background: #0891b2;
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
     }
 
     .main-content {
       flex: 1;
-      padding: 2rem 0;
+      padding: 2rem;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
     }
 
     .footer {
       background: white;
       padding: 2rem;
       text-align: center;
-      box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .footer p {
-      margin: 0.5rem 0;
       color: #6b7280;
+      border-top: 1px solid #e5e7eb;
     }
 
-    .footer-links {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .footer-links a {
-      color: #10B981;
-      text-decoration: none;
-      font-weight: 600;
-    }
-
-    .footer-links a:hover {
-      text-decoration: underline;
-    }
-
-    @media (max-width: 1024px) {
+    @media (max-width: 768px) {
       .header-content {
+        flex-wrap: wrap;
         padding: 1rem;
       }
 
       .nav {
+        order: 3;
+        width: 100%;
         gap: 0.5rem;
       }
 
@@ -627,81 +334,42 @@ import { User } from '../models/models';
       .user-details {
         display: none;
       }
-    }
 
-    @media (max-width: 768px) {
-      .header-content {
-        flex-wrap: wrap;
-      }
-
-      .nav {
-        order: 3;
-        width: 100%;
-        justify-content: space-around;
-      }
-
-      .nav-link {
-        flex: 1;
-        justify-content: center;
-        padding: 0.5rem;
-      }
-
-      .user-menu {
-        flex-direction: row-reverse;
-      }
-
-      .btn-logout {
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-      }
-
-      .guest-menu {
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .guest-banner {
-        flex-direction: column;
-        gap: 0.5rem;
-        padding: 0.5rem;
-        font-size: 0.875rem;
+      .main-content {
+        padding: 1rem;
       }
     }
   `]
 })
-export class LayoutComponent implements OnInit {
-  currentUser: User | null = null;
+export class LayoutComponent implements OnInit, OnDestroy {
   isAuthenticated = false;
-  profileMenuOpen = false;
   isGuest = false;
+  currentUser: User | null = null;
+  profileMenuOpen = false;
+  private subscription: Subscription | null = null;
 
-    constructor(
+  constructor(
     private authService: AuthService,
     private guestService: GuestService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.isAuthenticated = this.authService.isAuthenticated();
-    this.currentUser = this.authService.getCurrentUser();
-
-    // Subscribe to user changes
-    this.authService.currentUser$.subscribe(user => {
+    this.subscription = this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
-      this.isAuthenticated = this.authService.isAuthenticated();
+      this.isAuthenticated = !!user;
+      this.isGuest = this.guestService.isGuest();
     });
-    this.isGuest = this.guestService.isGuest();
+  }
 
-    // Subscribe to guest mode changes
-    this.guestService.isGuestMode$.subscribe(isGuest => {
-      this.isGuest = isGuest;
-    });
+  ngOnDestroy(): void {
+    this.subscription?.unsubscribe();
   }
 
   getProfileImageUrl(url: string): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `http://localhost:8081${url}`;
+    return `http://localhost:8080${url}`;
   }
 
   navigateTo(path: string): void {
@@ -710,10 +378,12 @@ export class LayoutComponent implements OnInit {
   }
 
   login(): void {
+    // Redirect zu Keycloak Login
     this.authService.login();
   }
 
   register(): void {
+    // Redirect zu Keycloak Registration
     this.authService.register();
   }
 
@@ -721,20 +391,11 @@ export class LayoutComponent implements OnInit {
     this.authService.logout();
     this.profileMenuOpen = false;
     this.guestService.exitGuestMode();
-    this.router.navigate(['/']);
+    this.router.navigate(['/home']);
   }
 
   toggleProfileMenu(): void {
     this.profileMenuOpen = !this.profileMenuOpen;
-  }
-
-  openProfileMenu(): void {
-    this.profileMenuOpen = true;
-  }
-
-  openProfileEdit(): void {
-    this.router.navigate(['/profile']);
-    this.profileMenuOpen = false;
   }
 
   deleteAccount(): void {

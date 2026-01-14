@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { GuestService } from '../services/guest.service';
 
 // Daily consumption targets
 const DAILY_TARGETS = {
@@ -741,6 +742,7 @@ export class HeroComponent implements OnInit, OnDestroy {
 
   constructor(
     public authService: AuthService,
+    private guestService: GuestService,
     private router: Router
   ) {}
 
@@ -752,10 +754,7 @@ export class HeroComponent implements OnInit, OnDestroy {
     // Check if user is authenticated
     this.authService.currentUser$.subscribe(user => {
       this.isAuthenticated = !!user;
-      if (user) {
-        // If authenticated, go to activities
-        this.router.navigate(['/activities']);
-      }
+      // Don't auto-navigate - let user click "Start Tracking" to go to dashboard
     });
   }
 
@@ -871,6 +870,19 @@ export class HeroComponent implements OnInit, OnDestroy {
 
   trackParticle(index: number, particle: any) {
     return index;
+  }
+
+  startTracking(): void {
+    // Navigate to activities (with guest mode if not logged in)
+    this.router.navigate(['/activities']);
+  }
+
+  learnMore(): void {
+    // Scroll to stats section or show info
+    const statsElement = document.querySelector('.hero-stats');
+    if (statsElement) {
+      statsElement.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 
   login(): void {

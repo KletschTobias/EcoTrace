@@ -5,6 +5,9 @@ import at.htl.entities.User;
 public class UserDto {
     public Long id;
     public String externalId;
+    public String username;
+    public String fullName;
+    public String email;
     public String avatarColor;
     public String profileImageUrl;
     public String biography;
@@ -19,6 +22,9 @@ public class UserDto {
     public UserDto(User user) {
         this.id = user.id;
         this.externalId = user.externalId;
+        this.username = user.username;
+        this.fullName = user.fullName;
+        this.email = user.email;
         this.avatarColor = user.avatarColor;
         this.profileImageUrl = user.profileImageUrl;
         this.biography = user.biography;

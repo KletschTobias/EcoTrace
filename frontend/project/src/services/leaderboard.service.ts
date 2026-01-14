@@ -47,7 +47,7 @@ export type PeriodType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 })
 export class LeaderboardService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:8081/api/leaderboard';
+  private apiUrl = 'http://localhost:8080/api/leaderboard';
 
   getLeaderboard(periodType: PeriodType): Observable<LeaderboardEntry[]> {
     return this.http.get<LeaderboardEntry[]>(`${this.apiUrl}/${periodType}`);

@@ -150,7 +150,7 @@ export class AuthService {
   login(): void {
     if (this.kc) {
       console.log('[Auth] Initiating Keycloak login...');
-      // Redirect to /activities (path-based routing, no hash)
+      // Redirect to /activities after login
       this.kc.login({ redirectUri: window.location.origin + '/activities' });
     } else {
       console.warn('[Auth] Keycloak not initialized');
@@ -229,20 +229,25 @@ export class AuthService {
   /**
    * Delete user account (triggers backend deletion)
    */
-  deleteAccount(): void {
+  deleteAccount(): Observable<any> {
+    console.log('[Auth] 🗑️ Calling DELETE /api/auth/me...');
+    console.log('[Auth] URL:', `${this.apiUrl}/me`);
     // Call backend to delete user and all related data
-    this.http.delete(`${this.apiUrl}/me`).subscribe({
-      next: () => {
-        console.log('[Auth] Account deleted successfully');
+    return this.http.delete(`${this.apiUrl}/me`).pipe(
+      tap(() => {
+        console.log('[Auth] ✅ Account deleted successfully from backend');
         // After successful deletion, log out
         this.logout();
-      },
-      error: (error) => {
-        console.error('[Auth] Failed to delete account:', error);
+      }),
+      catchError((error) => {
+        console.error('[Auth] ❌ Failed to delete account:', error);
+        console.error('[Auth] Error status:', error.status);
+        console.error('[Auth] Error message:', error.message);
         // Log out anyway even if backend call fails
         this.logout();
-      }
-    });
+        return throwError(() => error);
+      })
+    );
   }
 
   /**

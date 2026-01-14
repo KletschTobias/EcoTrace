@@ -12,6 +12,15 @@ public class User extends PanacheEntity {
     @Column(unique = true, nullable = false)
     public String externalId;
 
+    @Column(unique = true)
+    public String username;
+
+    @Column(name = "full_name")
+    public String fullName;
+
+    @Column(name = "email", unique = true)
+    public String email;
+
     @Column(name = "avatar_color")
     public String avatarColor;
 
@@ -62,5 +71,9 @@ public class User extends PanacheEntity {
     // Static methods for queries
     public static User findByExternalId(String externalId) {
         return find("externalId", externalId).firstResult();
+    }
+
+    public static User findByEmail(String email) {
+        return find("email", email).firstResult();
     }
 }

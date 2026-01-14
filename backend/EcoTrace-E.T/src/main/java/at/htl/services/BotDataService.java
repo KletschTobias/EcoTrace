@@ -64,11 +64,11 @@ public class BotDataService {
     public void generateBotData() {
         LOG.info("Generating bot users and their activities...");
         
-        // First, ensure bot users exist
-        ensureBotUsersExist();
+        // First, create bot users if they don't exist
+        createBotUsersIfNotExist();
         
         // Find all bot users
-        List<User> botUsers = User.find("email like '%@ecotrace.bot'").list();
+        List<User> botUsers = User.find("externalId like '%bot%'").list();
         
         if (botUsers.isEmpty()) {
             LOG.warn("No bot users found!");
@@ -99,6 +99,58 @@ public class BotDataService {
     }
     
     /**
+     * Create bot users in database if they don't exist
+     */
+    private void createBotUsersIfNotExist() {
+        LOG.info("Creating bot users if they don't exist...");
+        int created = 0;
+        int skipped = 0;
+        
+        for (String[] botDef : BOT_DEFINITIONS) {
+            String username = botDef[0];
+            String email = botDef[1];
+            String fullName = botDef[2];
+            String avatarColor = botDef[3];
+            boolean hasSolarPanels = Boolean.parseBoolean(botDef[4]);
+            boolean hasHeatPump = Boolean.parseBoolean(botDef[5]);
+            
+            // Create externalId from email (bot1@ecotrace.bot -> bot1)
+            String externalId = email.split("@")[0];
+            
+            try {
+                // Check if user already exists
+                User existingUser = User.find("externalId", externalId).firstResult();
+                if (existingUser != null) {
+                    LOG.info("Bot user " + username + " already exists (ID: " + existingUser.id + ")");
+                    skipped++;
+                    continue;
+                }
+                
+                // Create new bot user
+                User botUser = new User();
+                botUser.externalId = externalId;
+                botUser.username = username;
+                botUser.email = email;
+                botUser.fullName = fullName;
+                botUser.avatarColor = avatarColor;
+                botUser.hasSolarPanels = Boolean.valueOf(hasSolarPanels);
+                botUser.hasHeatPump = Boolean.valueOf(hasHeatPump);
+                botUser.totalCo2 = 0.0;
+                botUser.totalWater = 0.0;
+                botUser.totalElectricity = 0.0;
+                botUser.persist();
+                
+                LOG.info("✓ Created bot user: " + username + " (ID: " + botUser.id + ")");
+                created++;
+            } catch (Exception e) {
+                LOG.error("✗ Error creating bot user " + username + ": " + e.getMessage(), e);
+            }
+        }
+        
+        LOG.info("Bot user creation complete: " + created + " created, " + skipped + " skipped");
+    }
+    
+    /**
      * Reset and regenerate all bot data - deletes existing bot activities and leaderboard entries
      */
     @Transactional
@@ -106,16 +158,16 @@ public class BotDataService {
         LOG.info("Resetting all bot data...");
         
         // Find all bot users
-        List<User> botUsers = User.find("email like '%@ecotrace.bot'").list();
+        List<User> botUsers = User.find("externalId like '%bot%'").list();
         
         for (User bot : botUsers) {
             // Delete all activities for this bot
             long deletedActivities = UserActivity.delete("user.id", bot.id);
-            LOG.info("Deleted " + deletedActivities + " activities for bot: " + bot.username);
+            LOG.info("Deleted " + deletedActivities + " activities for bot: " + bot.externalId);
             
             // Delete all leaderboard entries for this bot
             long deletedEntries = leaderboardRepository.delete("user.id", bot.id);
-            LOG.info("Deleted " + deletedEntries + " leaderboard entries for bot: " + bot.username);
+            LOG.info("Deleted " + deletedEntries + " leaderboard entries for bot: " + bot.externalId);
         }
         
         LOG.info("Bot data reset complete.");
@@ -204,7 +256,7 @@ public class BotDataService {
             bot.updatedDate = LocalDateTime.now();
             bot.persist();
             
-            LOG.info("Generated activities for bot: " + bot.username);
+            LOG.info("Generated activities for bot: " + bot.externalId);
             
             // Create leaderboard entries
             updateLeaderboardEntriesFromActivities(bot);
@@ -212,118 +264,91 @@ public class BotDataService {
         
         LOG.info("Fresh bot data generation complete!");
     }
-    
-    /**
-     * Create bot users if they don't exist
-     */
-    private void ensureBotUsersExist() {
-        for (String[] botDef : BOT_DEFINITIONS) {
-            String username = botDef[0];
-            String email = botDef[1];
-            String fullName = botDef[2];
-            String avatarColor = botDef[3];
-            boolean hasSolarPanels = Boolean.parseBoolean(botDef[4]);
-            boolean hasHeatPump = Boolean.parseBoolean(botDef[5]);
-            
-            User existing = User.find("email", email).firstResult();
-            if (existing == null) {
-                User bot = new User();
-                bot.username = username;
-                bot.email = email;
-                bot.password = "botpass";
-                bot.fullName = fullName;
-                bot.avatarColor = avatarColor;
-                bot.hasSolarPanels = hasSolarPanels;
-                bot.hasHeatPump = hasHeatPump;
-                bot.totalCo2 = 0.0;
-                bot.totalWater = 0.0;
-                bot.totalElectricity = 0.0;
-                bot.createdDate = LocalDateTime.now().minusDays(30 + random.nextInt(335));
-                bot.updatedDate = LocalDateTime.now();
-                bot.persist();
-                LOG.info("Created bot user: " + username);
-            }
-        }
-    }
 
     /**
      * Generate activities for a bot to cover all leaderboard periods
      */
     private void generateBotActivitiesForAllPeriods(User bot, List<Activity> activities) {
-        // Check if bot already has activities for today
-        LocalDate today = LocalDate.now();
-        long todayCount = UserActivity.count("user.id = ?1 and date = ?2", bot.id, today);
-        
-        if (todayCount > 0) {
-            LOG.info("Bot " + bot.username + " already has activities for today, just updating leaderboard...");
-            updateLeaderboardEntriesFromActivities(bot);
-            return;
-        }
-
-        // Generate activities for the past 35 days (covers daily, weekly, monthly periods)
-        double totalCo2 = 0, totalWater = 0, totalElec = 0;
-
-        for (int daysAgo = 0; daysAgo <= 35; daysAgo++) {
-            LocalDate date = today.minusDays(daysAgo);
+        try {
+            // Check if bot already has activities for today
+            LocalDate today = LocalDate.now();
+            long todayCount = UserActivity.count("user.id = ?1 and date = ?2", bot.id, today);
             
-            // Skip some days (10% chance of no activity)
-            if (random.nextDouble() < 0.1) continue;
-
-            // Generate 2-4 activities per day
-            int activitiesCount = 2 + random.nextInt(3);
-            
-            for (int i = 0; i < activitiesCount; i++) {
-                Activity activity = activities.get(random.nextInt(activities.size()));
-                
-                double quantity = generateQuantity(activity);
-                if (quantity <= 0) continue;
-                
-                double co2 = Math.max(0, activity.co2PerUnit * quantity);
-                double water = Math.max(0, activity.waterPerUnit * quantity);
-                double elec = Math.max(0, activity.electricityPerUnit * quantity);
-                
-                // Apply eco-equipment modifiers
-                if (bot.hasSolarPanels && elec > 0) {
-                    elec *= 0.3;
-                    co2 *= 0.7;
-                }
-                if (bot.hasHeatPump && co2 > 0) {
-                    co2 *= 0.8;
-                }
-
-                UserActivity ua = new UserActivity();
-                ua.user = bot;
-                ua.activityName = activity.name;
-                ua.category = activity.category;
-                ua.quantity = quantity;
-                ua.unit = activity.unit;
-                ua.co2Impact = co2;
-                ua.waterImpact = water;
-                ua.electricityImpact = elec;
-                ua.date = date;
-                ua.createdDate = date.atTime(8 + random.nextInt(12), random.nextInt(60));
-                ua.persist();
-
-                totalCo2 += co2;
-                totalWater += water;
-                totalElec += elec;
+            if (todayCount > 0) {
+                LOG.info("Bot " + bot.externalId + " already has activities for today, just updating leaderboard...");
+                updateLeaderboardEntriesFromActivities(bot);
+                return;
             }
-        }
 
-        // Update bot's total consumption
-        bot.totalCo2 = totalCo2;
-        bot.totalWater = totalWater;
-        bot.totalElectricity = totalElec;
-        bot.updatedDate = LocalDateTime.now();
-        bot.persist();
-        
-        LOG.info("Generated activities for bot: " + bot.username + 
-                 " (CO2: " + String.format("%.1f", totalCo2) + 
-                 ", Water: " + String.format("%.0f", totalWater) + 
-                 ", Elec: " + String.format("%.1f", totalElec) + ")");
-        
-        // Create leaderboard entries
-        updateLeaderboardEntriesFromActivities(bot);
+            // Generate activities for the past 35 days (covers daily, weekly, monthly periods)
+            double totalCo2 = 0, totalWater = 0, totalElec = 0;
+            int activitiesGenerated = 0;
+
+            for (int daysAgo = 0; daysAgo <= 35; daysAgo++) {
+                LocalDate date = today.minusDays(daysAgo);
+                
+                // Skip some days (10% chance of no activity)
+                if (random.nextDouble() < 0.1) continue;
+
+                // Generate 2-4 activities per day
+                int activitiesCount = 2 + random.nextInt(3);
+                
+                for (int i = 0; i < activitiesCount; i++) {
+                    Activity activity = activities.get(random.nextInt(activities.size()));
+                    
+                    double quantity = generateQuantity(activity);
+                    if (quantity <= 0) continue;
+                    
+                    double co2 = Math.max(0, activity.co2PerUnit * quantity);
+                    double water = Math.max(0, activity.waterPerUnit * quantity);
+                    double elec = Math.max(0, activity.electricityPerUnit * quantity);
+                    
+                    // Apply eco-equipment modifiers
+                    if (bot.hasSolarPanels && elec > 0) {
+                        elec *= 0.3;
+                        co2 *= 0.7;
+                    }
+                    if (bot.hasHeatPump && co2 > 0) {
+                        co2 *= 0.8;
+                    }
+
+                    UserActivity ua = new UserActivity();
+                    ua.user = bot;
+                    ua.activityName = activity.name;
+                    ua.category = activity.category;
+                    ua.quantity = quantity;
+                    ua.unit = activity.unit;
+                    ua.co2Impact = co2;
+                    ua.waterImpact = water;
+                    ua.electricityImpact = elec;
+                    ua.date = date;
+                    ua.createdDate = date.atTime(8 + random.nextInt(12), random.nextInt(60));
+                    ua.persist();
+
+                    totalCo2 += co2;
+                    totalWater += water;
+                    totalElec += elec;
+                    activitiesGenerated++;
+                }
+            }
+
+            // Update bot's total consumption
+            bot.totalCo2 = totalCo2;
+            bot.totalWater = totalWater;
+            bot.totalElectricity = totalElec;
+            bot.updatedDate = LocalDateTime.now();
+            bot.persist();
+            
+            LOG.info("Generated " + activitiesGenerated + " activities for bot: " + bot.externalId + 
+                     " (CO2: " + String.format("%.1f", totalCo2) + 
+                     ", Water: " + String.format("%.0f", totalWater) + 
+                     ", Elec: " + String.format("%.1f", totalElec) + ")");
+            
+            // Create leaderboard entries
+            updateLeaderboardEntriesFromActivities(bot);
+        } catch (Exception e) {
+            LOG.error("Error generating activities for bot " + bot.externalId + ": " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -421,7 +446,7 @@ public class BotDataService {
 
             leaderboardRepository.persist(entry);
             
-            LOG.info("Created leaderboard entry for " + bot.username + " - " + periodType + 
+            LOG.info("Created leaderboard entry for " + bot.externalId + " - " + periodType + 
                      " (Days: " + daysTracked + "/" + entry.daysRequired + ", CO2: " + String.format("%.1f", totalCo2) + ")");
         }
     }

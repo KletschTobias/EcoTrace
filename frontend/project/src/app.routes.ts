@@ -11,8 +11,6 @@ import { FriendDetailComponent } from './pages/friend-detail.component';
 export const routes: Routes = [
   {
     path: '',
-    component: HeroComponent,
-    pathMatch: 'full'
     redirectTo: '/home',
     pathMatch: 'full'
   },
@@ -23,7 +21,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: LayoutComponent,
-    canActivate: [authGuard],  // ✅ Re-enabled: only authenticated users can access
+    canActivate: [authGuard],
     children: [
       {
         path: '',

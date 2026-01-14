@@ -22,8 +22,8 @@ export class FriendshipService {
     return this.http.get<User[]>(`${this.apiUrl}/leaderboard`);
   }
 
-  addFriend(friendExternalId: string): Observable<Friendship> {
-    return this.http.post<Friendship>(this.apiUrl, { friendExternalId });
+  addFriend(friendEmail: string): Observable<Friendship> {
+    return this.http.post<Friendship>(this.apiUrl, { friendEmail });
   }
 
   removeFriend(friendshipId: number): Observable<void> {

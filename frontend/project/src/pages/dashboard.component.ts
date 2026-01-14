@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { GuestService } from '../services/guest.service';
 import { UserActivityService } from '../services/user-activity.service';
@@ -173,9 +174,13 @@ Chart.register(...registerables);
         </div>
         
         <!-- Guest Overlay for Activities -->
-        <div *ngIf="isGuest" class="locked-overlay" (click)="showRegisterPrompt('Track your activities')">
+        <div *ngIf="isGuest" class="guest-activities-overlay">
           <span class="lock-icon">🔒</span>
-          <span class="lock-text">Log in to track your activities</span>
+          <p class="lock-text">Ready to track your environmental impact?</p>
+          <button class="btn-start-tracking" (click)="startTracking()">
+            🚀 Start Tracking
+          </button>
+          <p class="login-prompt">Or <button class="link-button" (click)="goToLogin()">sign in</button> if you already have an account</p>
         </div>
       </div>
     </div>
@@ -268,6 +273,75 @@ Chart.register(...registerables);
 
     .sample-activities {
       opacity: 0.7;
+    }
+
+    /* Guest Activities Overlay */
+    .guest-activities-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(255, 255, 255, 0.98);
+      padding: 2rem 2.5rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 350px;
+    }
+
+    .guest-activities-overlay .lock-icon {
+      font-size: 2rem;
+    }
+
+    .guest-activities-overlay .lock-text {
+      font-weight: 600;
+      color: #374151;
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .btn-start-tracking {
+      background: linear-gradient(135deg, #10B981, #06B6D4);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 0.5rem 0;
+    }
+
+    .btn-start-tracking:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .login-prompt {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .link-button {
+      background: none;
+      border: none;
+      color: #10B981;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0;
+      text-decoration: underline;
+      transition: color 0.3s ease;
+    }
+
+    .link-button:hover {
+      color: #059669;
     }
 
     /* Registration Prompt Modal */
@@ -625,495 +699,504 @@ Chart.register(...registerables);
   `]
 })
 export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
-  @ViewChild('co2Chart') co2ChartRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('waterChart') waterChartRef!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('electricityChart') electricityChartRef!: ElementRef<HTMLCanvasElement>;
+    @ViewChild('co2Chart') co2ChartRef!: ElementRef<HTMLCanvasElement>;
+    @ViewChild('waterChart') waterChartRef!: ElementRef<HTMLCanvasElement>;
+    @ViewChild('electricityChart') electricityChartRef!: ElementRef<HTMLCanvasElement>;
 
-  user: User | null = null;
-  stats: Stats = { co2: 0, water: 0, electricity: 0 };
-  recentActivities: UserActivity[] = [];
-  selectedRange = 'today';
-  isLoading = true;
+    user: User | null = null;
+    stats: Stats = {co2: 0, water: 0, electricity: 0};
+    recentActivities: UserActivity[] = [];
+    selectedRange = 'today';
+    isLoading = true;
 
-  // Guest mode
-  isGuest = false;
-  showPrompt = false;
-  promptTitle = '';
-  private guestSubscription?: Subscription;
+    // Guest mode
+    isGuest = false;
+    showPrompt = false;
+    promptTitle = '';
+    private guestSubscription?: Subscription;
 
-  private co2Chart?: Chart;
-  private waterChart?: Chart;
-  private electricityChart?: Chart;
+    private co2Chart?: Chart;
+    private waterChart?: Chart;
+    private electricityChart?: Chart;
 
-  dateRanges = [
-    { value: 'today', label: 'Today' },
-    { value: 'week', label: 'Week' },
-    { value: 'month', label: 'Month' }
-  ];
+    dateRanges = [
+        {value: 'today', label: 'Today'},
+        {value: 'week', label: 'Week'},
+        {value: 'month', label: 'Month'}
+    ];
 
-  constructor(
-    private authService: AuthService,
-    private guestService: GuestService,
-    private userActivityService: UserActivityService
-  ) {}
+    constructor(
+        private authService: AuthService,
+        private guestService: GuestService,
+        private userActivityService: UserActivityService,
+        private router: Router
+    ) {
+    }
 
-  ngOnInit(): void {
-    this.isGuest = this.guestService.isGuest();
-    this.user = this.authService.getCurrentUser();
+    ngOnInit(): void {
+        this.isGuest = this.guestService.isGuest();
+        this.user = this.authService.getCurrentUser();
 
-    // Subscribe to guest mode changes (for when user logs in)
-    this.guestSubscription = this.guestService.isGuestMode$.subscribe(isGuest => {
-      this.isGuest = isGuest;
-      this.user = this.authService.getCurrentUser();
-      if (this.user && !this.isGuest) {
+        // Subscribe to guest mode changes (for when user logs in)
+        this.guestSubscription = this.guestService.isGuestMode$.subscribe(isGuest => {
+            this.isGuest = isGuest;
+            this.user = this.authService.getCurrentUser();
+            if (this.user && !this.isGuest) {
+                this.loadData();
+            }
+        });
+
+        if (this.user && !this.isGuest) {
+            this.loadData();
+        }
+    }
+
+    ngOnDestroy(): void {
+        this.guestSubscription?.unsubscribe();
+    }
+
+    ngAfterViewInit(): void {
+        this.createCharts();
+    }
+
+    setDateRange(range: string): void {
+        this.selectedRange = range;
         this.loadData();
-      }
-    });
-
-    if (this.user && !this.isGuest) {
-      this.loadData();
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.guestSubscription?.unsubscribe();
-  }
-
-  ngAfterViewInit(): void {
-    this.createCharts();
-  }
-
-  setDateRange(range: string): void {
-    this.selectedRange = range;
-    this.loadData();
-  }
-
-  loadData(): void {
-    if (!this.user) return;
-
-    this.isLoading = true;
-    const { startDate, endDate } = this.getDateRange();
-
-    // Load stats and activities in parallel
-    forkJoin({
-      stats: this.userActivityService.getUserStats(startDate, endDate),
-      activities: this.userActivityService.getUserActivitiesByDateRange(startDate, endDate)
-    }).subscribe({
-      next: (result) => {
-        this.stats = result.stats;
-        this.recentActivities = result.activities.slice(0, 10);
-          this.updateCharts();
-          this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error loading data:', error);
-        this.isLoading = false;
-      }
-    });
-  }
-
-  getDateRange(): { startDate: string; endDate: string } {
-    const today = startOfDay(new Date());
-    let startDate: Date;
-
-    switch (this.selectedRange) {
-      case 'week':
-        startDate = subDays(today, 7);
-        break;
-      case 'month':
-        startDate = subDays(today, 30);
-        break;
-      default:
-        startDate = today;
     }
 
-    return {
-      startDate: format(startDate, 'yyyy-MM-dd'),
-      endDate: format(new Date(), 'yyyy-MM-dd')
-    };
-  }
+    loadData(): void {
+        if (!this.user) return;
 
-  getPercentageDiff(value: number, average: number): string {
-    const diff = ((value - average) / average) * 100;
-    return (diff >= 0 ? '+' : '') + diff.toFixed(1);
-  }
+        this.isLoading = true;
+        const {startDate, endDate} = this.getDateRange();
 
-  formatDate(dateString: string): string {
-    return format(new Date(dateString), 'MMM dd, yyyy');
-  }
-
-  createCharts(): void {
-    this.createCo2Chart();
-    this.createWaterChart();
-    this.createElectricityChart();
-  }
-
-  createCo2Chart(): void {
-    const ctx = this.co2ChartRef.nativeElement.getContext('2d');
-    if (!ctx) return;
-
-    // You - Emerald
-    const gradYou = ctx.createLinearGradient(0, 0, 0, 400);
-    gradYou.addColorStop(0, '#34D399');
-    gradYou.addColorStop(1, '#059669');
-
-    // Global - Blue
-    const gradGlobal = ctx.createLinearGradient(0, 0, 0, 400);
-    gradGlobal.addColorStop(0, '#60A5FA');
-    gradGlobal.addColorStop(1, '#2563EB');
-
-    // EU - Violet
-    const gradEU = ctx.createLinearGradient(0, 0, 0, 400);
-    gradEU.addColorStop(0, '#A78BFA');
-    gradEU.addColorStop(1, '#7C3AED');
-
-    // Hover Gradients
-    const gradYouHover = ctx.createLinearGradient(0, 0, 0, 400);
-    gradYouHover.addColorStop(0, '#6EE7B7');
-    gradYouHover.addColorStop(1, '#10B981');
-
-    const gradGlobalHover = ctx.createLinearGradient(0, 0, 0, 400);
-    gradGlobalHover.addColorStop(0, '#93C5FD');
-    gradGlobalHover.addColorStop(1, '#3B82F6');
-
-    const gradEUHover = ctx.createLinearGradient(0, 0, 0, 400);
-    gradEUHover.addColorStop(0, '#C4B5FD');
-    gradEUHover.addColorStop(1, '#8B5CF6');
-
-    this.co2Chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['You', 'Global Avg', 'EU Avg'],
-        datasets: [{
-          label: 'CO₂ Emissions (kg)',
-          data: [this.stats.co2, 12.3, 18.6],
-          backgroundColor: [gradYou, gradGlobal, gradEU],
-          hoverBackgroundColor: [gradYouHover, gradGlobalHover, gradEUHover],
-          borderColor: ['#059669', '#2563EB', '#7C3AED'],
-          borderWidth: 0,
-          hoverBorderWidth: 2,
-          hoverBorderColor: '#ffffff',
-          borderRadius: 12,
-          barPercentage: 0.6,
-          categoryPercentage: 0.8,
-          borderSkipped: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        animation: {
-          duration: 1000,
-          easing: 'easeOutQuart'
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-            padding: 14,
-            cornerRadius: 10,
-            titleFont: { size: 14, family: 'system-ui', weight: 'bold' },
-            bodyFont: { size: 13, family: 'system-ui' },
-            displayColors: true,
-            boxWidth: 10,
-            boxHeight: 10,
-            usePointStyle: true,
-            callbacks: { label: (c: any) => `${c.parsed.y} kg CO₂` }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(0,0,0,0.05)',
-              tickLength: 0
+        // Load stats and activities in parallel
+        forkJoin({
+            stats: this.userActivityService.getUserStats(startDate, endDate),
+            activities: this.userActivityService.getUserActivitiesByDateRange(startDate, endDate)
+        }).subscribe({
+            next: (result) => {
+                this.stats = result.stats;
+                this.recentActivities = result.activities.slice(0, 10);
+                this.updateCharts();
+                this.isLoading = false;
             },
-            border: { display: false },
-            ticks: {
-              font: { size: 11, family: 'system-ui' },
-              color: '#64748b',
-              padding: 10
+            error: (error) => {
+                console.error('Error loading data:', error);
+                this.isLoading = false;
             }
-          },
-          x: {
-            grid: { display: false },
-            border: { display: false },
-            ticks: {
-              font: { size: 12, weight: 'bold', family: 'system-ui' },
-              color: '#334155'
-            }
-          }
+        });
+    }
+
+    getDateRange(): { startDate: string; endDate: string } {
+        const today = startOfDay(new Date());
+        let startDate: Date;
+
+        switch (this.selectedRange) {
+            case 'week':
+                startDate = subDays(today, 7);
+                break;
+            case 'month':
+                startDate = subDays(today, 30);
+                break;
+            default:
+                startDate = today;
         }
-      }
-    });
-  }
 
-  createWaterChart(): void {
-    const ctx = this.waterChartRef.nativeElement.getContext('2d');
-    if (!ctx) return;
+        return {
+            startDate: format(startDate, 'yyyy-MM-dd'),
+            endDate: format(new Date(), 'yyyy-MM-dd')
+        };
+    }
 
-    // You - Cyan
-    const gradYou = ctx.createLinearGradient(0, 0, 0, 400);
-    gradYou.addColorStop(0, '#22D3EE');
-    gradYou.addColorStop(1, '#0891B2');
+    getPercentageDiff(value: number, average: number): string {
+        const diff = ((value - average) / average) * 100;
+        return (diff >= 0 ? '+' : '') + diff.toFixed(1);
+    }
 
-    // Global - Blue
-    const gradGlobal = ctx.createLinearGradient(0, 0, 0, 400);
-    gradGlobal.addColorStop(0, '#60A5FA');
-    gradGlobal.addColorStop(1, '#2563EB');
+    formatDate(dateString: string): string {
+        return format(new Date(dateString), 'MMM dd, yyyy');
+    }
 
-    // EU - Violet
-    const gradEU = ctx.createLinearGradient(0, 0, 0, 400);
-    gradEU.addColorStop(0, '#A78BFA');
-    gradEU.addColorStop(1, '#7C3AED');
+    createCharts(): void {
+        this.createCo2Chart();
+        this.createWaterChart();
+        this.createElectricityChart();
+    }
 
-    // Hover Gradients
-    const gradYouHover = ctx.createLinearGradient(0, 0, 0, 400);
-    gradYouHover.addColorStop(0, '#67E8F9');
-    gradYouHover.addColorStop(1, '#06B6D4');
+    createCo2Chart(): void {
+        const ctx = this.co2ChartRef.nativeElement.getContext('2d');
+        if (!ctx) return;
 
-    const gradGlobalHover = ctx.createLinearGradient(0, 0, 0, 400);
-    gradGlobalHover.addColorStop(0, '#93C5FD');
-    gradGlobalHover.addColorStop(1, '#3B82F6');
+        // You - Emerald
+        const gradYou = ctx.createLinearGradient(0, 0, 0, 400);
+        gradYou.addColorStop(0, '#34D399');
+        gradYou.addColorStop(1, '#059669');
 
-    const gradEUHover = ctx.createLinearGradient(0, 0, 0, 400);
-    gradEUHover.addColorStop(0, '#C4B5FD');
-    gradEUHover.addColorStop(1, '#8B5CF6');
+        // Global - Blue
+        const gradGlobal = ctx.createLinearGradient(0, 0, 0, 400);
+        gradGlobal.addColorStop(0, '#60A5FA');
+        gradGlobal.addColorStop(1, '#2563EB');
 
-    this.waterChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['You', 'Global Avg', 'EU Avg'],
-        datasets: [{
-          label: 'Water Usage (liters)',
-          data: [this.stats.water, 243, 144],
-          backgroundColor: [gradYou, gradGlobal, gradEU],
-          hoverBackgroundColor: [gradYouHover, gradGlobalHover, gradEUHover],
-          borderColor: ['#0891B2', '#2563EB', '#7C3AED'],
-          borderWidth: 0,
-          hoverBorderWidth: 2,
-          hoverBorderColor: '#ffffff',
-          borderRadius: 12,
-          barPercentage: 0.6,
-          categoryPercentage: 0.8,
-          borderSkipped: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        animation: {
-          duration: 1000,
-          easing: 'easeOutQuart'
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-            padding: 14,
-            cornerRadius: 10,
-            titleFont: { size: 14, family: 'system-ui', weight: 'bold' },
-            bodyFont: { size: 13, family: 'system-ui' },
-            displayColors: true,
-            boxWidth: 10,
-            boxHeight: 10,
-            usePointStyle: true,
-            callbacks: { label: (c: any) => `${c.parsed.y} Liters` }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(0,0,0,0.05)',
-              tickLength: 0
+        // EU - Violet
+        const gradEU = ctx.createLinearGradient(0, 0, 0, 400);
+        gradEU.addColorStop(0, '#A78BFA');
+        gradEU.addColorStop(1, '#7C3AED');
+
+        // Hover Gradients
+        const gradYouHover = ctx.createLinearGradient(0, 0, 0, 400);
+        gradYouHover.addColorStop(0, '#6EE7B7');
+        gradYouHover.addColorStop(1, '#10B981');
+
+        const gradGlobalHover = ctx.createLinearGradient(0, 0, 0, 400);
+        gradGlobalHover.addColorStop(0, '#93C5FD');
+        gradGlobalHover.addColorStop(1, '#3B82F6');
+
+        const gradEUHover = ctx.createLinearGradient(0, 0, 0, 400);
+        gradEUHover.addColorStop(0, '#C4B5FD');
+        gradEUHover.addColorStop(1, '#8B5CF6');
+
+        this.co2Chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['You', 'Global Avg', 'EU Avg'],
+                datasets: [{
+                    label: 'CO₂ Emissions (kg)',
+                    data: [this.stats.co2, 12.3, 18.6],
+                    backgroundColor: [gradYou, gradGlobal, gradEU],
+                    hoverBackgroundColor: [gradYouHover, gradGlobalHover, gradEUHover],
+                    borderColor: ['#059669', '#2563EB', '#7C3AED'],
+                    borderWidth: 0,
+                    hoverBorderWidth: 2,
+                    hoverBorderColor: '#ffffff',
+                    borderRadius: 12,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8,
+                    borderSkipped: false
+                }]
             },
-            border: { display: false },
-            ticks: {
-              font: { size: 11, family: 'system-ui' },
-              color: '#64748b',
-              padding: 10
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: {display: false},
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        padding: 14,
+                        cornerRadius: 10,
+                        titleFont: {size: 14, family: 'system-ui', weight: 'bold'},
+                        bodyFont: {size: 13, family: 'system-ui'},
+                        displayColors: true,
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        usePointStyle: true,
+                        callbacks: {label: (c: any) => `${c.parsed.y} kg CO₂`}
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)',
+                            tickLength: 0
+                        },
+                        border: {display: false},
+                        ticks: {
+                            font: {size: 11, family: 'system-ui'},
+                            color: '#64748b',
+                            padding: 10
+                        }
+                    },
+                    x: {
+                        grid: {display: false},
+                        border: {display: false},
+                        ticks: {
+                            font: {size: 12, weight: 'bold', family: 'system-ui'},
+                            color: '#334155'
+                        }
+                    }
+                }
             }
-          },
-          x: {
-            grid: { display: false },
-            border: { display: false },
-            ticks: {
-              font: { size: 12, weight: 'bold', family: 'system-ui' },
-              color: '#334155'
-            }
-          }
-        }
-      }
-    });
-  }
+        });
+    }
 
-  createElectricityChart(): void {
-    const ctx = this.electricityChartRef.nativeElement.getContext('2d');
-    if (!ctx) return;
+    createWaterChart(): void {
+        const ctx = this.waterChartRef.nativeElement.getContext('2d');
+        if (!ctx) return;
 
-    // You - Amber
-    const gradYou = ctx.createLinearGradient(0, 0, 0, 400);
-    gradYou.addColorStop(0, '#FBBF24');
-    gradYou.addColorStop(1, '#D97706');
+        // You - Cyan
+        const gradYou = ctx.createLinearGradient(0, 0, 0, 400);
+        gradYou.addColorStop(0, '#22D3EE');
+        gradYou.addColorStop(1, '#0891B2');
 
-    // Global - Blue
-    const gradGlobal = ctx.createLinearGradient(0, 0, 0, 400);
-    gradGlobal.addColorStop(0, '#60A5FA');
-    gradGlobal.addColorStop(1, '#2563EB');
+        // Global - Blue
+        const gradGlobal = ctx.createLinearGradient(0, 0, 0, 400);
+        gradGlobal.addColorStop(0, '#60A5FA');
+        gradGlobal.addColorStop(1, '#2563EB');
 
-    // EU - Violet
-    const gradEU = ctx.createLinearGradient(0, 0, 0, 400);
-    gradEU.addColorStop(0, '#A78BFA');
-    gradEU.addColorStop(1, '#7C3AED');
+        // EU - Violet
+        const gradEU = ctx.createLinearGradient(0, 0, 0, 400);
+        gradEU.addColorStop(0, '#A78BFA');
+        gradEU.addColorStop(1, '#7C3AED');
 
-    // Hover Gradients
-    const gradYouHover = ctx.createLinearGradient(0, 0, 0, 400);
-    gradYouHover.addColorStop(0, '#FCD34D');
-    gradYouHover.addColorStop(1, '#F59E0B');
+        // Hover Gradients
+        const gradYouHover = ctx.createLinearGradient(0, 0, 0, 400);
+        gradYouHover.addColorStop(0, '#67E8F9');
+        gradYouHover.addColorStop(1, '#06B6D4');
 
-    const gradGlobalHover = ctx.createLinearGradient(0, 0, 0, 400);
-    gradGlobalHover.addColorStop(0, '#93C5FD');
-    gradGlobalHover.addColorStop(1, '#3B82F6');
+        const gradGlobalHover = ctx.createLinearGradient(0, 0, 0, 400);
+        gradGlobalHover.addColorStop(0, '#93C5FD');
+        gradGlobalHover.addColorStop(1, '#3B82F6');
 
-    const gradEUHover = ctx.createLinearGradient(0, 0, 0, 400);
-    gradEUHover.addColorStop(0, '#C4B5FD');
-    gradEUHover.addColorStop(1, '#8B5CF6');
+        const gradEUHover = ctx.createLinearGradient(0, 0, 0, 400);
+        gradEUHover.addColorStop(0, '#C4B5FD');
+        gradEUHover.addColorStop(1, '#8B5CF6');
 
-    this.electricityChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['You', 'Global Avg', 'EU Avg'],
-        datasets: [{
-          label: 'Electricity Usage (kWh)',
-          data: [this.stats.electricity, 9.6, 11],
-          backgroundColor: [gradYou, gradGlobal, gradEU],
-          hoverBackgroundColor: [gradYouHover, gradGlobalHover, gradEUHover],
-          borderColor: ['#D97706', '#2563EB', '#7C3AED'],
-          borderWidth: 0,
-          hoverBorderWidth: 2,
-          hoverBorderColor: '#ffffff',
-          borderRadius: 12,
-          barPercentage: 0.6,
-          categoryPercentage: 0.8,
-          borderSkipped: false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        animation: {
-          duration: 1000,
-          easing: 'easeOutQuart'
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-            padding: 14,
-            cornerRadius: 10,
-            titleFont: { size: 14, family: 'system-ui', weight: 'bold' },
-            bodyFont: { size: 13, family: 'system-ui' },
-            displayColors: true,
-            boxWidth: 10,
-            boxHeight: 10,
-            usePointStyle: true,
-            callbacks: { label: (c: any) => `${c.parsed.y} kWh` }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(0,0,0,0.05)',
-              tickLength: 0
+        this.waterChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['You', 'Global Avg', 'EU Avg'],
+                datasets: [{
+                    label: 'Water Usage (liters)',
+                    data: [this.stats.water, 243, 144],
+                    backgroundColor: [gradYou, gradGlobal, gradEU],
+                    hoverBackgroundColor: [gradYouHover, gradGlobalHover, gradEUHover],
+                    borderColor: ['#0891B2', '#2563EB', '#7C3AED'],
+                    borderWidth: 0,
+                    hoverBorderWidth: 2,
+                    hoverBorderColor: '#ffffff',
+                    borderRadius: 12,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8,
+                    borderSkipped: false
+                }]
             },
-            border: { display: false },
-            ticks: {
-              font: { size: 11, family: 'system-ui' },
-              color: '#64748b',
-              padding: 10
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: {display: false},
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        padding: 14,
+                        cornerRadius: 10,
+                        titleFont: {size: 14, family: 'system-ui', weight: 'bold'},
+                        bodyFont: {size: 13, family: 'system-ui'},
+                        displayColors: true,
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        usePointStyle: true,
+                        callbacks: {label: (c: any) => `${c.parsed.y} Liters`}
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)',
+                            tickLength: 0
+                        },
+                        border: {display: false},
+                        ticks: {
+                            font: {size: 11, family: 'system-ui'},
+                            color: '#64748b',
+                            padding: 10
+                        }
+                    },
+                    x: {
+                        grid: {display: false},
+                        border: {display: false},
+                        ticks: {
+                            font: {size: 12, weight: 'bold', family: 'system-ui'},
+                            color: '#334155'
+                        }
+                    }
+                }
             }
-          },
-          x: {
-            grid: { display: false },
-            border: { display: false },
-            ticks: {
-              font: { size: 12, weight: 'bold', family: 'system-ui' },
-              color: '#334155'
+        });
+    }
+
+    createElectricityChart(): void {
+        const ctx = this.electricityChartRef.nativeElement.getContext('2d');
+        if (!ctx) return;
+
+        // You - Amber
+        const gradYou = ctx.createLinearGradient(0, 0, 0, 400);
+        gradYou.addColorStop(0, '#FBBF24');
+        gradYou.addColorStop(1, '#D97706');
+
+        // Global - Blue
+        const gradGlobal = ctx.createLinearGradient(0, 0, 0, 400);
+        gradGlobal.addColorStop(0, '#60A5FA');
+        gradGlobal.addColorStop(1, '#2563EB');
+
+        // EU - Violet
+        const gradEU = ctx.createLinearGradient(0, 0, 0, 400);
+        gradEU.addColorStop(0, '#A78BFA');
+        gradEU.addColorStop(1, '#7C3AED');
+
+        // Hover Gradients
+        const gradYouHover = ctx.createLinearGradient(0, 0, 0, 400);
+        gradYouHover.addColorStop(0, '#FCD34D');
+        gradYouHover.addColorStop(1, '#F59E0B');
+
+        const gradGlobalHover = ctx.createLinearGradient(0, 0, 0, 400);
+        gradGlobalHover.addColorStop(0, '#93C5FD');
+        gradGlobalHover.addColorStop(1, '#3B82F6');
+
+        const gradEUHover = ctx.createLinearGradient(0, 0, 0, 400);
+        gradEUHover.addColorStop(0, '#C4B5FD');
+        gradEUHover.addColorStop(1, '#8B5CF6');
+
+        this.electricityChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['You', 'Global Avg', 'EU Avg'],
+                datasets: [{
+                    label: 'Electricity Usage (kWh)',
+                    data: [this.stats.electricity, 9.6, 11],
+                    backgroundColor: [gradYou, gradGlobal, gradEU],
+                    hoverBackgroundColor: [gradYouHover, gradGlobalHover, gradEUHover],
+                    borderColor: ['#D97706', '#2563EB', '#7C3AED'],
+                    borderWidth: 0,
+                    hoverBorderWidth: 2,
+                    hoverBorderColor: '#ffffff',
+                    borderRadius: 12,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
+                plugins: {
+                    legend: {display: false},
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                        padding: 14,
+                        cornerRadius: 10,
+                        titleFont: {size: 14, family: 'system-ui', weight: 'bold'},
+                        bodyFont: {size: 13, family: 'system-ui'},
+                        displayColors: true,
+                        boxWidth: 10,
+                        boxHeight: 10,
+                        usePointStyle: true,
+                        callbacks: {label: (c: any) => `${c.parsed.y} kWh`}
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)',
+                            tickLength: 0
+                        },
+                        border: {display: false},
+                        ticks: {
+                            font: {size: 11, family: 'system-ui'},
+                            color: '#64748b',
+                            padding: 10
+                        }
+                    },
+                    x: {
+                        grid: {display: false},
+                        border: {display: false},
+                        ticks: {
+                            font: {size: 12, weight: 'bold', family: 'system-ui'},
+                            color: '#334155'
+                        }
+                    }
+                }
             }
-          }
+        });
+    }
+
+    updateCharts(): void {
+        // Calculate the multiplier based on selected range
+        // Daily averages need to be scaled to weekly/monthly for fair comparison
+        const daysInPeriod = this.getDaysInPeriod();
+
+        // Daily averages (per person per day)
+        const dailyAvgCo2Global = 12.3;   // kg
+        const dailyAvgCo2EU = 18.6;       // kg
+        const dailyAvgWaterGlobal = 243;  // liters
+        const dailyAvgWaterEU = 144;      // liters
+        const dailyAvgElecGlobal = 9.6;   // kWh
+        const dailyAvgElecEU = 11;        // kWh
+
+        // Scale averages to match the period
+        const scaledCo2Global = dailyAvgCo2Global * daysInPeriod;
+        const scaledCo2EU = dailyAvgCo2EU * daysInPeriod;
+        const scaledWaterGlobal = dailyAvgWaterGlobal * daysInPeriod;
+        const scaledWaterEU = dailyAvgWaterEU * daysInPeriod;
+        const scaledElecGlobal = dailyAvgElecGlobal * daysInPeriod;
+        const scaledElecEU = dailyAvgElecEU * daysInPeriod;
+
+        if (this.co2Chart) {
+            this.co2Chart.data.datasets[0].data = [this.stats.co2, scaledCo2Global, scaledCo2EU];
+            this.co2Chart.update();
         }
-      }
-    });
-  }
 
-  updateCharts(): void {
-    // Calculate the multiplier based on selected range
-    // Daily averages need to be scaled to weekly/monthly for fair comparison
-    const daysInPeriod = this.getDaysInPeriod();
+        if (this.waterChart) {
+            this.waterChart.data.datasets[0].data = [this.stats.water, scaledWaterGlobal, scaledWaterEU];
+            this.waterChart.update();
+        }
 
-    // Daily averages (per person per day)
-    const dailyAvgCo2Global = 12.3;   // kg
-    const dailyAvgCo2EU = 18.6;       // kg
-    const dailyAvgWaterGlobal = 243;  // liters
-    const dailyAvgWaterEU = 144;      // liters
-    const dailyAvgElecGlobal = 9.6;   // kWh
-    const dailyAvgElecEU = 11;        // kWh
-
-    // Scale averages to match the period
-    const scaledCo2Global = dailyAvgCo2Global * daysInPeriod;
-    const scaledCo2EU = dailyAvgCo2EU * daysInPeriod;
-    const scaledWaterGlobal = dailyAvgWaterGlobal * daysInPeriod;
-    const scaledWaterEU = dailyAvgWaterEU * daysInPeriod;
-    const scaledElecGlobal = dailyAvgElecGlobal * daysInPeriod;
-    const scaledElecEU = dailyAvgElecEU * daysInPeriod;
-
-    if (this.co2Chart) {
-      this.co2Chart.data.datasets[0].data = [this.stats.co2, scaledCo2Global, scaledCo2EU];
-      this.co2Chart.update();
+        if (this.electricityChart) {
+            this.electricityChart.data.datasets[0].data = [this.stats.electricity, scaledElecGlobal, scaledElecEU];
+            this.electricityChart.update();
+        }
     }
 
-    if (this.waterChart) {
-      this.waterChart.data.datasets[0].data = [this.stats.water, scaledWaterGlobal, scaledWaterEU];
-      this.waterChart.update();
+    getDaysInPeriod(): number {
+        switch (this.selectedRange) {
+            case 'week':
+                return 7;
+            case 'month':
+                return 30;
+            default:
+                return 1; // today
+        }
     }
 
-    if (this.electricityChart) {
-      this.electricityChart.data.datasets[0].data = [this.stats.electricity, scaledElecGlobal, scaledElecEU];
-      this.electricityChart.update();
+    getSmileyStatus(value: number, type: 'co2' | 'water' | 'electricity'): SmileyStatus {
+        // Daily thresholds (base values)
+        const dailyThresholds = {
+            co2: 12.3,
+            water: 243,
+            electricity: 9.6
+        };
+
+        // Scale threshold by the period
+        const daysInPeriod = this.getDaysInPeriod();
+        const avg = dailyThresholds[type] * daysInPeriod;
+
+        // Good: < 90% of average
+        if (value < avg * 0.9) return 'good';
+        // Bad: > 110% of average
+        if (value > avg * 1.1) return 'bad';
+        // Neutral: within +/- 10% of average
+        return 'neutral';
     }
+
+    // Guest mode methods
+  startTracking(): void {
+    this.router.navigate(['/activities']);
   }
 
-  getDaysInPeriod(): number {
-    switch (this.selectedRange) {
-      case 'week': return 7;
-      case 'month': return 30;
-      default: return 1; // today
-    }
-  }
-
-  getSmileyStatus(value: number, type: 'co2' | 'water' | 'electricity'): SmileyStatus {
-    // Daily thresholds (base values)
-    const dailyThresholds = {
-      co2: 12.3,
-      water: 243,
-      electricity: 9.6
-    };
-
-    // Scale threshold by the period
-    const daysInPeriod = this.getDaysInPeriod();
-    const avg = dailyThresholds[type] * daysInPeriod;
-
-    // Good: < 90% of average
-    if (value < avg * 0.9) return 'good';
-    // Bad: > 110% of average
-    if (value > avg * 1.1) return 'bad';
-    // Neutral: within +/- 10% of average
-    return 'neutral';
-  }
-
-  // Guest mode methods
   handleGuestAction(feature: string): boolean {
     if (this.isGuest) {
       this.showRegisterPrompt(`Access ${feature}`);
@@ -1121,4 +1204,19 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     }
     return false;
   }
+
+  showRegisterPrompt(message: string): void {
+    this.promptTitle = message;
+    this.showPrompt = true;
   }
+
+  goToRegister(): void {
+    this.showPrompt = false;
+    this.authService.register();
+  }
+
+  goToLogin(): void {
+    this.showPrompt = false;
+    this.authService.login();
+  }
+}

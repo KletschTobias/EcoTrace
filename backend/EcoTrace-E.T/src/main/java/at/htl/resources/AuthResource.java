@@ -1,6 +1,7 @@
 package at.htl.resources;
 
 import at.htl.dtos.UserDto;
+import at.htl.entities.User;
 import at.htl.services.AuthService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -8,6 +9,8 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
+import jakarta.ws.rs.core.Response;
+import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +24,35 @@ public class AuthResource {
 
     @Inject
     JsonWebToken jwt;
+
+    /**
+     * Create user in database (called during startup - no auth required)
+     */
+    @POST
+    @Path("/users/sync")
+    @Transactional
+    public Response syncUser(Map<String, String> body) {
+        try {
+            String externalId = body.get("externalId");
+            String username = body.get("username");
+            String fullName = body.get("fullName");
+            String email = body.get("email");
+            
+            if (externalId == null || externalId.isBlank()) {
+                return Response.status(400).entity("externalId is required").build();
+            }
+            
+            // Check if user already exists
+            User user = User.findByExternalId(externalId);
+            if (user == null) {
+                user = authService.createNewUser(externalId, username, fullName, email);
+            }
+            
+            return Response.ok(UserDto.from(user)).build();
+        } catch (Exception e) {
+            return Response.status(500).entity(e.getMessage()).build();
+        }
+    }
 
     /**
      * Get all users (ADMIN only)

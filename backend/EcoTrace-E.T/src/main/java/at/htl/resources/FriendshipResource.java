@@ -51,15 +51,17 @@ public class FriendshipResource {
 
     @POST
     public Response addFriend(Map<String, String> body) {
-        String friendExternalId = body.get("friendExternalId");
-        if (friendExternalId == null || friendExternalId.trim().isEmpty()) {
+        String friendIdentifier = body.get("friendEmail") != null ? 
+            body.get("friendEmail") : body.get("friendExternalId");
+        
+        if (friendIdentifier == null || friendIdentifier.trim().isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("message", "Friend externalId is required"))
+                    .entity(Map.of("message", "Friend email or externalId is required"))
                     .build();
         }
         
         Long userId = authService.getCurrentUserId(jwt);
-        FriendshipDto friendship = friendshipService.addFriend(userId, friendExternalId);
+        FriendshipDto friendship = friendshipService.addFriend(userId, friendIdentifier);
         return Response.status(Response.Status.CREATED).entity(friendship).build();
     }
 
