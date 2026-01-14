@@ -1,12 +1,18 @@
 export interface User {
   id: number;
-  username: string;
-  email: string;
-  fullName: string;
+  externalId: string;  // Keycloak user ID (sub claim)
   avatarColor: string;
+  profileImageUrl?: string;
+  biography?: string;
+  hasSolarPanels?: boolean;
+  hasHeatPump?: boolean;
   totalCo2: number;
   totalWater: number;
   totalElectricity: number;
+  // Optional profile fields (from Keycloak token)
+  username?: string;
+  email?: string;
+  fullName?: string;
 }
 
 export interface Activity {

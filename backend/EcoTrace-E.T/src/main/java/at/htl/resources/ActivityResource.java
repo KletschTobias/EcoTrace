@@ -2,6 +2,7 @@ package at.htl.resources;
 
 import at.htl.dtos.ActivityDto;
 import at.htl.services.ActivityService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -35,6 +36,7 @@ public class ActivityResource {
     }
 
     @POST
+    @RolesAllowed("ROLE_ADMIN")
     public Response createActivity(ActivityDto activityDto) {
         ActivityDto created = activityService.createActivity(activityDto);
         return Response.status(Response.Status.CREATED).entity(created).build();
@@ -42,6 +44,7 @@ public class ActivityResource {
 
     @DELETE
     @Path("/{id}")
+    @RolesAllowed("ROLE_ADMIN")
     public Response deleteActivity(@PathParam("id") Long id) {
         activityService.deleteActivity(id);
         return Response.noContent().build();

@@ -7,39 +7,39 @@ import { UserActivity, CreateUserActivityRequest, Stats } from '../models/models
   providedIn: 'root'
 })
 export class UserActivityService {
-  private apiUrl = 'http://localhost:8080/api/users';
+  private apiUrl = 'http://localhost:8080/api/users/me/activities';
 
   constructor(private http: HttpClient) {}
 
-  getUserActivities(userId: number): Observable<UserActivity[]> {
-    return this.http.get<UserActivity[]>(`${this.apiUrl}/${userId}/activities`);
+  getUserActivities(): Observable<UserActivity[]> {
+    return this.http.get<UserActivity[]>(this.apiUrl);
   }
 
-  getUserActivitiesByDateRange(userId: number, startDate: string, endDate: string): Observable<UserActivity[]> {
+  getUserActivitiesByDateRange(startDate: string, endDate: string): Observable<UserActivity[]> {
     const params = new HttpParams()
       .set('startDate', startDate)
       .set('endDate', endDate);
     
-    return this.http.get<UserActivity[]>(`${this.apiUrl}/${userId}/activities/date-range`, { params });
+    return this.http.get<UserActivity[]>(`${this.apiUrl}/date-range`, { params });
   }
 
-  getUserActivitiesByCategory(userId: number, category: string): Observable<UserActivity[]> {
-    return this.http.get<UserActivity[]>(`${this.apiUrl}/${userId}/activities/category/${category}`);
+  getUserActivitiesByCategory(category: string): Observable<UserActivity[]> {
+    return this.http.get<UserActivity[]>(`${this.apiUrl}/category/${category}`);
   }
 
-  getUserStats(userId: number, startDate: string, endDate: string): Observable<Stats> {
+  getUserStats(startDate: string, endDate: string): Observable<Stats> {
     const params = new HttpParams()
       .set('startDate', startDate)
       .set('endDate', endDate);
     
-    return this.http.get<Stats>(`${this.apiUrl}/${userId}/activities/stats`, { params });
+    return this.http.get<Stats>(`${this.apiUrl}/stats`, { params });
   }
 
-  createUserActivity(userId: number, activity: CreateUserActivityRequest): Observable<UserActivity> {
-    return this.http.post<UserActivity>(`${this.apiUrl}/${userId}/activities`, activity);
+  createUserActivity(activity: CreateUserActivityRequest): Observable<UserActivity> {
+    return this.http.post<UserActivity>(this.apiUrl, activity);
   }
 
-  deleteUserActivity(userId: number, activityId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${userId}/activities/${activityId}`);
+  deleteUserActivity(activityId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${activityId}`);
   }
 }

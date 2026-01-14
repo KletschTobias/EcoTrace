@@ -5,33 +5,76 @@ import { LayoutComponent } from './components/layout.component';
 import { DashboardComponent } from './pages/dashboard.component';
 import { ActivitiesComponent } from './pages/activities.component';
 import { FriendsComponent } from './pages/friends.component';
+import { ProfileComponent } from './pages/profile.component';
+import { FriendDetailComponent } from './pages/friend-detail.component';
 
 export const routes: Routes = [
   {
     path: '',
+    redirectTo: '/home',
+    pathMatch: 'full'
+  },
+  {
+    path: 'home',
     component: HeroComponent
   },
   {
-    path: '',
+    path: 'dashboard',
     component: LayoutComponent,
     canActivate: [authGuard],
     children: [
       {
-        path: 'dashboard',
+        path: '',
         component: DashboardComponent
-      },
+      }
+    ]
+  },
+  {
+    path: 'activities',
+    component: LayoutComponent,
+    canActivate: [authGuard],
+    children: [
       {
-        path: 'activities',
+        path: '',
         component: ActivitiesComponent
-      },
+      }
+    ]
+  },
+  {
+    path: 'friends',
+    component: LayoutComponent,
+    canActivate: [authGuard],
+    children: [
       {
-        path: 'friends',
+        path: '',
         component: FriendsComponent
       }
     ]
   },
   {
+    path: 'profile',
+    component: LayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        component: ProfileComponent
+      }
+    ]
+  },
+  {
+    path: 'friend/:id',
+    component: LayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        component: FriendDetailComponent
+      }
+    ]
+  },
+  {
     path: '**',
-    redirectTo: ''
+    redirectTo: '/home'
   }
 ];
