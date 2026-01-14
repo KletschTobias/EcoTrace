@@ -7,6 +7,7 @@ import { ActivitiesComponent } from './pages/activities.component';
 import { FriendsComponent } from './pages/friends.component';
 import { ProfileComponent } from './pages/profile.component';
 import { FriendDetailComponent } from './pages/friend-detail.component';
+import { AchievementsComponent } from './pages/achievements.component';
 
 export const routes: Routes = [
   {
@@ -59,6 +60,17 @@ export const routes: Routes = [
       {
         path: '',
         component: ProfileComponent
+      }
+    ]
+  },
+  {
+    path: 'achievements',
+    component: LayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        component: AchievementsComponent
       }
     ]
   },
