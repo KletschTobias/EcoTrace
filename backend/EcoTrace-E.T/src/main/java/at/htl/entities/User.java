@@ -1,32 +1,79 @@
 package at.htl.entities;
 
-import at.htl.entities.consumptions.*;
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import jakarta.persistence.*;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
-public class User {
+@Table(name = "users")
+public class User extends PanacheEntity {
 
-    @Id
-    @GeneratedValue
-    public Long id;
+    @Column(unique = true, nullable = false)
+    public String externalId;
 
-    public String firstName;
-    public String lastName;
+    @Column(unique = true)
+    public String username;
+
+    @Column(name = "full_name")
+    public String fullName;
+
+    @Column(name = "email", unique = true)
     public String email;
-    public String userName;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    public List<DailyConsumption> userDailyConsumption;
+    @Column(name = "avatar_color")
+    public String avatarColor;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    public List<WeeklyConsumption> userWeeklyConsumption;
+    @Column(name = "profile_image_url")
+    public String profileImageUrl;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    public List<MonthlyConsumption> userMonthlyConsumption;
+    @Column(name = "biography", length = 500)
+    public String biography;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    public List<YearlyConsumption> userYearlyConsumption;
+    @Column(name = "has_solar_panels")
+    public Boolean hasSolarPanels = false;
 
+    @Column(name = "has_heat_pump")
+    public Boolean hasHeatPump = false;
+
+    @Column(name = "total_co2")
+    public Double totalCo2 = 0.0;
+
+    @Column(name = "total_water")
+    public Double totalWater = 0.0;
+
+    @Column(name = "total_electricity")
+    public Double totalElectricity = 0.0;
+
+    @Column(name = "created_date")
+    public LocalDateTime createdDate;
+
+    @Column(name = "updated_date")
+    public LocalDateTime updatedDate;
+
+    @PrePersist
+    public void prePersist() {
+        this.createdDate = LocalDateTime.now();
+        this.updatedDate = LocalDateTime.now();
+        
+        // Generate random avatar color if not set
+        if (this.avatarColor == null) {
+            String[] colors = {"#10B981", "#3B82F6", "#8B5CF6", "#EC4899", "#F59E0B", "#EF4444", "#06B6D4"};
+            this.avatarColor = colors[(int) (Math.random() * colors.length)];
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedDate = LocalDateTime.now();
+    }
+
+    // Static methods for queries
+    public static User findByExternalId(String externalId) {
+        return find("externalId", externalId).firstResult();
+    }
+
+    public static User findByEmail(String email) {
+        return find("email", email).firstResult();
+    }
 }

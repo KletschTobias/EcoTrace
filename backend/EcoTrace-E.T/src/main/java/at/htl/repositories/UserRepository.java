@@ -14,9 +14,6 @@ import jakarta.inject.Inject;
 public class UserRepository implements PanacheRepository<User> {
 
     @Inject
-    UserRepository userRepository;
-
-    @Inject
     DailyConsumptionRepository dailyConsumptionRepository;
 
     @Inject
@@ -29,8 +26,8 @@ public class UserRepository implements PanacheRepository<User> {
     YearlyConsumptionRepository yearlyConsumptionRepository;
 
     public UserDto getUserInformation(Long id){
-        User user = userRepository.findById(id);
-        return new UserDto(user.firstName, user.lastName, user.email, user.userName);
+        User user = findById(id);
+        return new UserDto(user);
     }
 
 }

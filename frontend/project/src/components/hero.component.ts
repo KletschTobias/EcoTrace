@@ -1,6 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
+import { AuthService } from '../services/auth.service';
+import { GuestService } from '../services/guest.service';
 
 // Daily consumption targets
 const DAILY_TARGETS = {
@@ -14,7 +18,7 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
 @Component({
   selector: 'app-hero',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <section class="hero-section">
       <div class="animated-background">
@@ -45,7 +49,8 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
             Join the movement towards a sustainable future with real-time environmental insights.
           </p>
           <div class="cta-buttons">
-            <button class="btn-primary">Start Tracking</button>
+            <button class="btn-primary" (click)="startTracking()">Start Tracking</button>
+            <button class="btn-secondary" (click)="learnMore()">Learn More</button>
           </div>
         </div>
         
@@ -98,6 +103,30 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
               <span class="stat-unit">liters {{ periodLabel }}</span>
               <div class="stat-trend" [class.increasing]="true">↗ Live</div>
             </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Auth Modal -->
+      <div class="modal-overlay" *ngIf="showAuthModal" (click)="showAuthModal = false">
+        <div class="modal-content auth-modal" (click)="$event.stopPropagation()">
+          <button class="close-btn" (click)="showAuthModal = false">✕</button>
+          
+          <div class="auth-modal-simple">
+            <div class="modal-buttons">
+              <button class="modal-btn login-btn" (click)="authService.login()">
+                🔓 Login
+              </button>
+              <button class="modal-btn register-btn" (click)="authService.register()">
+                📝 Register
+              </button>
+            </div>
+            
+            <p class="modal-demo-info">
+              <strong>Try Demo Accounts:</strong><br>
+              <strong>User:</strong> demo&#64;ecotrace.com / app<br>
+              <strong>Admin:</strong> admin&#64;ecotrace.com / pass
+            </p>
           </div>
         </div>
       </div>
@@ -215,7 +244,9 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
 
     .cta-buttons {
       display: flex;
+      gap: 1rem;
       justify-content: flex-start;
+      margin-bottom: 1rem;
     }
 
     .btn-primary, .btn-secondary {
@@ -239,6 +270,34 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
     .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(74, 222, 128, 0.6);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .demo-account-info {
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: rgba(74, 222, 128, 0.1);
+      border-left: 3px solid #4ade80;
+      border-radius: 8px;
+    }
+
+    .demo-account-info strong {
+      color: #4ade80;
+      font-weight: 600;
     }
 
     .hero-stats {
@@ -364,6 +423,8 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
       font-weight: 700;
       line-height: 1;
       margin-bottom: 0.25rem;
+      font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Roboto Mono', 'Consolas', monospace;
+      font-variant-numeric: tabular-nums;
     }
 
     .stat-unit {
@@ -386,6 +447,247 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
       color: #4ade80;
     }
 
+    /* Auth Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 2.5rem;
+      max-width: 450px;
+      width: 90%;
+      position: relative;
+      animation: slideUp 0.3s ease;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #6b7280;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .close-btn:hover {
+      color: #111827;
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border: none;
+      background: #f3f4f6;
+      color: #6b7280;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #10B981, #06B6D4);
+      color: white;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .auth-form h2 {
+      color: #111827;
+      margin-bottom: 0;
+    }
+
+    .form-subtitle {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-top: -1rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.875rem;
+    }
+
+    .form-group input {
+      padding: 0.75rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #10B981;
+    }
+
+    .submit-btn {
+      padding: 1rem;
+      background: linear-gradient(135deg, #10B981, #06B6D4);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error-message {
+      color: #dc2626;
+      font-size: 0.875rem;
+      text-align: center;
+      padding: 0.5rem;
+      background: #fee2e2;
+      border-radius: 8px;
+    }
+
+    .demo-hint {
+      text-align: center;
+      font-size: 0.875rem;
+      color: #6b7280;
+      background: #f0fdf4;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-top: -0.5rem;
+    }
+
+    .demo-hint strong {
+      color: #10B981;
+    }
+
+    /* Simple Auth Modal Styles */
+    .auth-modal {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 2px solid rgba(16, 185, 129, 0.2);
+      max-width: 500px;
+    }
+
+    .auth-modal-simple {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      padding-top: 1rem;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 1.2rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .login-btn {
+      background: linear-gradient(135deg, #22C55E, #16A34A);
+      color: white;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(34, 197, 94, 0.4);
+    }
+
+    .register-btn {
+      background: linear-gradient(135deg, #60A5FA, #3B82F6);
+      color: white;
+    }
+
+    .register-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(96, 165, 250, 0.3);
+    }
+
+    .modal-demo-info {
+      text-align: left;
+      font-size: 0.875rem;
+      color: #1f2937;
+      background: linear-gradient(135deg, #dbeafe 0%, #ecfdf5 100%);
+      padding: 1.2rem;
+      border-radius: 12px;
+      border-left: 4px solid #16A34A;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .modal-demo-info strong {
+      color: #16A34A;
+      display: inline;
+    }
+
+    .modal-demo-info strong:first-child {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
     @media (max-width: 768px) {
       .hero-content {
         grid-template-columns: 1fr;
@@ -399,6 +701,10 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
 
       .cta-buttons {
         justify-content: center;
+      }
+
+      .modal-content {
+        padding: 2rem;
       }
     }
   `]
@@ -414,12 +720,42 @@ export class HeroComponent implements OnInit, OnDestroy {
   selectedPeriod: TimePeriod = 'daily';
   periodLabel = 'today';
   
+  showAuthModal = false;
+  authMode: 'login' | 'register' = 'login';
+  isLoading = false;
+  errorMessage = '';
+  isAuthenticated = false;
+
+  loginData = {
+    email: '',
+    password: ''
+  };
+
+  registerData = {
+    fullName: '',
+    username: '',
+    email: '',
+    password: ''
+  };
+  
   private subscription?: Subscription;
+
+  constructor(
+    public authService: AuthService,
+    private guestService: GuestService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.generateParticles();
     this.updateStats();
     this.subscription = interval(100).subscribe(() => this.updateStats());
+
+    // Check if user is authenticated
+    this.authService.currentUser$.subscribe(user => {
+      this.isAuthenticated = !!user;
+      // Don't auto-navigate - let user click "Start Tracking" to go to dashboard
+    });
   }
 
   ngOnDestroy() {
@@ -534,5 +870,46 @@ export class HeroComponent implements OnInit, OnDestroy {
 
   trackParticle(index: number, particle: any) {
     return index;
+  }
+
+  startTracking(): void {
+    // Navigate to activities (with guest mode if not logged in)
+    this.router.navigate(['/activities']);
+  }
+
+  learnMore(): void {
+    // Scroll to stats section or show info
+    const statsElement = document.querySelector('.hero-stats');
+    if (statsElement) {
+      statsElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  login(): void {
+    this.errorMessage = '';
+    this.isLoading = true;
+
+    // Redirect to Keycloak login
+    try {
+      this.authService.login();
+    } catch (error) {
+      console.error('Login error:', error);
+      this.isLoading = false;
+      this.errorMessage = 'Failed to initiate login. Please try again.';
+    }
+  }
+
+  register(): void {
+    this.errorMessage = '';
+    this.isLoading = true;
+
+    // Redirect to Keycloak registration
+    try {
+      this.authService.register();
+    } catch (error) {
+      console.error('Registration error:', error);
+      this.isLoading = false;
+      this.errorMessage = 'Failed to initiate registration. Please try again.';
+    }
   }
 }
