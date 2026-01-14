@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../services/auth.service';
 import { ActivityService } from '../services/activity.service';
 import { UserActivityService } from '../services/user-activity.service';
@@ -18,9 +19,52 @@ import { format } from 'date-fns';
           <h1>Track Your Activities</h1>
           <p>Log your daily actions and see their environmental impact</p>
         </div>
-        <button class="btn-primary" (click)="showForm = !showForm">
-          {{ showForm ? 'Cancel' : '+ Log Activity' }}
-        </button>
+        <div class="header-actions">
+          <button class="btn-primary" (click)="showForm = !showForm">
+            {{ showForm ? 'Cancel' : '+ Log Activity' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin Tools -->
+      <div class="admin-tools">
+        <h3>📊 Activity Management (Admin)</h3>
+        <div class="admin-buttons">
+          <button class="btn-admin" (click)="downloadExcel()" title="Download all activities as Excel">
+            📥 Download Excel
+          </button>
+          <input 
+            type="file" 
+            #fileInput 
+            (change)="onFileSelected($event)" 
+            accept=".xlsx,.xls"
+            title="Only Excel format (.xlsx, .xls) - ODF/LibreOffice (.ods) not supported"
+            style="display: none">
+          <button class="btn-admin" (click)="fileInput.click()" title="Upload edited Excel file (.xlsx only)">
+            📤 Upload Excel (.xlsx)
+          </button>
+        </div>
+        <small>💡 After upload, import.sql is automatically synced with new activities</small>
+        <div *ngIf="selectedFile" class="file-info">
+          <span>📄 {{ selectedFile.name }}</span>
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="overwriteExisting">
+            Overwrite existing activities
+          </label>
+          <button class="btn-upload" (click)="uploadExcel()" [disabled]="isUploading">
+            {{ isUploading ? 'Uploading...' : 'Import Now' }}
+          </button>
+        </div>
+        <div *ngIf="importResult" class="import-result">
+          <strong>{{ importResult.message }}</strong>
+          <ul>
+            <li>✅ New: {{ importResult.importedCount }}</li>
+            <li>🔄 Updated: {{ importResult.updatedCount }}</li>
+            <li>⚠️ Duplicates: {{ importResult.duplicateCount }}</li>
+            <li *ngIf="importResult.skippedCount > 0">❌ Errors: {{ importResult.skippedCount }}</li>
+            <li *ngIf="importResult.sqlSynced">🔗 import.sql synced!</li>
+          </ul>
+        </div>
       </div>
 
       <!-- Activity Form -->
@@ -437,6 +481,96 @@ import { format } from 'date-fns';
       font-style: italic;
     }
 
+    /* Admin Tools */
+    .admin-tools {
+      background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+      border: 2px solid #3B82F6;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .admin-tools h3 {
+      margin: 0 0 1rem 0;
+      color: #1E40AF;
+      font-size: 1.1rem;
+    }
+
+    .admin-buttons {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-admin {
+      padding: 0.6rem 1.2rem;
+      background: #3B82F6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+
+    .btn-admin:hover {
+      background: #2563EB;
+      transform: translateY(-2px);
+    }
+
+    .file-info {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: white;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .btn-upload {
+      padding: 0.6rem 1.2rem;
+      background: #10B981;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .btn-upload:disabled {
+      background: #9CA3AF;
+      cursor: not-allowed;
+    }
+
+    .import-result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: white;
+      border-left: 4px solid #10B981;
+      border-radius: 8px;
+    }
+
+    .import-result ul {
+      margin: 0.5rem 0 0 0;
+      padding-left: 1.5rem;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 1rem;
+    }
+
     @media (max-width: 768px) {
       .activities-container {
         padding: 1rem;
@@ -450,6 +584,10 @@ import { format } from 'date-fns';
 
       .form-row {
         grid-template-columns: 1fr;
+      }
+
+      .admin-buttons {
+        flex-direction: column;
       }
     }
   `]
@@ -469,6 +607,13 @@ export class ActivitiesComponent implements OnInit {
   selectedCategory = 'all';
   isSubmitting = false;
 
+  // CSV Import/Export
+  selectedFile: File | null = null;
+  overwriteExisting = false;
+  isUploading = false;
+  importResult: any = null;
+  private apiUrl = 'http://localhost:8080/api/activities';
+
   categories = [
     { value: 'all', label: 'All', icon: '📋' },
     { value: 'transport', label: 'Transport', icon: '🚗' },
@@ -481,7 +626,8 @@ export class ActivitiesComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private activityService: ActivityService,
-    private userActivityService: UserActivityService
+    private userActivityService: UserActivityService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -602,5 +748,69 @@ export class ActivitiesComponent implements OnInit {
 
   formatDate(dateString: string): string {
     return format(new Date(dateString), 'MMM dd, yyyy');
+  }
+
+  // CSV Import/Export Methods
+  downloadExcel(): void {
+    this.http.get(`${this.apiUrl}/export`, { responseType: 'blob' })
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'activities.xlsx';
+          a.click();
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          console.error('Download failed:', err);
+          alert('Failed to download Excel file');
+        }
+      });
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file extension - only Excel, NO ODF!
+      const fileName = file.name.toLowerCase();
+      if (!fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
+        alert('❌ Only Excel files (.xlsx, .xls) are supported.\n\n' +
+              'ODF/LibreOffice formats (.ods) are NOT supported.\n\n' + 
+              'Please save your file as Excel format (.xlsx) and try again.');
+        event.target.value = ''; // Reset input
+        return;
+      }
+      this.selectedFile = file;
+      this.importResult = null;
+    }
+  }
+
+  uploadExcel(): void {
+    if (!this.selectedFile) return;
+
+    this.isUploading = true;
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+    formData.append('overwrite', this.overwriteExisting.toString());
+
+    this.http.post(`${this.apiUrl}/import`, formData)
+      .subscribe({
+        next: (result: any) => {
+          this.importResult = result;
+          this.isUploading = false;
+          this.selectedFile = null;
+          // Reload activities to show imported ones in dropdown
+          this.loadActivities();
+          alert('✅ Import successful!\n\n' + result.message + '\n\n' +
+                'New activities are now available in the dropdown.\n' +
+                '🔗 import.sql has been automatically synced!');
+        },
+        error: (err) => {
+          console.error('Upload failed:', err);
+          this.isUploading = false;
+          alert('Failed to upload file: ' + (err.error?.error || err.message));
+        }
+      });
   }
 }
