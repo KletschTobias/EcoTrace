@@ -1,5 +1,3 @@
-name: eco-tracer
-
 services:
   postgres:
     image: postgres:15
@@ -24,8 +22,7 @@ services:
       context: ./keycloak
     container_name: keycloak-ET
     command:
-        - start-dev
-        - --import-realm
+      - start-dev
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin

@@ -1,6 +1,7 @@
 package at.htl.resources;
 
 import at.htl.dtos.ActivityDto;
+import at.htl.services.ActivityImportExportService;
 import at.htl.services.ActivityService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -8,7 +9,9 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 @Path("/api/activities")
 @Produces(MediaType.APPLICATION_JSON)
@@ -17,6 +20,9 @@ public class ActivityResource {
 
     @Inject
     ActivityService activityService;
+    
+    @Inject
+    ActivityImportExportService importExportService;
 
     @GET
     public List<ActivityDto> getAllActivities() {
@@ -36,7 +42,7 @@ public class ActivityResource {
     }
 
     @POST
-    @RolesAllowed("ROLE_ADMIN")
+    @RolesAllowed("et-admin")
     public Response createActivity(ActivityDto activityDto) {
         ActivityDto created = activityService.createActivity(activityDto);
         return Response.status(Response.Status.CREATED).entity(created).build();
@@ -44,9 +50,41 @@ public class ActivityResource {
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed("ROLE_ADMIN")
+    @RolesAllowed("et-admin")
     public Response deleteActivity(@PathParam("id") Long id) {
         activityService.deleteActivity(id);
         return Response.noContent().build();
+    }
+    
+    /**
+     * Import activities from Excel file (Admin only)
+     * @param mode 'append' to add new activities (skip duplicates) or 'overwrite' to update existing
+     */
+    @POST
+    @Path("/import")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @RolesAllowed("et-admin")
+    public Response importActivities(
+            @FormParam("file") InputStream fileInputStream,
+            @QueryParam("mode") @DefaultValue("append") String mode) {
+        try {
+            boolean overwrite = "overwrite".equalsIgnoreCase(mode);
+            ActivityImportExportService.ImportResult result = 
+                    importExportService.importActivities(fileInputStream, overwrite);
+            
+            return Response.ok(Map.of(
+                    "message", result.getMessage(),
+                    "imported", result.importedCount,
+                    "updated", result.updatedCount,
+                    "duplicates", result.duplicateCount,
+                    "duplicateNames", result.duplicates,
+                    "skipped", result.skippedCount,
+                    "errors", result.errors
+            )).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "Import failed: " + e.getMessage()))
+                    .build();
+        }
     }
 }

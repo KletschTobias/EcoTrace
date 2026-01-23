@@ -37,6 +37,7 @@ public class AuthResource {
             String username = body.get("username");
             String fullName = body.get("fullName");
             String email = body.get("email");
+            String isAdminStr = body.get("isAdmin");
             
             if (externalId == null || externalId.isBlank()) {
                 return Response.status(400).entity("externalId is required").build();
@@ -46,6 +47,11 @@ public class AuthResource {
             User user = User.findByExternalId(externalId);
             if (user == null) {
                 user = authService.createNewUser(externalId, username, fullName, email);
+                // Set isAdmin flag if provided
+                if (isAdminStr != null && "true".equalsIgnoreCase(isAdminStr)) {
+                    user.isAdmin = true;
+                    user.persist();
+                }
             }
             
             return Response.ok(UserDto.from(user)).build();
@@ -79,7 +85,7 @@ public class AuthResource {
      */
     @GET
     @Path("/me")
-    @RolesAllowed({"ROLE_USER", "et-user"})
+    @RolesAllowed({"ROLE_USER", "et-user", "et-admin"})
     public UserDto getCurrentUser() {
         return authService.getCurrentUser(jwt);
     }
@@ -89,7 +95,7 @@ public class AuthResource {
      */
     @PATCH
     @Path("/me/avatar")
-    @RolesAllowed({"ROLE_USER", "et-user"})
+    @RolesAllowed({"ROLE_USER", "et-user", "et-admin"})
     public UserDto updateMyAvatar(Map<String, String> body) {
         String avatarColor = body.get("avatarColor");
         if (avatarColor == null || avatarColor.trim().isEmpty()) {
