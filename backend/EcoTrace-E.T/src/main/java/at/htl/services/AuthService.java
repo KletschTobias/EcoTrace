@@ -135,9 +135,13 @@ public class AuthService {
         }
         
         // Check if user has et-admin role in JWT token
-        boolean isAdmin = jwt.getGroups() != null && jwt.getGroups().contains("et-admin");
-        user.isAdmin = isAdmin;
-        user.persist();
+        // If JWT contains et-admin, set to true. Otherwise keep existing DB value.
+        boolean hasAdminInToken = jwt.getGroups() != null && jwt.getGroups().contains("et-admin");
+        if (hasAdminInToken) {
+            user.isAdmin = true;
+            user.persist();
+        }
+        // If not in token, keep whatever is in DB (don't override to false)
         
         return UserDto.from(user);
     }

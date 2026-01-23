@@ -28,23 +28,14 @@ import { Subscription } from 'rxjs';
           <h1>Track Your Activities</h1>
           <p>Log your daily actions and see their environmental impact</p>
         </div>
-        <button class="btn-primary" (click)="toggleForm()">
-          {{ showForm ? 'Cancel' : '+ Log Activity' }}
-        </button>
-      </div>
-      
-      <!-- Admin Import Section -->
-      <div *ngIf="isAdmin" class="admin-import-section">
-        <button class="btn-import-admin" (click)="triggerImport()" title="Import Activities from Excel">
-          📤 Import Activities
-        </button>
-      </div>
-      
-      <!-- Admin Import Section -->
-      <div *ngIf="isAdmin" class="admin-import-section">
-        <button class="btn-import-admin" (click)="triggerImport()" title="Import Activities from Excel">
-          📤 Import Activities
-        </button>
+        <div class="header-buttons">
+          <button class="btn-primary" (click)="toggleForm()">
+            {{ showForm ? 'Cancel' : '+ Log Activity' }}
+          </button>
+          <button *ngIf="isAdmin" class="btn-import" (click)="triggerImport()" title="Import Activities from Excel">
+            📤 Import
+          </button>
+        </div>
       </div>
       
       <!-- Import Modal -->
@@ -252,6 +243,14 @@ import { Subscription } from 'rxjs';
           <span class="lock-text">🔒 Log in to save your activities</span>
         </div>
       </div>
+      
+      <!-- Hidden File Input for Excel Import -->
+      <input 
+        #fileInput 
+        type="file" 
+        accept=".xlsx,.xls,.csv" 
+        style="display: none;" 
+        (change)="onFileSelected($event)">
       </div>
     </div>
   `,
@@ -424,6 +423,12 @@ import { Subscription } from 'rxjs';
       margin-bottom: 0.5rem;
     }
 
+    .header-buttons {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
     .btn-primary {
       padding: 0.75rem 1.5rem;
       background: linear-gradient(135deg, #10B981, #06B6D4);
@@ -433,6 +438,21 @@ import { Subscription } from 'rxjs';
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.2s;
+    }
+
+    .btn-import {
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #F59E0B, #D97706);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .btn-import:hover {
+      transform: translateY(-2px);
     }
 
     .btn-primary:hover {
@@ -958,6 +978,11 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
     this.isGuest = this.guestService.isGuest();
     this.user = this.authService.getCurrentUser();
     this.isAdmin = this.authService.isAdmin();
+    
+    // DEBUG: Log admin status
+    console.log('🔍 [Activities] ngOnInit - User:', this.user);
+    console.log('🔍 [Activities] ngOnInit - isAdmin:', this.isAdmin);
+    console.log('🔍 [Activities] ngOnInit - user.isAdmin:', this.user?.isAdmin);
 
     // Load all activities available
     this.loadActivities();
@@ -965,6 +990,11 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
     // Subscribe to user changes - when user logs in, save guest activities to DB
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.user = user;
+      this.isAdmin = this.authService.isAdmin();
+      
+      // DEBUG: Log when user changes
+      console.log('🔍 [Activities] User changed:', user);
+      console.log('🔍 [Activities] isAdmin after change:', this.isAdmin);
       
       if (user && !this.isGuest) {
         // USER JUST LOGGED IN - check if this was a signup or login
