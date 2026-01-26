@@ -117,6 +117,7 @@
             font-size: 1.8em;
             min-width: 35px;
             text-align: center;
+            margin-right: 25px;
         }
 
         .card h4 {
@@ -196,242 +197,182 @@
         .reveal strong {
             color: var(--primary);
         }
+
+        /* Business Table Styles */
+        .business-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.55em;
+            margin-top: 0.5em;
+        }
+        .business-table th {
+            background: #f8f9fa;
+            border-bottom: 2px solid var(--secondary);
+            color: var(--secondary);
+            padding: 8px;
+            text-align: left;
+        }
+        .business-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .row-highlight {
+            background: rgba(76, 175, 80, 0.1);
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="reveal">
         <div class="slides">
             
-            <!-- Slide 1: Titel -->
             <section class="center">
                 <h1>BUSINESS CASE</h1>
-                <p class="subtitle">Projektziele und Nutzen</p>
+                <p class="subtitle">Finanzielle Planung & Projektion</p>
                 <div style="margin: 2em 0;">
-                    <div style="width: 120px; height: 120px; margin: 0 auto; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">✓</div>
+                    <div style="width: 120px; height: 120px; margin: 0 auto; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">📈</div>
                 </div>
                 <h2 style="color: var(--primary); margin-top: 1em;">EcoTrace</h2>
-                <p style="font-size: 1.1em; color: #666;">CO₂-Tracking mit Belohnungssystem</p>
+                <p style="font-size: 1.1em; color: #666;">Von 100k Usern zum profitablen Business</p>
             </section>
 
-            <!-- Slide 2: Das Problem -->
             <section>
                 <h2>DAS PROBLEM</h2>
                 <div class="divider"></div>
-                
                 <div class="box box-red">
-                    <h3>🌍 Klimawandel trifft auf digitale Überforderung</h3>
-                    <p>Menschen wollen nachhaltiger leben, aber bestehende Apps sind:</p>
-                    <ul>
-                        <li>Zu kompliziert und wissenschaftlich</li>
-                        <li>Keine klare Visualisierung des persönlichen Impacts</li>
-                        <li>Fehlende Motivation zum Dranbleiben</li>
-                        <li>Kein sozialer Aspekt - User fühlen sich allein gelassen</li>
-                    </ul>
+                    <h3>🌍 Fehlende Incentivierung</h3>
+                    <p>Nutzer brechen ab, weil Nachhaltigkeit keine unmittelbaren Vorteile bietet. EcoTrace löst dies durch Gamification.</p>
                 </div>
-
                 <div class="box box-orange">
-                    <h3>📊 Das Ergebnis</h3>
-                    <p><strong>87% der Klimaschutz-Apps werden nach 2 Wochen nicht mehr genutzt.</strong> Erfolge bleiben unsichtbar.</p>
+                    <h3>📊 Monetarisierungslücke</h3>
+                    <p>Viele Grüne Apps scheitern an einem unklaren Business Modell. Wir setzen auf <strong>Freemium + B2B</strong>.</p>
                 </div>
             </section>
 
-            <!-- Slide 3: Die Lösung -->
             <section>
-                <h2>ECOTRACE - DIE LÖSUNG</h2>
+                <h2>ZIELGRUPPE & SKALIERUNG</h2>
                 <div class="divider"></div>
-
-                <div class="box box-green">
-                    <h3>🎯 Intelligentes CO₂-Tracking</h3>
-                    <p>Automatische Berechnung deines CO₂-Fußabdrucks.</p>
-                </div>
-
-                <div class="box box-green">
-                    <h3>🏆 Belohnungssystem & Fortschritt</h3>
-                    <p>Meilensteine erreichen, Abzeichen sammeln, Streaks aufbauen.</p>
-                </div>
-
-                <div class="box box-green">
-                    <h3>👥 Community & Wettbewerb</h3>
-                    <p>Mit Freunden vergleichen und in Ranglisten aufsteigen.</p>
-                </div>
-            </section>
-
-            <!-- Slide 4: Der Nutzen -->
-            <section>
-                <h2>WAS BRINGT ECOTRACE?</h2>
-                <div class="divider"></div>
-
-                <div class="card">
-                    <div class="card-icon">💡</div>
-                    <div>
-                        <h4>Bewusstsein schaffen</h4>
-                        <p>Nutzer sehen ihren echten CO₂-Impact</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-icon">🔄</div>
-                    <div>
-                        <h4>Verhalten ändern</h4>
-                        <p>Belohnungen motivieren zu Nachhaltigkeit</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-icon">🤝</div>
-                    <div>
-                        <h4>Gemeinsam stärker</h4>
-                        <p>Community-Gefühl durch Social Features</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-icon">📈</div>
-                    <div>
-                        <h4>Messbare Erfolge</h4>
-                        <p>15-20% CO₂-Reduktion in 6 Monaten</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Slide 5: Zielgruppe -->
-            <section>
-                <h2>ZIELGRUPPE & ANWENDUNG</h2>
-                <div class="divider"></div>
-
-                <ul style="font-size: 0.85em; line-height: 1.4;">
-                    <li><strong>Primär:</strong> Millennials (25-40 Jahre) und Gen Z</li>
-                    <li><strong>Sekundär:</strong> Unternehmen (CSR)</li>
-                    <li><strong>USP:</strong> CO₂-Tracking mit Belohnungssystem</li>
-                    <li><strong>Skalierbarkeit:</strong> B2C Freemium + B2B Enterprise</li>
-                </ul>
-
-                <div class="grid-2" style="margin-top: 0.6em;">
+                <div class="grid-2">
                     <div class="metric">
                         <div class="metric-label">Jahr 1 Ziel</div>
-                        <div class="metric-value">100K</div>
+                        <div class="metric-value">100.000</div>
                         <div class="metric-label">Aktive User</div>
                     </div>
                     <div class="metric">
-                        <div class="metric-label">Jahr 5 Projektion</div>
-                        <div class="metric-value">5M+</div>
-                        <div class="metric-label">User weltweit</div>
+                        <div class="metric-label">Pro-Conversion</div>
+                        <div class="metric-value">3%</div>
+                        <div class="metric-label">User zahlen 4,99€</div>
                     </div>
                 </div>
             </section>
 
-            <!-- Slide 6: Aktueller Stand -->
             <section>
-                <h2>AKTUELLER STAND (DEZ 2025)</h2>
-                <div class="divider"></div>
-
-                <div class="card">
-                    <div class="card-icon" style="color: var(--primary);">✓</div>
-                    <div>
-                        <h4>Fertiggestellt</h4>
-                        <p>Frontend (Angular PWA), Backend (Quarkus), PostgreSQL</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-icon" style="color: var(--primary);">✓</div>
-                    <div>
-                        <h4>Fertiggestellt</h4>
-                        <p>User Auth, Activity Tracking, CO₂-Berechnung</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-icon" style="color: var(--primary);">✓</div>
-                    <div>
-                        <h4>Fertiggestellt</h4>
-                        <p>Belohnungssystem mit 18 verschiedenen Abzeichen</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-icon" style="color: var(--accent);">⏳</div>
-                    <div>
-                        <h4>In Arbeit</h4>
-                        <p>Social Features (Friends, Leaderboards, Challenges)</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Slide 7: Technologie -->
-            <section>
-                <h2>TECHNOLOGIE-STACK</h2>
-                <div class="divider"></div>
-
-                <div class="tech-grid">
-                    <div class="tech-item">
-                        <div class="icon">🎨</div>
-                        <h3>Frontend</h3>
-                        <p>Angular 18<br>TypeScript<br>PWA</p>
-                    </div>
-                    <div class="tech-item">
-                        <div class="icon">⚙️</div>
-                        <h3>Backend</h3>
-                        <p>Quarkus 3.28<br>Java<br>REST APIs</p>
-                    </div>
-                    <div class="tech-item">
-                        <div class="icon">🗄️</div>
-                        <h3>Database</h3>
-                        <p>PostgreSQL<br>Docker</p>
-                    </div>
-                    <div class="tech-item">
-                        <div class="icon">🚀</div>
-                        <h3>Deploy</h3>
-                        <p>Cloud Ready<br>CI/CD</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Slide 8: Wettbewerbsvorteil -->
-            <section>
-                <h2>WETTBEWERBSVORTEIL</h2>
-                <div class="divider"></div>
-
-                <h3>Was macht EcoTrace einzigartig?</h3>
-
-                <ul style="font-size: 0.8em; margin-top: 0.5em; line-height: 1.3;">
-                    <li><strong>🎮 Komplettes Belohnungssystem:</strong> Motivierendes Spielerlebnis</li>
-                    <li><strong>👥 Social-First Ansatz:</strong> Community von Anfang an</li>
-                    <li><strong>📱 Native App-Feeling:</strong> PWA Performance</li>
-                    <li><strong>🔬 Präzise CO₂-Daten:</strong> Wissenschaftlich fundiert</li>
-                    <li><strong>🚀 Schnelle Innovation:</strong> Moderne Technologie</li>
-                </ul>
-
-                <div style="margin-top: 0.8em; padding: 0.8em; background: linear-gradient(135deg, #E8F5E9, #E1F5FE); border-radius: 8px; text-align: center;">
-                    <strong style="font-size: 0.95em;">
-                        Keine andere App kombiniert all diese Faktoren in einer Plattform
-                    </strong>
-                </div>
-            </section>
-
-            <!-- Slide 9: Call to Action -->
-            <section class="center">
-                <h2 style="color: var(--primary); font-size: 1.4em; margin-bottom: 0.2em;">GEMEINSAM FÜR EINE<br>NACHHALTIGE ZUKUNFT</h2>
+                <h2>BUSINESS CASE: MONATLICHE RECHNUNG</h2>
                 <div class="divider"></div>
                 
-                <p style="margin-top: 0.5em; font-size: 0.85em;">
-                    <strong>EcoTrace macht Klimaschutz messbar, motivierend und sozial.</strong>
-                </p>
-                <p style="margin-top: 0.3em; font-size: 0.75em;">
-                    Wir helfen Millionen Menschen, ihren CO₂-Fußabdruck zu reduzieren –<br>
-                    eine spielerische Aktivität nach der anderen.
-                </p>
+                <table class="business-table">
+                    <thead>
+                        <tr>
+                            <th>Monat</th>
+                            <th>User (Gesamt)</th>
+                            <th>Pro-User (3%)</th>
+                            <th>Umsatz (B2C + B2B)</th>
+                            <th>Kosten (Fix+Var)</th>
+                            <th>Netto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>M1</td>
+                            <td>2.000</td>
+                            <td>60</td>
+                            <td>300 €</td>
+                            <td>18.000 €</td>
+                            <td style="color: #F44336;">-17.700 €</td>
+                        </tr>
+                        <tr>
+                            <td>M6</td>
+                            <td>30.000</td>
+                            <td>900</td>
+                            <td>7.500 € (4,5k + 3k B2B)</td>
+                            <td>35.000 €</td>
+                            <td style="color: #F44336;">-27.500 €</td>
+                        </tr>
+                        <tr>
+                            <td>M12</td>
+                            <td>100.000</td>
+                            <td>3.000</td>
+                            <td>30.000 € (15k + 15k B2B)</td>
+                            <td>60.000 €</td>
+                            <td style="color: #F44336;">-30.000 €</td>
+                        </tr>
+                        <tr class="row-highlight">
+                            <td>M18</td>
+                            <td>200.000</td>
+                            <td>6.000</td>
+                            <td>85.000 € (30k + 55k B2B)</td>
+                            <td>80.000 €</td>
+                            <td style="color: var(--primary);">+5.000 €</td>
+                        </tr>
+                    </tbody>
+                </table>
 
-                <div class="grid-2" style="margin-top: 0.6em; max-width: 600px; margin-left: auto; margin-right: auto;">
-                    <div class="metric" style="padding: 0.6em;">
-                        <div class="metric-value" style="font-size: 1.8em;">€25M</div>
-                        <div class="metric-label" style="font-size: 0.75em;">Umsatz-Potenzial Jahr 5</div>
+                <div class="box box-green" style="margin-top: 1em; font-size: 0.7em;">
+                    <strong>Erklärung:</strong> Bei 2.000 Usern zahlen 60 Leute das 4,99 € Abo (= ~300 €). 
+                    Der <strong>Break-Even</strong> wird in Monat 18 durch starkes B2B-Wachstum (Firmenlizenzen) erreicht.
+                </div>
+            </section>
+
+            <section>
+                <h2>MONETARISIERUNGS-DETAILS</h2>
+                <div class="divider"></div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-icon">📱  </div>
+                        <div>
+                            <h4>B2C Premium (4,99 €)</h4>
+                            <p>Zusätzliche Analyse-Tools, exklusive Partner-Rabatte und werbefreies Tracking.</p>
+                        </div>
                     </div>
-                    <div class="metric" style="padding: 0.6em;">
-                        <div class="metric-value" style="font-size: 1.8em;">5M+</div>
-                        <div class="metric-label" style="font-size: 0.75em;">User bis 2030</div>
+                    <div class="card">
+                        <div class="card-icon">🏢   </div>
+                        <div>
+                            <h4>B2B Enterprise</h4>
+                            <p>10 € / Mitarbeiter pro Jahr. Firmen nutzen EcoTrace für ihre CSR-Bilanz.</p>
+                        </div>
                     </div>
                 </div>
+
+                <div class="tech-grid" style="margin-top: 1em;">
+                    <div class="metric" style="background: #eee; color: #333; padding: 0.5em;">
+                        <div class="metric-label" style="font-size: 0.6em;">CAC (Akquisekosten)</div>
+                        <div class="metric-value" style="font-size: 1.2em;">1,50 €</div>
+                    </div>
+                    <div class="metric" style="background: #eee; color: #333; padding: 0.5em;">
+                        <div class="metric-label" style="font-size: 0.6em;">LTV (Kundenwert)</div>
+                        <div class="metric-value" style="font-size: 1.2em; color: var(--primary);">14,50 €</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="center">
+                <h2 style="color: var(--primary);">EXIT-STRATEGIE & POTENZIAL</h2>
+                <div class="divider"></div>
+                <p style="font-size: 0.8em;">Skalierung auf 5 Mio. Nutzer weltweit bis Jahr 5.</p>
+                
+                <div class="grid-2" style="max-width: 600px; margin: 1em auto;">
+                    <div class="metric">
+                        <div class="metric-value">€25M</div>
+                        <div class="metric-label">Umsatzpotenzial</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">15-20%</div>
+                        <div class="metric-label">CO₂-Reduktion/User</div>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.6em; color: #888;">EcoTrace"Made in Leonding"</p>
             </section>
 
         </div>
@@ -441,21 +382,13 @@
     <script>
         Reveal.initialize({
             hash: true,
-            transition: 'slide',
-            transitionSpeed: 'default',
-            backgroundTransition: 'fade',
-            center: false,
+            transition: 'convex',
             width: 960,
             height: 700,
-            margin: 0.1,
-            minScale: 0.5,
-            maxScale: 3.0,
             controls: true,
             progress: true,
             slideNumber: true,
-            keyboard: true,
-            overview: true,
-            touch: true
+            center: false
         });
     </script>
 </body>
