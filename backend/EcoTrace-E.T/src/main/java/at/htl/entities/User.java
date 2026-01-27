@@ -76,4 +76,8 @@ public class User extends PanacheEntity {
     public static User findByEmail(String email) {
         return find("email", email).firstResult();
     }
+
+    public static User findByUsername(String username) {
+        return find("username", username).firstResult();
+    }
 }

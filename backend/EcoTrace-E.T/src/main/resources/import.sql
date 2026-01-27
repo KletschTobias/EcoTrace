@@ -59,3 +59,9 @@ INSERT INTO achievements (id, name, description, icon, category, target_value, t
 (nextval('achievements_seq'), 'Low Carbon Hero', 'Keep total CO2 under 100kg', '🌍', 'CO2_REDUCTION', 100, 'LOW_CO2', null, '#10B981', 50),
 (nextval('achievements_seq'), 'Carbon Neutral', 'Keep total CO2 under 50kg', '🌏', 'CO2_REDUCTION', 50, 'LOW_CO2', null, '#10B981', 75),
 (nextval('achievements_seq'), 'Planet Saver', 'Keep total CO2 under 25kg', '🌎', 'CO2_REDUCTION', 25, 'LOW_CO2', null, '#10B981', 100);
+
+-- Create permanent public league (Requires a system user as host)
+-- Note: This assumes user with id 1 exists (usually created by Keycloak sync)
+-- If not, this will be created via startup bean
+INSERT INTO leagues (id, name, description, league_type, host_id, start_date, end_date, max_participants, is_permanent, created_at, updated_at) VALUES
+(nextval('leagues_seq'), 'EcoTrace Global 2026', 'The official global leaderboard for all EcoTrace users. Compete with everyone to become the most eco-friendly user!', 'PUBLIC', 1, '2026-01-01', null, 500, true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

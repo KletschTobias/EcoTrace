@@ -28,7 +28,7 @@ export class App {
 
 // Initialize Keycloak client
 const keycloak = new Keycloak({
-  url: 'http://localhost:8081',
+  url: 'http://localhost:8082',
   realm: 'Eco-Tracer',
   clientId: 'ecotrace-frontend'
 });

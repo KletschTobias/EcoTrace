@@ -7,7 +7,7 @@ import { UserActivity, CreateUserActivityRequest, Stats } from '../models/models
   providedIn: 'root'
 })
 export class UserActivityService {
-  private apiUrl = 'http://localhost:8080/api/users/me/activities';
+  private apiUrl = 'http://localhost:8081/api/users/me/activities';
 
   constructor(private http: HttpClient) {}
 

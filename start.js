@@ -193,7 +193,7 @@ async function createAdminUser(adminToken) {
         
         // Create user in database via backend endpoint
         try {
-            const syncResponse = await httpRequest('http://localhost:8080/api/auth/users/sync', {
+            const syncResponse = await httpRequest('http://localhost:8081/api/auth/users/sync', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -320,7 +320,7 @@ async function createUser(adminToken, username, firstName, lastName, email, pass
         
         // Create user in database via backend endpoint (no auth required)
         try {
-            const syncResponse = await httpRequest('http://localhost:8080/api/auth/users/sync', {
+            const syncResponse = await httpRequest('http://localhost:8081/api/auth/users/sync', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -450,14 +450,14 @@ async function main() {
         
         await sleep(3000);
         console.log('✓ Backend starting in new window');
-        console.log('Waiting for Backend to respond on http://localhost:8080 ...');
+        console.log('Waiting for Backend to respond on http://localhost:8081 ...');
         
         // Wait for backend to respond (any response means it's running)
         let backendReady = false;
         for (let i = 0; i < 45; i++) {
             await sleep(2000);
             try {
-                await httpRequest('http://localhost:8080/', {
+                await httpRequest('http://localhost:8081/', {
                     method: 'GET'
                 });
                 // Any response (200, 404, 401, etc.) means the server is up
@@ -581,9 +581,9 @@ async function main() {
         console.log('========================================');
         console.log('');
         console.log('Services:');
-        console.log('  - Backend:    http://localhost:8080');
+        console.log('  - Backend:    http://localhost:8081');
         console.log('  - Frontend:   http://localhost:4200');
-        console.log('  - Keycloak:   http://localhost:8081');
+        console.log('  - Keycloak:   http://localhost:8082');
         console.log('  - PostgreSQL: localhost:5432');
         console.log('');
         console.log('Admin Account:');

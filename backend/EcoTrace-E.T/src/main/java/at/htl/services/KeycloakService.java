@@ -116,39 +116,113 @@ public class KeycloakService {
 	/**
 	 * Get admin access token from Keycloak
 	 */
+	/**
+	 * Search for a user in Keycloak by username or email
+	 * Returns null if not found, or a Map containing user details (id, username, email, firstName, lastName)
+	 */
+	public java.util.Map<String, String> findUser(String search) {
+		try {
+			LOGGER.info("Searching Keycloak user: " + search);
+			String accessToken = getAdminAccessToken();
+			if (accessToken == null) return null;
+
+			Client client = ClientBuilder.newClient();
+			// Search by username (exact) first
+			String searchUrl = String.format("%s/admin/realms/%s/users?username=%s&exact=true", keycloakUrl, realm, search);
+			
+			var response = client.target(searchUrl)
+					.request(MediaType.APPLICATION_JSON)
+					.header("Authorization", "Bearer " + accessToken)
+					.get();
+			
+			if (response.getStatus() != 200) {
+				LOGGER.warning("Keycloak search failed: " + response.getStatus());
+				response.close();
+				client.close();
+				return null;
+			}
+			
+			java.util.List<java.util.Map<String, Object>> users = response.readEntity(new jakarta.ws.rs.core.GenericType<java.util.List<java.util.Map<String, Object>>>() {});
+			response.close();
+
+			// If not found, try search by email (users?email=...)
+			if (users == null || users.isEmpty()) {
+				// Note: Keycloak search param matches username, email, first, last. But we want to be specific.
+				// Let's try the general 'search' param which matches multiple fields.
+				searchUrl = String.format("%s/admin/realms/%s/users?search=%s", keycloakUrl, realm, search);
+				response = client.target(searchUrl)
+						.request(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer " + accessToken)
+						.get();
+				users = response.readEntity(new jakarta.ws.rs.core.GenericType<java.util.List<java.util.Map<String, Object>>>() {});
+				response.close();
+			}
+			
+			client.close();
+
+			if (users != null && !users.isEmpty()) {
+				// Pick the first match that matches exactly if possible, otherwise just the first
+				var kUser = users.get(0);
+				
+				java.util.Map<String, String> result = new java.util.HashMap<>();
+				result.put("id", (String) kUser.get("id"));
+				result.put("username", (String) kUser.get("username"));
+				result.put("email", (String) kUser.get("email"));
+				result.put("firstName", (String) kUser.get("firstName"));
+				result.put("lastName", (String) kUser.get("lastName"));
+				return result;
+			}
+			
+			return null;
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Exception searching Keycloak user: " + search, e);
+			return null;
+		}
+	}
+
 	private String getAdminAccessToken() {
 		try {
-			Client client = ClientBuilder.newClient();
-			String tokenUrl = String.format("%s/realms/%s/protocol/openid-connect/token", keycloakUrl, realm);
+			// Get token from Eco-Tracer realm using admin user credentials
+			// The admin user was created by start.js with et-admin role
+			String baseUrl = "http://localhost:8082";
+			if (keycloakUrl != null && keycloakUrl.contains("/realms/")) {
+				baseUrl = keycloakUrl.substring(0, keycloakUrl.indexOf("/realms/"));
+			} else if (keycloakUrl != null && !keycloakUrl.contains("/protocol")) {
+				baseUrl = keycloakUrl;
+			}
+			
+			// Token from Eco-Tracer realm, not master
+			String tokenUrl = String.format("%s/realms/Eco-Tracer/protocol/openid-connect/token", baseUrl);
 			LOGGER.info("Token URL: " + tokenUrl);
-			LOGGER.info("Admin Client ID: " + adminClientId);
-
+			
+			Client client = ClientBuilder.newClient();
 			Form form = new Form();
-			form.param("grant_type", "client_credentials");
-			form.param("client_id", adminClientId);
-			form.param("client_secret", adminClientSecret);
+			form.param("grant_type", "password");
+			form.param("client_id", "admin-cli");
+			form.param("username", "admin");
+			form.param("password", "admin");
 
 			var response = client.target(tokenUrl)
-					.request(MediaType.APPLICATION_FORM_URLENCODED)
+					.request(MediaType.APPLICATION_JSON)
 					.post(Entity.form(form));
 
 			int status = response.getStatus();
 			LOGGER.info("Token request status: " + status);
 
 			if (status == 200) {
-				var json = response.readEntity(String.class);
-				String token = extractAccessToken(json);
+				String jsonResponse = response.readEntity(String.class);
+				String token = extractAccessToken(jsonResponse);
+				LOGGER.info("Successfully obtained admin token from Eco-Tracer realm");
 				client.close();
-				LOGGER.info("Successfully obtained admin token");
 				return token;
 			} else {
-				String body = response.readEntity(String.class);
-				LOGGER.warning("Failed to get admin token - Status: " + status + " Body: " + body);
+				String error = response.readEntity(String.class);
+				LOGGER.severe("Failed to get admin token: " + status + " - " + error);
 				client.close();
 				return null;
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Error getting admin token", e);
+			LOGGER.log(Level.SEVERE, "Exception getting admin token", e);
 			return null;
 		}
 	}

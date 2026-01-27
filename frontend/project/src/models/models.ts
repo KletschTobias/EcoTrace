@@ -92,3 +92,51 @@ export interface Achievement {
   isNew: boolean;
   isUnlocked: boolean;
 }
+
+export interface FriendRequest {
+  id: number;
+  sender: User;
+  receiver: User;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface League {
+  id: number;
+  name: string;
+  description?: string;
+  leagueType: 'PUBLIC' | 'PRIVATE';
+  host: User;
+  startDate: string;
+  endDate?: string;
+  maxParticipants: number;
+  currentMembers: number;
+  isPermanent: boolean;
+  isActive: boolean;
+  isFull: boolean;
+  isUserMember: boolean;
+  createdAt: string;
+}
+
+export interface LeagueMember {
+  id: number;
+  user: User;
+  status: 'INVITED' | 'ACTIVE' | 'KICKED';
+  joinedAt: string;
+  lastActivity: string;
+  totalCo2: number;
+  totalWater: number;
+  totalElectricity: number;
+  score: number;
+  rank: number;
+}
+
+export interface CreateLeagueRequest {
+  name: string;
+  description?: string;
+  leagueType: 'PUBLIC' | 'PRIVATE';
+  startDate: string;
+  endDate?: string;
+  maxParticipants?: number;
+}
