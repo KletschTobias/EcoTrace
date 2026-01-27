@@ -1,5 +1,5 @@
 # keycloak/Dockerfile
-FROM quay.io/keycloak/keycloak:26.0.5
+FROM quay.io/keycloak/keycloak:24.0.5
 
 WORKDIR /opt/keycloak
 

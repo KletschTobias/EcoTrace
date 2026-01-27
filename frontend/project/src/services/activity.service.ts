@@ -31,16 +31,11 @@ export class ActivityService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  // Import/Export methods
-  exportActivities(): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/export`, {
-      responseType: 'blob'
-    });
+  importExcelFile(formData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/import`, formData);
   }
 
-  importActivities(file: File, mode: 'append' | 'overwrite'): Observable<any> {
-    const formData = new FormData();
-    formData.append('file', file);
-    return this.http.post(`${this.apiUrl}/import?mode=${mode}`, formData);
+  exportActivities(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export`, { responseType: 'blob' });
   }
 }

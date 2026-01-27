@@ -73,66 +73,17 @@ function httpRequest(url, options = {}) {
     });
 }
 
-// Import Keycloak realm from JSON file via REST API
-async function importKeycloakRealm(adminToken) {
-    const KEYCLOAK_URL = 'http://localhost:8081';
-    const realmPath = path.join(__dirname, 'backend', 'EcoTrace-E.T', 'docker', 'keycloak', 'eco-tracer-realm.json');
-    
-    if (!fs.existsSync(realmPath)) {
-        console.log('  ⚠ Realm file not found at ' + realmPath);
-        return false;
-    }
-    
-    try {
-        const realmData = JSON.parse(fs.readFileSync(realmPath, 'utf8'));
-        const realmName = realmData.realm;
-        
-        console.log(`  Importing realm: ${realmName}`);
-        
-        // Check if realm already exists
-        try {
-            const checkResponse = await httpRequest(`${KEYCLOAK_URL}/admin/realms/${realmName}`, {
-                method: 'GET',
-                headers: { 'Authorization': `Bearer ${adminToken}` }
-            });
-            
-            if (checkResponse.status === 200) {
-                console.log(`  ✓ Realm ${realmName} already exists`);
-                return true;
-            }
-        } catch (e) {
-            // Realm doesn't exist, continue to import
-        }
-        
-        // Import the realm
-        const importResponse = await httpRequest(`${KEYCLOAK_URL}/admin/realms`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${adminToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(realmData)
-        });
-        
-        if (importResponse.status === 201 || importResponse.status === 200) {
-            console.log(`  ✓ Realm ${realmName} imported successfully`);
-            return true;
-        } else {
-            console.log(`  ⚠ Realm import failed (HTTP ${importResponse.status})`);
-            return false;
-        }
-    } catch (error) {
-        console.log(`  ✗ Error importing realm: ${error.message}`);
-        return false;
-    }
-}
-
-// Create Keycloak admin user with et-admin role
-async function createAdminUser(adminToken, username, email, password) {
+// Create admin user with et-admin role
+async function createAdminUser(adminToken) {
     const KEYCLOAK_URL = 'http://localhost:8081';
     const REALM = 'Eco-Tracer';
+    const username = 'admin';
+    const firstName = 'Admin';
+    const lastName = 'User';
+    const email = 'admin@example.com';
+    const password = 'admin';
     
-    console.log(`  Creating admin user: ${username}`);
+    console.log(`  Creating user: ${username} (${firstName} ${lastName})`);
     
     try {
         // Create user in Keycloak
@@ -144,8 +95,8 @@ async function createAdminUser(adminToken, username, email, password) {
             },
             body: JSON.stringify({
                 username,
-                firstName: 'Admin',
-                lastName: 'User',
+                firstName,
+                lastName,
                 email,
                 emailVerified: true,
                 enabled: true
@@ -153,7 +104,7 @@ async function createAdminUser(adminToken, username, email, password) {
         });
         
         if (createResponse.status === 409) {
-            console.log(`  ℹ Admin user ${username} already exists - updating password and role`);
+            console.log(`  ℹ User ${username} already exists - updating password`);
         } else if (createResponse.status !== 201) {
             console.log(`  ⚠ Unexpected response for ${username} (HTTP ${createResponse.status})`);
         }
@@ -169,99 +120,104 @@ async function createAdminUser(adminToken, username, email, password) {
         
         const users = userListResponse.data;
         if (!users || users.length === 0) {
-            console.log(`  ⚠ Could not find admin user ${username}`);
+            console.log(`  ⚠ Could not find user ${username}`);
             return;
         }
         
         const userId = users[0].id;
         
-        // Assign et-admin role to user
-        try {
-            const rolesResponse = await httpRequest(
-                `${KEYCLOAK_URL}/admin/realms/${REALM}/roles`,
-                {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${adminToken}` }
-                }
-            );
-            
-            const roles = rolesResponse.data;
-            const etAdminRole = roles.find(r => r.name === 'et-admin');
-            
-            if (etAdminRole) {
-                await httpRequest(
-                    `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}/role-mappings/realm`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${adminToken}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify([{
-                            id: etAdminRole.id,
-                            name: 'et-admin'
-                        }])
-                    }
-                );
-            }
-        } catch (e) {
-            console.log(`  ⚠ Could not assign et-admin role to ${username}: ${e.message}`);
-        }
-        
-        // Set password
-        const passwordResponse = await httpRequest(
-            `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}/reset-password`,
+        // Get all roles
+        const rolesResponse = await httpRequest(
+            `${KEYCLOAK_URL}/admin/realms/${REALM}/roles`,
             {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${adminToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    type: 'password',
-                    value: password,
-                    temporary: false
-                })
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${adminToken}` }
             }
         );
         
-        if (passwordResponse.status === 204) {
-            console.log(`  ✓ Admin user ${username} created/updated (password: ${password})`);
-        } else {
-            console.log(`  ⚠ Could not set password for ${username}`);
+        const roles = rolesResponse.data;
+        const etAdminRole = roles.find(r => r.name === 'et-admin');
+        const etUserRole = roles.find(r => r.name === 'et-user');
+        
+        // Assign et-admin role
+        if (etAdminRole) {
+            await httpRequest(
+                `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}/role-mappings/realm`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify([{
+                        id: etAdminRole.id,
+                        name: 'et-admin'
+                    }])
+                }
+            );
         }
         
-        // Sync user to backend database via auth endpoint
-        // NOTE: Endpoint has NO @RolesAllowed so no auth required during startup
+        // Assign et-user role
+        if (etUserRole) {
+            await httpRequest(
+                `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}/role-mappings/realm`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify([{
+                        id: etUserRole.id,
+                        name: 'et-user'
+                    }])
+                }
+            );
+        }
+        
+        // Set password
+        await httpRequest(`${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}/reset-password`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${adminToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                type: 'password',
+                value: password,
+                temporary: false
+            })
+        });
+        
+        console.log(`  ✓ User ${username} created in Keycloak with et-admin role`);
+        
+        // Create user in database via backend endpoint
         try {
             const syncResponse = await httpRequest('http://localhost:8080/api/auth/users/sync', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    externalId: users[0].id,
+                    externalId: userId,
                     username: username,
-                    fullName: 'Admin User',
-                    email: email,
-                    isAdmin: 'true'
+                    fullName: `${firstName} ${lastName}`,
+                    email: email
                 })
             });
             
-            if (syncResponse.status === 200 || syncResponse.status === 201) {
-                console.log(`  ✓ Admin user ${username} synced to database with isAdmin=true`);
+            if (syncResponse.status === 200) {
+                console.log(`  ✓ User ${username} created in database\n`);
             } else {
-                console.log(`  ⚠ Sync failed with status: ${syncResponse.status}`);
+                console.log(`  ⚠ Could not create ${username} in database (HTTP ${syncResponse.status})`);
                 if (syncResponse.raw) {
-                    console.log(`     Response: ${syncResponse.raw.substring(0, 300)}`);
+                    console.log(`     Response: ${syncResponse.raw.substring(0, 200)}`);
                 }
             }
-        } catch (e) {
-            console.log(`  ⚠ Could not sync admin user ${username} to database: ${e.message}`);
+        } catch (error) {
+            console.log(`  ✗ Error syncing ${username}:`, error.message);
         }
         
     } catch (error) {
-        console.log(`  ✗ Error creating admin user ${username}: ${error.message}`);
+        console.log(`  ✗ Error creating ${username}:`, error.message);
     }
 }
 
@@ -447,37 +403,8 @@ async function main() {
             console.log('\n⚠ Keycloak health check timeout - continuing anyway...\n');
         }
         
-        // Step 3: Import Keycloak Realm (before starting backend!)
-        console.log('[3/6] Importing Keycloak Realm...');
-        try {
-            // Get admin token
-            const tokenResponse = await httpRequest(
-                'http://localhost:8081/realms/master/protocol/openid-connect/token',
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'client_id=admin-cli&username=admin&password=admin&grant_type=password'
-                }
-            );
-            
-            if (!tokenResponse.data || !tokenResponse.data.access_token) {
-                console.log('⚠ Could not get admin token - skipping realm import\n');
-            } else {
-                const adminToken = tokenResponse.data.access_token;
-                console.log('✓ Got admin token\n');
-                
-                // Import Keycloak realm
-                await importKeycloakRealm(adminToken);
-                await sleep(2000); // Wait for realm to be ready
-                console.log('');
-            }
-        } catch (error) {
-            console.log('✗ Error during realm import:', error.message);
-            console.log('Continuing anyway...\n');
-        }
-        
-        // Step 4: Start Backend and wait for it
-        console.log('[4/6] Starting Backend (Quarkus)...');
+        // Step 3: Start Backend and wait for it
+        console.log('[3/6] Starting Backend (Quarkus)...');
 
         const backendPath = path.join(projectRoot, 'backend', 'EcoTrace-E.T');
         const mvnCmd = isWindows ? 'mvnw.cmd' : './mvnw';
@@ -554,8 +481,8 @@ async function main() {
             console.log('\n⚠ Backend did not respond in time - continuing anyway...\n');
         }
         
-        // Step 5: Create test users (now that backend is ready)
-        console.log('[5/6] Creating test users...');
+        // Step 4: Create test users (now that backend is ready)
+        console.log('[4/6] Creating test users...');
         try {
             // Get admin token
             const tokenResponse = await httpRequest(
@@ -573,8 +500,8 @@ async function main() {
                 const adminToken = tokenResponse.data.access_token;
                 console.log('✓ Got admin token\n');
                 
-                // Create admin user first
-                await createAdminUser(adminToken, 'admin', 'admin@ecotrace.local', 'admin');
+                // Create admin user first (with et-admin role)
+                await createAdminUser(adminToken);
                 
                 // Create test users
                 await createUser(adminToken, 'testuser', 'Test', 'User', 'test@example.com', 'password123');
@@ -583,15 +510,15 @@ async function main() {
                 await createUser(adminToken, 'charlie', 'Charlie', 'Weber', 'charlie@example.com', 'password123');
                 await createUser(adminToken, 'diana', 'Diana', 'Klein', 'diana@example.com', 'password123');
                 
-                console.log('✓ All users created and synced\n');
+                console.log('✓ All test users created and synced\n');
             }
         } catch (error) {
             console.log('✗ Error creating users:', error.message);
             console.log('You can create users manually later\n');
         }
         
-        // Step 6: Start Frontend (only after backend and users are ready)
-        console.log('[6/6] Starting Frontend (Angular)...');
+        // Step 5: Start Frontend (only after backend and users are ready)
+        console.log('[5/6] Starting Frontend (Angular)...');
         const frontendPath = path.join(projectRoot, 'frontend', 'project');
         
         if (!fs.existsSync(path.join(frontendPath, 'package.json'))) {
@@ -658,6 +585,10 @@ async function main() {
         console.log('  - Frontend:   http://localhost:4200');
         console.log('  - Keycloak:   http://localhost:8081');
         console.log('  - PostgreSQL: localhost:5432');
+        console.log('');
+        console.log('Admin Account:');
+        console.log('  - Username: admin');
+        console.log('  - Password: admin');
         console.log('');
         console.log('Test Users (Password: password123):');
         console.log('  - testuser  (Test User)');

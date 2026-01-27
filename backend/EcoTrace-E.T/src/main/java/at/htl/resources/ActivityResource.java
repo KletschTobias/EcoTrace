@@ -1,28 +1,37 @@
 package at.htl.resources;
 
 import at.htl.dtos.ActivityDto;
-import at.htl.services.ActivityImportExportService;
 import at.htl.services.ActivityService;
+import at.htl.services.ActivityImportExportService;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.jboss.logging.Logger;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 @Path("/api/activities")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ActivityResource {
 
+    private static final Logger LOG = Logger.getLogger(ActivityResource.class);
+
     @Inject
     ActivityService activityService;
-    
+
     @Inject
     ActivityImportExportService importExportService;
+
+    @Inject
+    SecurityIdentity securityIdentity;
 
     @GET
     public List<ActivityDto> getAllActivities() {
@@ -55,36 +64,50 @@ public class ActivityResource {
         activityService.deleteActivity(id);
         return Response.noContent().build();
     }
-    
-    /**
-     * Import activities from Excel file (Admin only)
-     * @param mode 'append' to add new activities (skip duplicates) or 'overwrite' to update existing
-     */
+
     @POST
     @Path("/import")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @RolesAllowed("et-admin")
-    public Response importActivities(
-            @FormParam("file") InputStream fileInputStream,
-            @QueryParam("mode") @DefaultValue("append") String mode) {
+    public Response importActivities(@RestForm FileUpload file, @RestForm("overwrite") Boolean overwrite) {
         try {
-            boolean overwrite = "overwrite".equalsIgnoreCase(mode);
-            ActivityImportExportService.ImportResult result = 
-                    importExportService.importActivities(fileInputStream, overwrite);
+            LOG.info("=== Import Request Debug ===");
+            LOG.info("User: " + securityIdentity.getPrincipal().getName());
+            LOG.info("Is Anonymous: " + securityIdentity.isAnonymous());
+            LOG.info("Roles: " + securityIdentity.getRoles());
+            LOG.info("Has et-admin role: " + securityIdentity.hasRole("et-admin"));
+            LOG.info("==========================");
             
-            return Response.ok(Map.of(
-                    "message", result.getMessage(),
-                    "imported", result.importedCount,
-                    "updated", result.updatedCount,
-                    "duplicates", result.duplicateCount,
-                    "duplicateNames", result.duplicates,
-                    "skipped", result.skippedCount,
-                    "errors", result.errors
-            )).build();
+            LOG.info("Importing activities from file: " + file.fileName());
+            boolean shouldOverwrite = overwrite != null && overwrite;
+            ActivityImportExportService.ImportResult result = importExportService.importActivities(
+                file.filePath().toFile().getAbsolutePath(),
+                shouldOverwrite
+            );
+            LOG.info("Import completed: " + result.getMessage());
+            return Response.ok(result).build();
         } catch (Exception e) {
+            LOG.error("Error importing activities", e);
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(Map.of("error", "Import failed: " + e.getMessage()))
-                    .build();
+                .entity("{\"message\": \"" + e.getMessage() + "\"}")
+                .build();
+        }
+    }
+
+    @GET
+    @Path("/export")
+    @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    @RolesAllowed("et-admin")
+    public Response exportActivities() {
+        try {
+            byte[] excelData = importExportService.exportActivities();
+            return Response.ok(excelData)
+                .header("Content-Disposition", "attachment; filename=\"activities.xlsx\"")
+                .build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity("{\"message\": \"" + e.getMessage() + "\"}")
+                .build();
         }
     }
 }

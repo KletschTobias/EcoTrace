@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
@@ -23,55 +23,75 @@ import { Subscription } from 'rxjs';
       </div>
 
       <div *ngIf="!isLoading" class="activities-content">
+
+        <div *ngIf="importResultMessage" class="toast success-toast">
+          {{ importResultMessage }}
+        </div>
       <div class="activities-header">
         <div>
           <h1>Track Your Activities</h1>
           <p>Log your daily actions and see their environmental impact</p>
         </div>
-        <div class="header-buttons">
+        <div style="display: flex; gap: 1rem;">
           <button class="btn-primary" (click)="toggleForm()">
             {{ showForm ? 'Cancel' : '+ Log Activity' }}
           </button>
-          <button *ngIf="isAdmin" class="btn-import" (click)="triggerImport()" title="Import Activities from Excel">
-            📤 Import
+          <button *ngIf="isAdmin" class="btn-admin" (click)="showImportExportMenu = !showImportExportMenu">
+            ⚙️ Activities verwalten
           </button>
         </div>
+        <input #fileInput type="file" accept=".csv,.xls,.xlsx" (change)="onFileSelected($event)" style="display: none;">
       </div>
-      
-      <!-- Import Modal -->
-      <div *ngIf="showImportModal" class="modal-overlay" (click)="closeImportModal()">
+
+      <!-- Admin Import/Export Menu -->
+      <div *ngIf="isAdmin && showImportExportMenu" class="admin-menu">
+        <div class="admin-menu-content">
+          <h3>Activities verwalten</h3>
+          <button class="menu-btn" (click)="triggerFileUpload()">📥 Importieren</button>
+          <button class="menu-btn" (click)="showExportDialog = true">📤 Exportieren</button>
+          <button class="menu-btn close-btn" (click)="showImportExportMenu = false">Schließen</button>
+        </div>
+      </div>
+
+      <!-- Import Options Dialog -->
+      <div *ngIf="showImportDialog" class="modal-overlay" (click)="showImportDialog = false">
         <div class="modal-content" (click)="$event.stopPropagation()">
-          <h2>📤 Import Activities</h2>
-          <p class="modal-description">Choose how to handle the imported activities:</p>
-          
+          <h2>Activities importieren</h2>
+          <p>Wie sollen die Activities behandelt werden?</p>
           <div class="import-options">
-            <label class="import-option" [class.selected]="importMode === 'append'">
-              <input type="radio" name="importMode" value="append" [(ngModel)]="importMode">
-              <div class="option-content">
-                <strong>➕ Append</strong>
-                <span>Add new activities, skip duplicates</span>
-              </div>
-            </label>
-            
-            <label class="import-option" [class.selected]="importMode === 'overwrite'">
-              <input type="radio" name="importMode" value="overwrite" [(ngModel)]="importMode">
-              <div class="option-content">
-                <strong>🔄 Overwrite</strong>
-                <span>Update existing activities with same name</span>
-              </div>
-            </label>
-          </div>
-          
-          <div *ngIf="selectedFile" class="selected-file">
-            <span>📄 {{ selectedFile.name }}</span>
-          </div>
-          
-          <div class="modal-actions">
-            <button class="btn-cancel" (click)="closeImportModal()">Cancel</button>
-            <button class="btn-import" (click)="confirmImport()" [disabled]="isImporting">
-              {{ isImporting ? 'Importing...' : 'Import' }}
+            <button class="option-btn append" (click)="confirmImport(false)">
+              <span class="icon">➕</span>
+              <span class="label">Hinzufügen</span>
+              <span class="desc">Neue Activities hinzufügen, bestehende behalten</span>
+            </button>
+            <button class="option-btn replace" (click)="confirmImport(true)">
+              <span class="icon">🔄</span>
+              <span class="label">Ersetzen</span>
+              <span class="desc">Alle Activities ersetzen</span>
             </button>
           </div>
+          <button class="btn-cancel" (click)="showImportDialog = false">Abbrechen</button>
+        </div>
+      </div>
+
+      <!-- Export Options Dialog -->
+      <div *ngIf="showExportDialog" class="modal-overlay" (click)="showExportDialog = false">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <h2>Activities exportieren</h2>
+          <p>Wähle das Dateiformat:</p>
+          <div class="export-options">
+            <button class="option-btn csv" (click)="exportActivitiesAsCSV()">
+              <span class="icon">📄</span>
+              <span class="label">CSV</span>
+              <span class="desc">Comma-separated Values</span>
+            </button>
+            <button class="option-btn xlsx" (click)="exportActivitiesAsXLSX()">
+              <span class="icon">📊</span>
+              <span class="label">XLSX</span>
+              <span class="desc">Excel Format</span>
+            </button>
+          </div>
+          <button class="btn-cancel" (click)="showExportDialog = false">Abbrechen</button>
         </div>
       </div>
       
@@ -243,14 +263,6 @@ import { Subscription } from 'rxjs';
           <span class="lock-text">🔒 Log in to save your activities</span>
         </div>
       </div>
-      
-      <!-- Hidden File Input for Excel Import -->
-      <input 
-        #fileInput 
-        type="file" 
-        accept=".xlsx,.xls,.csv" 
-        style="display: none;" 
-        (change)="onFileSelected($event)">
       </div>
     </div>
   `,
@@ -413,6 +425,7 @@ import { Subscription } from 'rxjs';
       justify-content: space-between;
       align-items: center;
       margin-bottom: 2rem;
+      gap: 1rem;
     }
 
     .activities-header h1 {
@@ -421,12 +434,6 @@ import { Subscription } from 'rxjs';
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 0.5rem;
-    }
-
-    .header-buttons {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
     }
 
     .btn-primary {
@@ -438,24 +445,26 @@ import { Subscription } from 'rxjs';
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.2s;
+      white-space: nowrap;
     }
 
-    .btn-import {
+    .btn-primary:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-admin {
       padding: 0.75rem 1.5rem;
-      background: linear-gradient(135deg, #F59E0B, #D97706);
+      background: linear-gradient(135deg, #8B5CF6, #EC4899);
       color: white;
       border: none;
       border-radius: 0.5rem;
       font-weight: 600;
       cursor: pointer;
       transition: transform 0.2s;
+      white-space: nowrap;
     }
 
-    .btn-import:hover {
-      transform: translateY(-2px);
-    }
-
-    .btn-primary:hover {
+    .btn-admin:hover {
       transform: translateY(-2px);
     }
 
@@ -714,6 +723,210 @@ import { Subscription } from 'rxjs';
       font-style: italic;
     }
 
+    /* Admin Menu */
+    .admin-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-start;
+      z-index: 1000;
+      padding-top: 4rem;
+      padding-right: 2rem;
+    }
+
+    .admin-menu-content {
+      background: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      padding: 1.5rem;
+      min-width: 220px;
+      animation: slideIn 0.2s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(10px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .admin-menu-content h3 {
+      margin: 0 0 1rem 0;
+      color: #111827;
+      font-size: 1.125rem;
+    }
+
+    .menu-btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      text-align: left;
+      margin-bottom: 0.5rem;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    .menu-btn:hover {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+
+    .menu-btn.close-btn {
+      background: #f3f4f6;
+      margin-top: 1rem;
+    }
+
+    /* Import Dialog */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+      padding: 2rem;
+      max-width: 500px;
+      width: 100%;
+      animation: modalIn 0.3s ease-out;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 1.25rem;
+      right: 1.25rem;
+      z-index: 3000;
+      padding: 0.9rem 1.2rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      color: #0b2537;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+    }
+
+    .success-toast {
+      background: linear-gradient(135deg, #d1fae5, #bbf7d0);
+      border: 1px solid #34d399;
+    }
+
+    @keyframes modalIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      color: #111827;
+    }
+
+    .modal-content p {
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+    }
+
+    .import-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .export-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .option-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      background: white;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-align: center;
+    }
+
+    .option-btn:hover {
+      border-color: #10B981;
+      background: #f0fdf4;
+    }
+
+    .option-btn.replace:hover {
+      border-color: #8B5CF6;
+      background: #f5f3ff;
+    }
+
+    .option-btn.csv:hover {
+      border-color: #06B6D4;
+      background: #f0f9fc;
+    }
+
+    .option-btn.xlsx:hover {
+      border-color: #10B981;
+      background: #f0fdf4;
+    }
+
+    .option-btn .icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .option-btn .label {
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+
+    .option-btn .desc {
+      font-size: 0.75rem;
+      color: #6b7280;
+      display: block;
+    }
+
+    .btn-cancel {
+      width: 100%;
+      padding: 0.75rem 1.5rem;
+      background: #e5e7eb;
+      color: #111827;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-cancel:hover {
+      background: #d1d5db;
+    }
+
     @media (max-width: 768px) {
       .activities-container {
         padding: 1rem;
@@ -725,209 +938,17 @@ import { Subscription } from 'rxjs';
         gap: 1rem;
       }
 
-      .header-actions {
-        flex-direction: column;
-        width: 100%;
-      }
-
-      .header-actions button {
-        width: 100%;
+      .import-options {
+        grid-template-columns: 1fr;
       }
 
       .form-row {
         grid-template-columns: 1fr;
       }
     }
-
-    /* Import/Export Styles */
-    .admin-import-section {
-      background: linear-gradient(135deg, #10B981, #059669);
-      padding: 1.5rem;
-      border-radius: 1rem;
-      margin-bottom: 2rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      display: flex;
-      justify-content: center;
-    }
-
-    .btn-import-admin {
-      padding: 1rem 2rem;
-      background: white;
-      color: #10B981;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 700;
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .btn-import-admin:hover {
-      background: #f0fdf4;
-      transform: scale(1.05);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .btn-secondary {
-      padding: 0.75rem 1.5rem;
-      background: white;
-      color: #10B981;
-      border: 2px solid #10B981;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-secondary:hover {
-      background: #10B981;
-      color: white;
-    }
-
-    .btn-admin {
-      border-color: #8b5cf6;
-      color: #8b5cf6;
-    }
-
-    .btn-admin:hover {
-      background: #8b5cf6;
-      color: white;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal-content {
-      background: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      max-width: 500px;
-      width: 90%;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-    }
-
-    .modal-content h2 {
-      margin: 0 0 0.5rem 0;
-      color: #111827;
-    }
-
-    .modal-description {
-      color: #6b7280;
-      margin-bottom: 1.5rem;
-    }
-
-    .import-options {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .import-option {
-      display: flex;
-      align-items: center;
-      padding: 1rem;
-      border: 2px solid #e5e7eb;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .import-option:hover {
-      border-color: #10B981;
-    }
-
-    .import-option.selected {
-      border-color: #10B981;
-      background: #f0fdf4;
-    }
-
-    .import-option input[type="radio"] {
-      margin-right: 1rem;
-    }
-
-    .option-content {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .option-content strong {
-      color: #111827;
-      margin-bottom: 0.25rem;
-    }
-
-    .option-content span {
-      color: #6b7280;
-      font-size: 0.875rem;
-    }
-
-    .selected-file {
-      background: #f3f4f6;
-      padding: 0.75rem;
-      border-radius: 0.5rem;
-      margin-bottom: 1.5rem;
-      font-size: 0.875rem;
-      color: #374151;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 0.75rem;
-      justify-content: flex-end;
-    }
-
-    .btn-cancel {
-      padding: 0.75rem 1.5rem;
-      background: white;
-      color: #6b7280;
-      border: 1px solid #d1d5db;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-cancel:hover {
-      background: #f3f4f6;
-    }
-
-    .btn-import {
-      padding: 0.75rem 1.5rem;
-      background: #10B981;
-      color: white;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-import:hover:not(:disabled) {
-      background: #059669;
-    }
-
-    .btn-import:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
   `]
 })
 export class ActivitiesComponent implements OnInit, OnDestroy {
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-  
   user: User | null = null;
   activities: Activity[] = [];
   private guestSubscription?: Subscription;
@@ -943,19 +964,19 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   date = format(new Date(), 'yyyy-MM-dd');
   selectedCategory = 'all';
   isSubmitting = false;
+  isAdmin = false;
+  showImportExportMenu = false;
+  showImportDialog = false;
+  showExportDialog = false;
+  pendingFile: File | null = null;
+  importResultMessage: string | null = null;
+  private importResultTimeout?: any;
 
   // Guest mode
   isGuest = false;
   showPrompt = false;
   guestActivities: UserActivity[] = [];
   isLoading = true;
-
-  // Import/Export
-  showImportModal = false;
-  importMode: 'append' | 'overwrite' = 'append';
-  selectedFile: File | null = null;
-  isImporting = false;
-  isAdmin = false;
 
   categories = [
     { value: 'all', label: 'All', icon: '📋' },
@@ -977,12 +998,7 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.isGuest = this.guestService.isGuest();
     this.user = this.authService.getCurrentUser();
-    this.isAdmin = this.authService.isAdmin();
-    
-    // DEBUG: Log admin status
-    console.log('🔍 [Activities] ngOnInit - User:', this.user);
-    console.log('🔍 [Activities] ngOnInit - isAdmin:', this.isAdmin);
-    console.log('🔍 [Activities] ngOnInit - user.isAdmin:', this.user?.isAdmin);
+    this.isAdmin = this.authService.hasRole('et-admin');
 
     // Load all activities available
     this.loadActivities();
@@ -990,11 +1006,6 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
     // Subscribe to user changes - when user logs in, save guest activities to DB
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       this.user = user;
-      this.isAdmin = this.authService.isAdmin();
-      
-      // DEBUG: Log when user changes
-      console.log('🔍 [Activities] User changed:', user);
-      console.log('🔍 [Activities] isAdmin after change:', this.isAdmin);
       
       if (user && !this.isGuest) {
         // USER JUST LOGGED IN - check if this was a signup or login
@@ -1118,6 +1129,264 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
     sessionStorage.removeItem('guestActivities');
     sessionStorage.removeItem('isSignup');
     this.authService.login();
+  }
+
+  triggerFileUpload(): void {
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (input) {
+      input.click();
+    }
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    
+    if (files && files.length > 0) {
+      const file = files[0];
+      const fileName = file.name.toLowerCase();
+      
+      if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+        // XLSX/XLS file - show dialog for append/replace
+        this.pendingFile = file;
+        this.showImportDialog = true;
+      } else if (fileName.endsWith('.csv')) {
+        // CSV file - parse locally, show dialog
+        this.pendingFile = file;
+        this.showImportDialog = true;
+      } else {
+        alert('Please select a valid CSV, XLS, or XLSX file');
+      }
+    }
+  }
+
+  confirmImport(overwrite: boolean): void {
+    if (!this.pendingFile) return;
+
+    const fileName = this.pendingFile.name.toLowerCase();
+    
+    if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+      this.uploadExcelFile(this.pendingFile, overwrite);
+    } else if (fileName.endsWith('.csv')) {
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        try {
+          const csv = e.target?.result as string;
+          this.importActivitiesFromCSV(csv, overwrite);
+        } catch (error) {
+          console.error('Error reading CSV:', error);
+          alert('Error reading CSV file');
+        }
+      };
+      reader.readAsText(this.pendingFile);
+    }
+
+    this.showImportDialog = false;
+    this.pendingFile = null;
+  }
+
+  uploadExcelFile(file: File, overwrite: boolean = false): void {
+    console.log('Uploading file:', file.name, 'overwrite:', overwrite);
+    console.log('isAdmin:', this.isAdmin);
+    console.log('Has et-admin role:', this.authService.hasRole('et-admin'));
+    
+    // Debug: Log the entire token to see what's inside
+    const kc = (this.authService as any).kc;
+    if (kc && kc.tokenParsed) {
+      console.log('Full tokenParsed:', kc.tokenParsed);
+      console.log('realm_access:', kc.tokenParsed.realm_access);
+      console.log('resource_access:', kc.tokenParsed.resource_access);
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('overwrite', overwrite.toString());
+
+    this.activityService.importExcelFile(formData).subscribe({
+      next: (result: any) => {
+        console.log('Import result:', result);
+        const message = `Import abgeschlossen: ${result.importedCount} neu, ${result.updatedCount} aktualisiert, ${result.duplicateCount} Duplikate übersprungen${result.skippedCount > 0 ? `, ${result.skippedCount} Fehler` : ''}`;
+        this.showImportResult(message);
+        if (result.errors && result.errors.length > 0) {
+          console.warn('Import errors:', result.errors);
+        }
+        this.loadActivities();
+        this.showImportDialog = false;
+        this.showImportExportMenu = false;
+        this.pendingFile = null;
+      },
+      error: (error: any) => {
+        console.error('Error uploading file - Full error:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.error);
+        
+        let errorMsg = 'Unknown error';
+        if (error.status === 403) {
+          errorMsg = 'Zugriff verweigert. Bitte als Admin einloggen.';
+        } else if (error.error?.message) {
+          errorMsg = error.error.message;
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+        
+        alert('Error uploading file: ' + errorMsg);
+      }
+    });
+  }
+
+  importActivitiesFromCSV(csv: string, overwrite: boolean = false): void {
+    const lines = csv.trim().split('\n');
+    if (lines.length < 2) {
+      alert('CSV must have at least a header row and one data row');
+      return;
+    }
+
+    // Parse header
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    const requiredHeaders = ['activity', 'quantity', 'date'];
+    const hasRequiredHeaders = requiredHeaders.every(h => headers.includes(h));
+    
+    if (!hasRequiredHeaders) {
+      alert(`CSV must contain columns: ${requiredHeaders.join(', ')}`);
+      return;
+    }
+
+    // Parse data
+    let successCount = 0;
+    let errorCount = 0;
+    const totalRows = lines.length - 1;
+
+    // If overwrite, delete all activities first
+    if (overwrite) {
+      for (const activity of this.userActivities) {
+        this.userActivityService.deleteUserActivity(activity.id).subscribe();
+      }
+    }
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const values = line.split(',').map(v => v.trim());
+      const activityName = values[headers.indexOf('activity')];
+      const quantityStr = values[headers.indexOf('quantity')];
+      const dateStr = values[headers.indexOf('date')];
+
+      if (!activityName || !quantityStr || !dateStr) {
+        errorCount++;
+        continue;
+      }
+
+      // Find activity by name
+      const activity = this.activities.find(a => 
+        a.name.toLowerCase() === activityName.toLowerCase()
+      );
+
+      if (!activity) {
+        console.warn(`Activity not found: ${activityName}`);
+        errorCount++;
+        continue;
+      }
+
+      const quantity = parseFloat(quantityStr);
+      if (isNaN(quantity) || quantity <= 0) {
+        errorCount++;
+        continue;
+      }
+
+      const request: CreateUserActivityRequest = {
+        activityName: activity.name,
+        category: activity.category,
+        quantity: quantity,
+        unit: activity.unit,
+        co2Impact: activity.co2PerUnit * quantity,
+        waterImpact: activity.waterPerUnit * quantity,
+        electricityImpact: activity.electricityPerUnit * quantity,
+        date: dateStr
+      };
+
+      this.userActivityService.createUserActivity(request).subscribe({
+        next: () => {
+          successCount++;
+          if (successCount + errorCount === totalRows) {
+            this.showImportResult(`Import abgeschlossen: ${successCount} neue Activities${errorCount > 0 ? `, ${errorCount} Fehler` : ''}`);
+            this.loadUserActivities();
+            this.showImportDialog = false;
+            this.showImportExportMenu = false;
+            this.pendingFile = null;
+          }
+        },
+        error: () => {
+          errorCount++;
+          if (successCount + errorCount === totalRows) {
+            this.showImportResult(`Import abgeschlossen: ${successCount} neue Activities${errorCount > 0 ? `, ${errorCount} Fehler` : ''}`);
+            this.loadUserActivities();
+            this.showImportDialog = false;
+            this.showImportExportMenu = false;
+            this.pendingFile = null;
+          }
+        }
+      });
+    }
+  }
+
+  showImportResult(message: string): void {
+    this.importResultMessage = message;
+    if (this.importResultTimeout) {
+      clearTimeout(this.importResultTimeout);
+    }
+    this.importResultTimeout = setTimeout(() => {
+      this.importResultMessage = null;
+    }, 4500);
+  }
+
+  exportActivitiesAsXLSX(): void {
+    this.activityService.exportActivities().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `activities-${new Date().toISOString().split('T')[0]}.xlsx`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.showExportDialog = false;
+        this.showImportExportMenu = false;
+      },
+      error: (error: any) => {
+        console.error('Error exporting activities:', error);
+        alert('Fehler beim Exportieren der Activities');
+      }
+    });
+  }
+
+  exportActivitiesAsCSV(): void {
+    // Get all activities and convert to CSV
+    const rows: string[] = [];
+    rows.push(['Name', 'Category', 'CO2 per Unit', 'Water per Unit', 'Electricity per Unit', 'Unit', 'Icon', 'Description'].join(','));
+    
+    this.activities.forEach(activity => {
+      rows.push([
+        activity.name,
+        activity.category,
+        activity.co2PerUnit || 0,
+        activity.waterPerUnit || 0,
+        activity.electricityPerUnit || 0,
+        activity.unit,
+        activity.icon || '',
+        activity.description || ''
+      ].map(v => typeof v === 'string' && v.includes(',') ? `"${v}"` : v).join(','));
+    });
+
+    const csv = rows.join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `activities-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    this.showExportDialog = false;
+    this.showImportExportMenu = false;
   }
 
   loadActivities(): void {
@@ -1316,67 +1585,5 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
 
   formatDate(dateString: string): string {
     return format(new Date(dateString), 'MMM dd, yyyy');
-  }
-
-  // Import/Export Methods
-  exportActivities(): void {
-    this.activityService.exportActivities().subscribe({
-      next: (blob: Blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `activities_export_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-      },
-      error: (error: any) => {
-        console.error('Error exporting activities:', error);
-        alert('Failed to export activities. Please try again.');
-      }
-    });
-  }
-
-  triggerImport(): void {
-    this.fileInput.nativeElement.click();
-  }
-
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
-      this.showImportModal = true;
-    }
-  }
-
-  closeImportModal(): void {
-    this.showImportModal = false;
-    this.selectedFile = null;
-    this.importMode = 'append';
-    if (this.fileInput) {
-      this.fileInput.nativeElement.value = '';
-    }
-  }
-
-  confirmImport(): void {
-    if (!this.selectedFile) return;
-
-    this.isImporting = true;
-    this.activityService.importActivities(this.selectedFile, this.importMode).subscribe({
-      next: (response: any) => {
-        this.isImporting = false;
-        this.closeImportModal();
-        this.loadActivities();
-        
-        const message = response.message || `Successfully imported activities!`;
-        alert(message);
-      },
-      error: (error: any) => {
-        console.error('Error importing activities:', error);
-        this.isImporting = false;
-        alert('Failed to import activities. Please check the file format and try again.');
-      }
-    });
   }
 }
