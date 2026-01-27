@@ -39,6 +39,14 @@ export interface UserActivity {
   waterImpact: number;
   electricityImpact: number;
   date: string;
+  // Recurring activity fields
+  isRecurring?: boolean;
+  timesPerWeek?: number;
+  weeksPerYear?: number;
+  // Calculated total impacts (including recurring multiplier)
+  totalCo2Impact?: number;
+  totalWaterImpact?: number;
+  totalElectricityImpact?: number;
 }
 
 export interface CreateUserActivityRequest {
@@ -50,6 +58,10 @@ export interface CreateUserActivityRequest {
   waterImpact?: number;
   electricityImpact?: number;
   date: string;
+  // Recurring activity fields
+  isRecurring?: boolean;
+  timesPerWeek?: number;
+  weeksPerYear?: number;
 }
 
 export interface Friendship {
