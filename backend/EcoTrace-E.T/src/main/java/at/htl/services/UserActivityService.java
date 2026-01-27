@@ -67,12 +67,18 @@ public class UserActivityService {
         userActivity.waterImpact = request.waterImpact != null ? request.waterImpact : 0.0;
         userActivity.electricityImpact = request.electricityImpact != null ? request.electricityImpact : 0.0;
         userActivity.date = request.date;
+        
+        // Recurring activity fields
+        userActivity.isRecurring = request.isRecurring != null ? request.isRecurring : false;
+        userActivity.timesPerWeek = request.timesPerWeek;
+        userActivity.weeksPerYear = request.weeksPerYear != null ? request.weeksPerYear : 52;
+        
         userActivity.persist();
 
-        // Update user totals
-        user.totalCo2 += userActivity.co2Impact;
-        user.totalWater += userActivity.waterImpact;
-        user.totalElectricity += userActivity.electricityImpact;
+        // Update user totals (using total impact which includes recurring multiplier)
+        user.totalCo2 += userActivity.getTotalCo2Impact();
+        user.totalWater += userActivity.getTotalWaterImpact();
+        user.totalElectricity += userActivity.getTotalElectricityImpact();
         user.persist();
 
         return UserActivityDto.from(userActivity);
@@ -89,11 +95,11 @@ public class UserActivityService {
             throw new NotFoundException("Activity does not belong to this user");
         }
 
-        // Update user totals
+        // Update user totals (using total impact which includes recurring multiplier)
         User user = userActivity.user;
-        user.totalCo2 -= userActivity.co2Impact;
-        user.totalWater -= userActivity.waterImpact;
-        user.totalElectricity -= userActivity.electricityImpact;
+        user.totalCo2 -= userActivity.getTotalCo2Impact();
+        user.totalWater -= userActivity.getTotalWaterImpact();
+        user.totalElectricity -= userActivity.getTotalElectricityImpact();
         user.persist();
 
         userActivity.delete();

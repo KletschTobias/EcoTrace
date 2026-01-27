@@ -14,6 +14,16 @@ public class UserActivityDto {
     public Double waterImpact;
     public Double electricityImpact;
     public LocalDate date;
+    
+    // Recurring activity fields
+    public Boolean isRecurring;
+    public Integer timesPerWeek;
+    public Integer weeksPerYear;
+    
+    // Calculated total impacts (including recurring multiplier)
+    public Double totalCo2Impact;
+    public Double totalWaterImpact;
+    public Double totalElectricityImpact;
 
     public UserActivityDto() {}
 
@@ -28,6 +38,16 @@ public class UserActivityDto {
         this.waterImpact = userActivity.waterImpact;
         this.electricityImpact = userActivity.electricityImpact;
         this.date = userActivity.date;
+        
+        // Recurring fields
+        this.isRecurring = userActivity.isRecurring;
+        this.timesPerWeek = userActivity.timesPerWeek;
+        this.weeksPerYear = userActivity.weeksPerYear;
+        
+        // Calculate totals
+        this.totalCo2Impact = userActivity.getTotalCo2Impact();
+        this.totalWaterImpact = userActivity.getTotalWaterImpact();
+        this.totalElectricityImpact = userActivity.getTotalElectricityImpact();
     }
 
     public static UserActivityDto from(UserActivity userActivity) {

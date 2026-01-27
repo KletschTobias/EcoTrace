@@ -521,24 +521,6 @@
       }
     ]
   },
-  "users": [
-    {
-      "username": "admin",
-      "firstName": "Admin",
-      "lastName": "User",
-      "email": "admin@example.com",
-      "emailVerified": true,
-      "enabled": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "admin",
-          "temporary": false
-        }
-      ],
-      "realmRoles": ["et-admin", "et-user", "offline_access", "uma_authorization"]
-    }
-  ],
   "clients": [
     {
       "id": "03cf846b-8eb5-4ca4-8f54-7c703fd766bf",
