@@ -23,4 +23,9 @@ public class CreateUserActivityRequest {
 
     @NotNull(message = "Date is required")
     public LocalDate date;
+    
+    // Recurring activity fields
+    public Boolean isRecurring = false;
+    public Integer timesPerWeek;
+    public Integer weeksPerYear = 52;
 }

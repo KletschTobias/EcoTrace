@@ -160,17 +160,59 @@ import { Subscription } from 'rxjs';
               </div>
             </div>
 
+            <!-- Recurring Activity Toggle -->
+            <div class="recurring-section">
+              <label class="toggle-label">
+                <input 
+                  type="checkbox" 
+                  [(ngModel)]="isRecurring"
+                  name="isRecurring"
+                  class="toggle-checkbox">
+                <span class="toggle-text">🔄 Recurring Activity</span>
+              </label>
+              
+              <div *ngIf="isRecurring" class="recurring-options">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Times per Week</label>
+                    <input 
+                      type="number" 
+                      [(ngModel)]="timesPerWeek"
+                      name="timesPerWeek"
+                      min="1"
+                      max="21"
+                      class="form-control"
+                      required>
+                  </div>
+                  <div class="form-group">
+                    <label>Weeks per Year</label>
+                    <input 
+                      type="number" 
+                      [(ngModel)]="weeksPerYear"
+                      name="weeksPerYear"
+                      min="1"
+                      max="52"
+                      class="form-control"
+                      required>
+                  </div>
+                </div>
+                <p class="recurring-info">
+                  📊 Total occurrences: <strong>{{ timesPerWeek * weeksPerYear }}</strong> times/year
+                </p>
+              </div>
+            </div>
+
             <div class="impact-preview">
-              <h4>Estimated Impact:</h4>
+              <h4>Estimated Impact{{ isRecurring ? ' (per year)' : '' }}:</h4>
               <div class="impacts">
                 <span *ngIf="selectedActivity.co2PerUnit > 0" class="impact co2">
-                  {{ (selectedActivity.co2PerUnit * quantity).toFixed(2) }} kg CO₂
+                  {{ (selectedActivity.co2PerUnit * quantity * (isRecurring ? timesPerWeek * weeksPerYear : 1)).toFixed(2) }} kg CO₂
                 </span>
                 <span *ngIf="selectedActivity.waterPerUnit > 0" class="impact water">
-                  {{ (selectedActivity.waterPerUnit * quantity).toFixed(0) }} L Water
+                  {{ (selectedActivity.waterPerUnit * quantity * (isRecurring ? timesPerWeek * weeksPerYear : 1)).toFixed(0) }} L Water
                 </span>
                 <span *ngIf="selectedActivity.electricityPerUnit > 0" class="impact electricity">
-                  {{ (selectedActivity.electricityPerUnit * quantity).toFixed(2) }} kWh
+                  {{ (selectedActivity.electricityPerUnit * quantity * (isRecurring ? timesPerWeek * weeksPerYear : 1)).toFixed(2) }} kWh
                 </span>
               </div>
             </div>
@@ -202,18 +244,30 @@ import { Subscription } from 'rxjs';
         <h2>Your Preview Activities</h2>
         <p class="preview-note">These activities are temporary and will disappear on refresh</p>
         <div class="activity-cards">
-          <div *ngFor="let activity of guestActivities" class="activity-card">
+          <div *ngFor="let activity of guestActivities" class="activity-card" [class.recurring-card]="activity.isRecurring">
             <div class="activity-main">
               <div>
-                <h3>{{ activity.activityName }}</h3>
+                <h3>
+                  {{ activity.activityName }}
+                  <span *ngIf="activity.isRecurring" class="recurring-badge">🔄 {{ activity.timesPerWeek }}x/week</span>
+                </h3>
                 <p>{{ activity.quantity }} {{ activity.unit }} - {{ formatDate(activity.date) }}</p>
               </div>
               <button class="btn-delete" (click)="removeGuestActivity(activity.id)">X</button>
             </div>
             <div class="activity-impacts">
-              <span *ngIf="activity.co2Impact > 0" class="impact co2">{{ activity.co2Impact.toFixed(1) }} kg CO2</span>
-              <span *ngIf="activity.waterImpact > 0" class="impact water">{{ activity.waterImpact.toFixed(0) }} L</span>
-              <span *ngIf="activity.electricityImpact > 0" class="impact electricity">{{ activity.electricityImpact.toFixed(1) }} kWh</span>
+              <span *ngIf="(activity.totalCo2Impact || activity.co2Impact) > 0" class="impact co2">
+                {{ (activity.totalCo2Impact || activity.co2Impact).toFixed(1) }} kg CO2
+                <small *ngIf="activity.isRecurring">/year</small>
+              </span>
+              <span *ngIf="(activity.totalWaterImpact || activity.waterImpact) > 0" class="impact water">
+                {{ (activity.totalWaterImpact || activity.waterImpact).toFixed(0) }} L
+                <small *ngIf="activity.isRecurring">/year</small>
+              </span>
+              <span *ngIf="(activity.totalElectricityImpact || activity.electricityImpact) > 0" class="impact electricity">
+                {{ (activity.totalElectricityImpact || activity.electricityImpact).toFixed(1) }} kWh
+                <small *ngIf="activity.isRecurring">/year</small>
+              </span>
             </div>
           </div>
         </div>
@@ -225,18 +279,30 @@ import { Subscription } from 'rxjs';
         <div *ngIf="!isGuest" class="activities-list">
           <h2>Your Activities</h2>
           <div *ngIf="userActivities.length > 0" class="activity-cards">
-            <div *ngFor="let activity of userActivities" class="activity-card">
+            <div *ngFor="let activity of userActivities" class="activity-card" [class.recurring-card]="activity.isRecurring">
               <div class="activity-main">
                 <div>
-                  <h3>{{ activity.activityName }}</h3>
+                  <h3>
+                    {{ activity.activityName }}
+                    <span *ngIf="activity.isRecurring" class="recurring-badge">🔄 {{ activity.timesPerWeek }}x/week</span>
+                  </h3>
                   <p>{{ activity.quantity }} {{ activity.unit }} - {{ formatDate(activity.date) }}</p>
                 </div>
                 <button class="btn-delete" (click)="deleteActivity(activity.id)">X</button>
               </div>
               <div class="activity-impacts">
-                <span *ngIf="activity.co2Impact > 0" class="impact co2">{{ activity.co2Impact.toFixed(1) }} kg CO2</span>
-                <span *ngIf="activity.waterImpact > 0" class="impact water">{{ activity.waterImpact.toFixed(0) }} L</span>
-                <span *ngIf="activity.electricityImpact > 0" class="impact electricity">{{ activity.electricityImpact.toFixed(1) }} kWh</span>
+                <span *ngIf="(activity.totalCo2Impact || activity.co2Impact) > 0" class="impact co2">
+                  {{ (activity.totalCo2Impact || activity.co2Impact).toFixed(1) }} kg CO2
+                  <small *ngIf="activity.isRecurring">/year</small>
+                </span>
+                <span *ngIf="(activity.totalWaterImpact || activity.waterImpact) > 0" class="impact water">
+                  {{ (activity.totalWaterImpact || activity.waterImpact).toFixed(0) }} L
+                  <small *ngIf="activity.isRecurring">/year</small>
+                </span>
+                <span *ngIf="(activity.totalElectricityImpact || activity.electricityImpact) > 0" class="impact electricity">
+                  {{ (activity.totalElectricityImpact || activity.electricityImpact).toFixed(1) }} kWh
+                  <small *ngIf="activity.isRecurring">/year</small>
+                </span>
               </div>
             </div>
           </div>
@@ -605,6 +671,69 @@ import { Subscription } from 'rxjs';
       color: #92400e;
     }
 
+    /* Recurring Activity Styles */
+    .recurring-section {
+      background: #f0f9ff;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin: 1rem 0;
+      border: 1px solid #bfdbfe;
+    }
+
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: #1e40af;
+      margin-bottom: 1rem;
+    }
+
+    .toggle-checkbox {
+      width: 1.25rem;
+      height: 1.25rem;
+      cursor: pointer;
+      accent-color: #06B6D4;
+    }
+
+    .toggle-text {
+      user-select: none;
+    }
+
+    .recurring-options {
+      background: white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      border-left: 4px solid #06B6D4;
+    }
+
+    .recurring-info {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: #f0fdf4;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      color: #15803d;
+      border-left: 3px solid #22c55e;
+    }
+
+    .recurring-card {
+      border-left: 4px solid #06B6D4;
+    }
+
+    .recurring-badge {
+      display: inline-block;
+      background: #06B6D4;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
     .btn-submit {
       width: 100%;
       padding: 1rem;
@@ -971,6 +1100,11 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   pendingFile: File | null = null;
   importResultMessage: string | null = null;
   private importResultTimeout?: any;
+
+  // Recurring activity fields
+  isRecurring = false;
+  timesPerWeek = 1;
+  weeksPerYear = 52;
 
   // Guest mode
   isGuest = false;
@@ -1479,6 +1613,7 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
 
     // Guest mode - add to temporary preview list and service
     if (this.isGuest) {
+      const multiplier = this.isRecurring ? this.timesPerWeek * this.weeksPerYear : 1;
       const guestActivity: UserActivity = {
         id: Date.now(), // temporary ID
         userId: 0, // guest user
@@ -1489,7 +1624,13 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
         co2Impact: this.selectedActivity.co2PerUnit * this.quantity,
         waterImpact: this.selectedActivity.waterPerUnit * this.quantity,
         electricityImpact: this.selectedActivity.electricityPerUnit * this.quantity,
-        date: this.date
+        date: this.date,
+        isRecurring: this.isRecurring,
+        timesPerWeek: this.timesPerWeek,
+        weeksPerYear: this.weeksPerYear,
+        totalCo2Impact: this.selectedActivity.co2PerUnit * this.quantity * multiplier,
+        totalWaterImpact: this.selectedActivity.waterPerUnit * this.quantity * multiplier,
+        totalElectricityImpact: this.selectedActivity.electricityPerUnit * this.quantity * multiplier
       };
       this.guestActivities.unshift(guestActivity);
       
@@ -1514,7 +1655,10 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
       co2Impact: this.selectedActivity.co2PerUnit * this.quantity,
       waterImpact: this.selectedActivity.waterPerUnit * this.quantity,
       electricityImpact: this.selectedActivity.electricityPerUnit * this.quantity,
-      date: this.date
+      date: this.date,
+      isRecurring: this.isRecurring,
+      timesPerWeek: this.isRecurring ? this.timesPerWeek : undefined,
+      weeksPerYear: this.isRecurring ? this.weeksPerYear : undefined
     };
 
     this.userActivityService.createUserActivity(request).subscribe({
@@ -1581,6 +1725,9 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
     this.searchTerm = '';
     this.quantity = 1;
     this.date = format(new Date(), 'yyyy-MM-dd');
+    this.isRecurring = false;
+    this.timesPerWeek = 1;
+    this.weeksPerYear = 52;
   }
 
   formatDate(dateString: string): string {
