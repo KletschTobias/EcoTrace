@@ -47,10 +47,52 @@ public class UserActivity extends PanacheEntity {
 
     @Column(name = "created_date")
     public LocalDateTime createdDate;
+    
+    // Recurring activity fields
+    @Column(name = "is_recurring")
+    public Boolean isRecurring = false;
+    
+    @Column(name = "times_per_week")
+    public Integer timesPerWeek;
+    
+    @Column(name = "weeks_per_year")
+    public Integer weeksPerYear = 52;
 
     @PrePersist
     public void prePersist() {
         this.createdDate = LocalDateTime.now();
+    }
+    
+    /**
+     * Calculate the total impact multiplier based on recurring settings
+     * @return multiplier for total impact calculation (timesPerWeek * weeksPerYear), or 1 if not recurring
+     */
+    public int getRecurringMultiplier() {
+        if (isRecurring != null && isRecurring && timesPerWeek != null && weeksPerYear != null) {
+            return timesPerWeek * weeksPerYear;
+        }
+        return 1;
+    }
+    
+    /**
+     * Get total CO2 impact including recurring multiplier
+     */
+    public Double getTotalCo2Impact() {
+        return co2Impact != null ? co2Impact * getRecurringMultiplier() : 0.0;
+    }
+    
+    /**
+     * Get total water impact including recurring multiplier
+     */
+    public Double getTotalWaterImpact() {
+        return waterImpact != null ? waterImpact * getRecurringMultiplier() : 0.0;
+    }
+    
+    /**
+     * Get total electricity impact including recurring multiplier
+     */
+    public Double getTotalElectricityImpact() {
+        return electricityImpact != null ? electricityImpact * getRecurringMultiplier() : 0.0;
     }
 
     // Static methods for queries

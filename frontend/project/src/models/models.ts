@@ -9,6 +9,7 @@ export interface User {
   totalCo2: number;
   totalWater: number;
   totalElectricity: number;
+  isAdmin?: boolean;  // Admin flag
   // Optional profile fields (from Keycloak token)
   username?: string;
   email?: string;
@@ -38,6 +39,14 @@ export interface UserActivity {
   waterImpact: number;
   electricityImpact: number;
   date: string;
+  // Recurring activity fields
+  isRecurring?: boolean;
+  timesPerWeek?: number;
+  weeksPerYear?: number;
+  // Calculated total impacts (including recurring multiplier)
+  totalCo2Impact?: number;
+  totalWaterImpact?: number;
+  totalElectricityImpact?: number;
 }
 
 export interface CreateUserActivityRequest {
@@ -49,6 +58,10 @@ export interface CreateUserActivityRequest {
   waterImpact?: number;
   electricityImpact?: number;
   date: string;
+  // Recurring activity fields
+  isRecurring?: boolean;
+  timesPerWeek?: number;
+  weeksPerYear?: number;
 }
 
 export interface Friendship {
@@ -74,4 +87,21 @@ export interface RegisterRequest {
   email: string;
   password: string;
   fullName?: string;
+}
+
+export interface Achievement {
+  id: number;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  targetValue: number;
+  targetType: string;
+  specificActivity?: string;
+  badgeColor: string;
+  points: number;
+  unlockedAt?: string;
+  progress: number;
+  isNew: boolean;
+  isUnlocked: boolean;
 }

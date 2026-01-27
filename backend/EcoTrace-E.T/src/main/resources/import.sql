@@ -34,3 +34,28 @@ INSERT INTO activities (id, name, category, co2_per_unit, water_per_unit, electr
 (nextval('activities_seq'), 'Paper Usage', 'other', 0.004, 10.0, 0.0, 'sheets', '📄', 'Using paper'),
 (nextval('activities_seq'), 'Recycling', 'other', -0.5, 0.0, 0.0, 'kg', '♻️', 'Recycling waste'),
 (nextval('activities_seq'), 'Composting', 'other', -0.3, 0.0, 0.0, 'kg', '🌿', 'Composting organic waste');
+
+-- Achievements
+INSERT INTO achievements (id, name, description, icon, category, target_value, target_type, specific_activity, badge_color, points) VALUES
+(nextval('achievements_seq'), 'First Steps', 'Log your first environmental activity', '🌱', 'MILESTONE', 1, 'ACTIVITY_COUNT', null, '#10B981', 10),
+(nextval('achievements_seq'), 'Getting Started', 'Log 5 environmental activities', '🌿', 'MILESTONE', 5, 'ACTIVITY_COUNT', null, '#10B981', 20),
+(nextval('achievements_seq'), 'Habit Former', 'Log 10 environmental activities', '🌳', 'MILESTONE', 10, 'ACTIVITY_COUNT', null, '#10B981', 30),
+(nextval('achievements_seq'), 'Eco Warrior', 'Log 25 environmental activities', '🏆', 'MILESTONE', 25, 'ACTIVITY_COUNT', null, '#F59E0B', 50),
+(nextval('achievements_seq'), 'Environmental Champion', 'Log 50 environmental activities', '👑', 'MILESTONE', 50, 'ACTIVITY_COUNT', null, '#EF4444', 100),
+
+(nextval('achievements_seq'), 'Pedal Power', 'Cycle 10 times', '🚴', 'ACTIVITY', 10, 'SPECIFIC_ACTIVITY', 'Cycling', '#3B82F6', 25),
+(nextval('achievements_seq'), 'Walker', 'Walk 10 times', '🚶', 'ACTIVITY', 10, 'SPECIFIC_ACTIVITY', 'Walking', '#8B5CF6', 25),
+(nextval('achievements_seq'), 'Green Commuter', 'Use public transport 15 times', '🚌', 'ACTIVITY', 15, 'SPECIFIC_ACTIVITY', 'Bus Ride', '#06B6D4', 30),
+(nextval('achievements_seq'), 'Recycling Hero', 'Recycle or compost 20 times', '♻️', 'ACTIVITY', 20, 'SPECIFIC_ACTIVITY', 'Recycling', '#10B981', 35),
+
+(nextval('achievements_seq'), 'Week Warrior', 'Log activities for 7 consecutive days', '📅', 'STREAK', 7, 'DAYS_STREAK', null, '#8B5CF6', 40),
+(nextval('achievements_seq'), 'Consistency King', 'Log activities for 14 consecutive days', '📆', 'STREAK', 14, 'DAYS_STREAK', null, '#8B5CF6', 60),
+(nextval('achievements_seq'), 'Dedication Master', 'Log activities for 30 consecutive days', '🔥', 'STREAK', 30, 'DAYS_STREAK', null, '#EF4444', 100),
+
+(nextval('achievements_seq'), 'Social Butterfly', 'Add 3 friends', '👥', 'SOCIAL', 3, 'FRIENDS_COUNT', null, '#EC4899', 25),
+(nextval('achievements_seq'), 'Community Builder', 'Add 5 friends', '👫', 'SOCIAL', 5, 'FRIENDS_COUNT', null, '#EC4899', 40),
+(nextval('achievements_seq'), 'Network Effect', 'Add 10 friends', '🌐', 'SOCIAL', 10, 'FRIENDS_COUNT', null, '#EC4899', 60),
+
+(nextval('achievements_seq'), 'Low Carbon Hero', 'Keep total CO2 under 100kg', '🌍', 'CO2_REDUCTION', 100, 'LOW_CO2', null, '#10B981', 50),
+(nextval('achievements_seq'), 'Carbon Neutral', 'Keep total CO2 under 50kg', '🌏', 'CO2_REDUCTION', 50, 'LOW_CO2', null, '#10B981', 75),
+(nextval('achievements_seq'), 'Planet Saver', 'Keep total CO2 under 25kg', '🌎', 'CO2_REDUCTION', 25, 'LOW_CO2', null, '#10B981', 100);

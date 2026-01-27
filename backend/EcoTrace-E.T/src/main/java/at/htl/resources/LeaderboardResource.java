@@ -148,8 +148,8 @@ public class LeaderboardResource {
         LeaderboardEntryDto dto = new LeaderboardEntryDto();
         dto.id = entry.id;
         dto.userId = entry.user.id;
-        dto.username = entry.user.externalId;
-        dto.fullName = entry.user.externalId;
+        dto.username = entry.user.username;
+        dto.fullName = entry.user.fullName;
         dto.avatarColor = entry.user.avatarColor;
         dto.profileImageUrl = entry.user.profileImageUrl;
         dto.hasSolarPanels = entry.user.hasSolarPanels;

@@ -41,6 +41,13 @@ import { Subscription } from 'rxjs';
             </a>
             <a 
               *ngIf="!isGuest"
+              routerLink="/achievements" 
+              routerLinkActive="active"
+              class="nav-link">
+              🏆 Achievements
+            </a>
+            <a 
+              *ngIf="!isGuest"
               routerLink="/profile" 
               routerLinkActive="active"
               class="nav-link">
