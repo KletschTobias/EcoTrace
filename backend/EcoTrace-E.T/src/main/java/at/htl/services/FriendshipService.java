@@ -22,15 +22,12 @@ public class FriendshipService {
             throw new NotFoundException("User not found");
         }
 
-        List<Friendship> friendships = Friendship.list("(user.id = ?1 or friend.id = ?1) and status = 'accepted'", userId);
+        // Only show friends that THIS user has added (where userId is the user, not friend)
+        List<Friendship> friendships = Friendship.list("user.id = ?1 and status = 'accepted'", userId);
         
         List<UserDto> friends = new ArrayList<>();
         for (Friendship friendship : friendships) {
-            if (friendship.user.id.equals(userId)) {
-                friends.add(UserDto.from(friendship.friend));
-            } else {
-                friends.add(UserDto.from(friendship.user));
-            }
+            friends.add(UserDto.from(friendship.friend));
         }
         
         return friends;

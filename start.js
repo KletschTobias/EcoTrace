@@ -73,6 +73,154 @@ function httpRequest(url, options = {}) {
     });
 }
 
+// Create admin user with et-admin role
+async function createAdminUser(adminToken) {
+    const KEYCLOAK_URL = 'http://localhost:8081';
+    const REALM = 'Eco-Tracer';
+    const username = 'admin';
+    const firstName = 'Admin';
+    const lastName = 'User';
+    const email = 'admin@example.com';
+    const password = 'admin';
+    
+    console.log(`  Creating user: ${username} (${firstName} ${lastName})`);
+    
+    try {
+        // Create user in Keycloak
+        const createResponse = await httpRequest(`${KEYCLOAK_URL}/admin/realms/${REALM}/users`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${adminToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username,
+                firstName,
+                lastName,
+                email,
+                emailVerified: true,
+                enabled: true
+            })
+        });
+        
+        if (createResponse.status === 409) {
+            console.log(`  ℹ User ${username} already exists - updating password`);
+        } else if (createResponse.status !== 201) {
+            console.log(`  ⚠ Unexpected response for ${username} (HTTP ${createResponse.status})`);
+        }
+        
+        // Get user ID
+        const userListResponse = await httpRequest(
+            `${KEYCLOAK_URL}/admin/realms/${REALM}/users?username=${username}&exact=true`,
+            {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${adminToken}` }
+            }
+        );
+        
+        const users = userListResponse.data;
+        if (!users || users.length === 0) {
+            console.log(`  ⚠ Could not find user ${username}`);
+            return;
+        }
+        
+        const userId = users[0].id;
+        
+        // Get all roles
+        const rolesResponse = await httpRequest(
+            `${KEYCLOAK_URL}/admin/realms/${REALM}/roles`,
+            {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${adminToken}` }
+            }
+        );
+        
+        const roles = rolesResponse.data;
+        const etAdminRole = roles.find(r => r.name === 'et-admin');
+        const etUserRole = roles.find(r => r.name === 'et-user');
+        
+        // Assign et-admin role
+        if (etAdminRole) {
+            await httpRequest(
+                `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}/role-mappings/realm`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify([{
+                        id: etAdminRole.id,
+                        name: 'et-admin'
+                    }])
+                }
+            );
+        }
+        
+        // Assign et-user role
+        if (etUserRole) {
+            await httpRequest(
+                `${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}/role-mappings/realm`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify([{
+                        id: etUserRole.id,
+                        name: 'et-user'
+                    }])
+                }
+            );
+        }
+        
+        // Set password
+        await httpRequest(`${KEYCLOAK_URL}/admin/realms/${REALM}/users/${userId}/reset-password`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${adminToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                type: 'password',
+                value: password,
+                temporary: false
+            })
+        });
+        
+        console.log(`  ✓ User ${username} created in Keycloak with et-admin role`);
+        
+        // Create user in database via backend endpoint
+        try {
+            const syncResponse = await httpRequest('http://localhost:8080/api/auth/users/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    externalId: userId,
+                    username: username,
+                    fullName: `${firstName} ${lastName}`,
+                    email: email
+                })
+            });
+            
+            if (syncResponse.status === 200) {
+                console.log(`  ✓ User ${username} created in database\n`);
+            } else {
+                console.log(`  ⚠ Could not create ${username} in database (HTTP ${syncResponse.status})`);
+                if (syncResponse.raw) {
+                    console.log(`     Response: ${syncResponse.raw.substring(0, 200)}`);
+                }
+            }
+        } catch (error) {
+            console.log(`  ✗ Error syncing ${username}:`, error.message);
+        }
+        
+    } catch (error) {
+        console.log(`  ✗ Error creating ${username}:`, error.message);
+    }
+}
+
 // Create Keycloak user and sync to database
 async function createUser(adminToken, username, firstName, lastName, email, password) {
     const KEYCLOAK_URL = 'http://localhost:8081';
@@ -352,6 +500,9 @@ async function main() {
                 const adminToken = tokenResponse.data.access_token;
                 console.log('✓ Got admin token\n');
                 
+                // Create admin user first (with et-admin role)
+                await createAdminUser(adminToken);
+                
                 // Create test users
                 await createUser(adminToken, 'testuser', 'Test', 'User', 'test@example.com', 'password123');
                 await createUser(adminToken, 'alice', 'Alice', 'Mueller', 'alice@example.com', 'password123');
@@ -434,6 +585,10 @@ async function main() {
         console.log('  - Frontend:   http://localhost:4200');
         console.log('  - Keycloak:   http://localhost:8081');
         console.log('  - PostgreSQL: localhost:5432');
+        console.log('');
+        console.log('Admin Account:');
+        console.log('  - Username: admin');
+        console.log('  - Password: admin');
         console.log('');
         console.log('Test Users (Password: password123):');
         console.log('  - testuser  (Test User)');

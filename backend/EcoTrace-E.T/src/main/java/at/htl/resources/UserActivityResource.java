@@ -21,7 +21,7 @@ import java.util.List;
 @Path("/api/users/me/activities")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed({"ROLE_USER", "et-user"})
+@RolesAllowed({"et-user"})
 public class UserActivityResource {
 
     @Inject

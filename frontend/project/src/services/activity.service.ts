@@ -30,4 +30,12 @@ export class ActivityService {
   deleteActivity(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  importExcelFile(formData: FormData): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/import`, formData);
+  }
+
+  exportActivities(): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/export`, { responseType: 'blob' });
+  }
 }

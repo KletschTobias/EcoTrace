@@ -9,6 +9,8 @@ import org.jboss.logging.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,6 +75,19 @@ public class ActivityImportExportService {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             workbook.write(outputStream);
             return outputStream.toByteArray();
+        }
+    }
+
+    /**
+     * Import activities from Excel file (file path version)
+     * @param filePath Path to Excel file
+     * @param overwrite If true, overwrites existing activities with same name
+     * @return ImportResult with statistics
+     */
+    @Transactional
+    public ImportResult importActivities(String filePath, boolean overwrite) throws Exception {
+        try (FileInputStream inputStream = new FileInputStream(new File(filePath))) {
+            return importActivities(inputStream, overwrite);
         }
     }
 

@@ -79,7 +79,7 @@ public class AuthResource {
      */
     @GET
     @Path("/me")
-    @RolesAllowed({"ROLE_USER", "et-user"})
+    @RolesAllowed({"et-user"})
     public UserDto getCurrentUser() {
         return authService.getCurrentUser(jwt);
     }
@@ -89,7 +89,7 @@ public class AuthResource {
      */
     @PATCH
     @Path("/me/avatar")
-    @RolesAllowed({"ROLE_USER", "et-user"})
+    @RolesAllowed({"et-user"})
     public UserDto updateMyAvatar(Map<String, String> body) {
         String avatarColor = body.get("avatarColor");
         if (avatarColor == null || avatarColor.trim().isEmpty()) {
