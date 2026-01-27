@@ -233,16 +233,20 @@ public class LeagueService {
 
     @Transactional
     public void updateMemberStats(LeagueMember member) {
-        League league = member.league;
-        User user = member.user;
+        // Reload member from database to ensure it's managed
+        LeagueMember managedMember = LeagueMember.findById(member.id);
+        if (managedMember == null) {
+            return;
+        }
+        
+        League league = managedMember.league;
+        User user = managedMember.user;
 
-        // Calculate totals for activities within league date range
-        LocalDate start = league.startDate;
-        LocalDate end = league.endDate != null ? league.endDate : LocalDate.now();
-
+        // Calculate totals for ALL user activities (not restricted by date)
+        // This makes more sense for tracking overall consumption/activity
         List<UserActivity> activities = UserActivity.list(
-                "user.id = ?1 and date >= ?2 and date <= ?3", 
-                user.id, start, end);
+                "user.id = ?1", 
+                user.id);
 
         double totalCo2 = 0.0;
         double totalWater = 0.0;
@@ -254,15 +258,9 @@ public class LeagueService {
             totalElectricity += activity.electricityImpact != null ? activity.electricityImpact : 0.0;
         }
 
-        member.totalCo2 = totalCo2;
-        member.totalWater = totalWater;
-        member.totalElectricity = totalElectricity;
-        
-        // Calculate score: 5 points per activity entry
-        member.activityCount = activities.size();
-        member.score = (double) (activities.size() * 5);
-        
-        member.lastActivity = LocalDateTime.now();
+        // Update using explicit query to ensure database update
+        managedMember.update("totalCo2 = ?1, totalWater = ?2, totalElectricity = ?3, activityCount = ?4, score = ?5, lastActivity = ?6 where id = ?7",
+                totalCo2, totalWater, totalElectricity, activities.size(), (double)(activities.size() * 5), LocalDateTime.now(), managedMember.id);
     }
 
     @Transactional
