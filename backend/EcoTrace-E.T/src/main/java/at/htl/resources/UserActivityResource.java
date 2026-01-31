@@ -5,7 +5,9 @@ import at.htl.dtos.StatsDto;
 import at.htl.dtos.UserActivityDto;
 import at.htl.services.AuthService;
 import at.htl.entities.User;
+import at.htl.entities.LeagueMember;
 import at.htl.services.LeaderboardService;
+import at.htl.services.LeagueService;
 import at.htl.services.UserActivityService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -29,6 +31,9 @@ public class UserActivityResource {
 
     @Inject
     LeaderboardService leaderboardService;
+
+    @Inject
+    LeagueService leagueService;
 
     @Inject
     AuthService authService;
@@ -84,6 +89,13 @@ public class UserActivityResource {
         User user = User.findById(userId);
         if (user != null) {
             leaderboardService.updateLeaderboardForUser(user, LocalDate.now());
+            
+            // Update league stats for all leagues user is in
+            List<LeagueMember> memberships = LeagueMember.list("user.id = ?1 and status = ?2", 
+                    userId, LeagueMember.MemberStatus.ACTIVE);
+            for (LeagueMember member : memberships) {
+                leagueService.updateMemberStats(member);
+            }
         }
 
         return Response.status(Response.Status.CREATED).entity(created).build();

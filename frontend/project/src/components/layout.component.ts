@@ -40,11 +40,17 @@ import { Subscription } from 'rxjs';
               👥 Friends
             </a>
             <a 
+              routerLink="/leagues" 
+              routerLinkActive="active"
+              class="nav-link">
+              🏆 Leagues
+            </a>
+            <a 
               *ngIf="!isGuest"
               routerLink="/achievements" 
               routerLinkActive="active"
               class="nav-link">
-              🏆 Achievements
+              🎖️ Achievements
             </a>
             <a 
               *ngIf="!isGuest"
@@ -376,7 +382,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   getProfileImageUrl(url: string): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `http://localhost:8080${url}`;
+    return `http://localhost:8081${url}`;
   }
 
   navigateTo(path: string): void {

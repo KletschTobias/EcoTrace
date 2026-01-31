@@ -7,7 +7,7 @@ import { Achievement } from '../models/models';
   providedIn: 'root'
 })
 export class AchievementService {
-  private apiUrl = 'http://localhost:8080/api';
+  private apiUrl = 'http://localhost:8081/api';
 
   constructor(private http: HttpClient) {}
 

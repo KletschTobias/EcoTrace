@@ -8,8 +8,10 @@ import jakarta.ws.rs.ext.Provider;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 
-@Provider
-@PreMatching
+// DISABLED: Using Quarkus built-in CORS configuration instead (see application.properties)
+// This filter was causing duplicate Access-Control-Allow-Origin headers
+//@Provider
+//@PreMatching
 public class CorsFilter implements ContainerResponseFilter {
 
     @Override

@@ -16,8 +16,8 @@ export interface UpdateProfileRequest {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8080/api/users';
-  private uploadUrl = 'http://localhost:8080/api/upload';
+  private apiUrl = 'http://localhost:8081/api/users';
+  private uploadUrl = 'http://localhost:8081/api/upload';
 
   constructor(private http: HttpClient) {}
 

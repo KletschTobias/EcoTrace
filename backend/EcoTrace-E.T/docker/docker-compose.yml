@@ -32,7 +32,7 @@ services:
       KC_HOSTNAME: localhost
       KC_IMPORT : /opt/keycloak/data/import/eco-tracer-realm.json
     ports:
-      - "8081:8080"
+      - "8082:8080"
     depends_on:
       postgres:
         condition: service_healthy

@@ -4,10 +4,12 @@ import { HeroComponent } from './components/hero.component';
 import { LayoutComponent } from './components/layout.component';
 import { DashboardComponent } from './pages/dashboard.component';
 import { ActivitiesComponent } from './pages/activities.component';
-import { FriendsComponent } from './pages/friends.component';
+import { FriendsNewComponent } from './pages/friends-new.component';
 import { ProfileComponent } from './pages/profile.component';
 import { FriendDetailComponent } from './pages/friend-detail.component';
 import { AchievementsComponent } from './pages/achievements.component';
+import { LeaguesComponent } from './pages/leagues.component';
+import { LeagueDetailComponent } from './pages/league-detail.component';
 
 export const routes: Routes = [
   {
@@ -48,7 +50,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        component: FriendsComponent
+        component: FriendsNewComponent
       }
     ]
   },
@@ -82,6 +84,28 @@ export const routes: Routes = [
       {
         path: '',
         component: FriendDetailComponent
+      }
+    ]
+  },
+  {
+    path: 'leagues',
+    component: LayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        component: LeaguesComponent
+      }
+    ]
+  },
+  {
+    path: 'league/:id',
+    component: LayoutComponent,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        component: LeagueDetailComponent
       }
     ]
   },
