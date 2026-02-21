@@ -72,6 +72,10 @@ public class UserActivityService {
         userActivity.isRecurring = request.isRecurring != null ? request.isRecurring : false;
         userActivity.timesPerWeek = request.timesPerWeek;
         userActivity.weeksPerYear = request.weeksPerYear != null ? request.weeksPerYear : 52;
+        // Track last generated date so the scheduler knows where to start from
+        if (Boolean.TRUE.equals(userActivity.isRecurring)) {
+            userActivity.lastGeneratedDate = request.date;
+        }
         
         userActivity.persist();
 

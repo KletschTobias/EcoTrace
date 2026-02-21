@@ -206,13 +206,13 @@ import { Subscription } from 'rxjs';
               <h4>Estimated Impact{{ isRecurring ? ' (per year)' : '' }}:</h4>
               <div class="impacts">
                 <span *ngIf="selectedActivity.co2PerUnit > 0" class="impact co2">
-                  {{ (selectedActivity.co2PerUnit * quantity * (isRecurring ? timesPerWeek * weeksPerYear : 1)).toFixed(2) }} kg CO₂
+                  {{ (selectedActivity.co2PerUnit * quantity * (isRecurring ? timesPerWeek * weeksPerYear : 1)).toFixed(1) }} kg CO₂
                 </span>
                 <span *ngIf="selectedActivity.waterPerUnit > 0" class="impact water">
                   {{ (selectedActivity.waterPerUnit * quantity * (isRecurring ? timesPerWeek * weeksPerYear : 1)).toFixed(0) }} L Water
                 </span>
                 <span *ngIf="selectedActivity.electricityPerUnit > 0" class="impact electricity">
-                  {{ (selectedActivity.electricityPerUnit * quantity * (isRecurring ? timesPerWeek * weeksPerYear : 1)).toFixed(2) }} kWh
+                  {{ (selectedActivity.electricityPerUnit * quantity * (isRecurring ? timesPerWeek * weeksPerYear : 1)).toFixed(1) }} kWh
                 </span>
               </div>
             </div>
@@ -278,8 +278,8 @@ import { Subscription } from 'rxjs';
         <!-- Logged-in User Activities -->
         <div *ngIf="!isGuest" class="activities-list">
           <h2>Your Activities</h2>
-          <div *ngIf="userActivities.length > 0" class="activity-cards">
-            <div *ngFor="let activity of userActivities" class="activity-card" [class.recurring-card]="activity.isRecurring">
+          <div *ngIf="visibleUserActivities.length > 0" class="activity-cards">
+            <div *ngFor="let activity of visibleUserActivities" class="activity-card" [class.recurring-card]="activity.isRecurring">
               <div class="activity-main">
                 <div>
                   <h3>
@@ -306,7 +306,7 @@ import { Subscription } from 'rxjs';
               </div>
             </div>
           </div>
-          <p *ngIf="userActivities.length === 0" class="no-data">No activities logged yet. Click "Log Activity" to get started!</p>
+          <p *ngIf="visibleUserActivities.length === 0" class="no-data">No activities logged yet. Click "Log Activity" to get started!</p>
         </div>
         
         <!-- Guest: Blurred sample with overlay -->
@@ -339,153 +339,34 @@ import { Subscription } from 'rxjs';
       padding: 2rem;
     }
 
-    /* Guest Info Banner */
-    .guest-info-banner {
-      background: linear-gradient(135deg, #fef3c7, #fde68a);
-      border: 1px solid #f59e0b;
-      border-radius: 0.75rem;
-      padding: 0.75rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .guest-info-banner .info-icon {
-      font-size: 1.25rem;
-    }
-
-    .guest-info-banner span {
-      color: #92400e;
-      font-weight: 500;
-    }
-
-    .guest-info-banner .btn-sign-up {
-      margin-left: auto;
-      padding: 0.5rem 1rem;
-      background: #f59e0b;
-      color: white;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .guest-info-banner .btn-sign-up:hover {
-      background: #d97706;
-    }
-
-    .guest-note {
-      color: #6b7280;
-      font-size: 0.875rem;
-      margin-top: 0.75rem;
-      font-style: italic;
-    }
-
-    /* Guest Preview List */
-    .guest-preview-list {
-      background: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      margin-bottom: 1.5rem;
-      border: 2px solid #10B981;
-    }
-
-    .guest-preview-list h2 {
-      color: #10B981;
-      margin-bottom: 0.5rem;
-    }
-
-    .preview-note {
-      color: #6b7280;
-      font-size: 0.875rem;
-      margin-bottom: 1rem;
-      font-style: italic;
-    }
-
-    /* Wrapper for positioning overlays */
-    .activities-list-wrapper {
-      position: relative;
-    }
-
-    /* Guest Mode Styles */
-    .blurred {
-      filter: blur(5px);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    /* Locked Overlay */
-    .locked-overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 1rem 2rem;
-      border-radius: 2rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .locked-overlay:hover {
-      transform: translate(-50%, -50%) scale(1.05);
-      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
-    }
-
-    .locked-overlay .lock-text {
-      font-weight: 600;
-      color: #374151;
-      font-size: 1rem;
-    }
-
-    .sample-activities {
-      opacity: 0.7;
-    }
-
+    /* Loading */
     .loading-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 400px;
-      gap: 1rem;
+      gap: 1.25rem;
     }
 
     .spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid #e5e7eb;
+      width: 44px;
+      height: 44px;
+      border: 3px solid #e5e7eb;
       border-top-color: #10B981;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .loading-container p {
-      color: #6b7280;
-      font-size: 1rem;
-    }
+    .loading-container p { color: #6b7280; font-size: 0.95rem; }
 
-    .activities-content {
-      animation: fadeIn 0.3s ease;
-    }
+    /* Toast */
+    .toast { padding: 0.85rem 1.5rem; border-radius: 0.75rem; margin-bottom: 1rem; font-weight: 600; font-size: 0.9rem; }
+    .success-toast { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
+    /* Header */
     .activities-header {
       display: flex;
       justify-content: space-between;
@@ -502,6 +383,9 @@ import { Subscription } from 'rxjs';
       margin-bottom: 0.5rem;
     }
 
+    .activities-header p { color: #6b7280; font-size: 0.9rem; }
+
+    /* Buttons */
     .btn-primary {
       padding: 0.75rem 1.5rem;
       background: linear-gradient(135deg, #10B981, #06B6D4);
@@ -509,234 +393,313 @@ import { Subscription } from 'rxjs';
       border: none;
       border-radius: 0.5rem;
       font-weight: 600;
+      font-size: 0.95rem;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: all 0.3s;
       white-space: nowrap;
     }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
 
     .btn-admin {
       padding: 0.75rem 1.5rem;
-      background: linear-gradient(135deg, #8B5CF6, #EC4899);
+      background: #f3f4f6;
+      color: #374151;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    .btn-admin:hover { background: #e5e7eb; }
+
+    /* Admin menu */
+    .admin-menu {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+    }
+    .admin-menu-content {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      min-width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    .admin-menu-content h3 { color: #111827; margin-bottom: 0.5rem; font-size: 1.2rem; }
+    .menu-btn {
+      padding: 0.75rem 1rem;
+      background: #f9fafb;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      color: #374151;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+    .menu-btn:hover { background: #f0fdf4; border-color: #10B981; color: #10B981; }
+    .close-btn { background: #fff5f5; border-color: #fca5a5; color: #ef4444; }
+    .close-btn:hover { background: #fee2e2; }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 480px;
+      width: 90%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    .modal-content h2 { color: #111827; margin-bottom: 0.5rem; font-size: 1.35rem; }
+    .modal-content p  { color: #6b7280; margin-bottom: 1.25rem; font-size: 0.9rem; }
+
+    .import-options, .export-options { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+
+    .option-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 1.25rem 1rem;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      border: 2px solid #e5e7eb;
+      background: #f9fafb;
+      color: #374151;
+      transition: all 0.2s;
+    }
+    .option-btn:hover { background: #f0fdf4; border-color: #10B981; }
+    .option-btn .icon { font-size: 1.75rem; }
+    .option-btn .label { font-weight: 700; font-size: 0.95rem; color: #10B981; }
+    .option-btn .desc  { font-size: 0.75rem; color: #6b7280; text-align: center; }
+    .option-btn.replace:hover, .option-btn.xlsx:hover { background: #eff6ff; border-color: #06B6D4; }
+    .option-btn.replace .label, .option-btn.xlsx .label { color: #0891b2; }
+
+    .btn-cancel {
+      width: 100%;
+      padding: 0.75rem;
+      background: #f3f4f6;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      color: #374151;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-cancel:hover { background: #fee2e2; border-color: #fca5a5; color: #ef4444; }
+
+    /* Guest banner */
+    .guest-info-banner {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: 0.75rem;
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .guest-info-banner .info-icon { font-size: 1.2rem; }
+    .guest-info-banner span { color: #92400e; font-weight: 500; font-size: 0.9rem; }
+    .guest-info-banner .btn-sign-up {
+      margin-left: auto;
+      padding: 0.45rem 1rem;
+      background: linear-gradient(135deg, #10B981, #06B6D4);
       color: white;
       border: none;
       border-radius: 0.5rem;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.2s;
-      white-space: nowrap;
+      transition: all 0.2s;
+      font-size: 0.85rem;
     }
+    .guest-info-banner .btn-sign-up:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); }
+    .guest-note { color: #6b7280; font-size: 0.85rem; margin-top: 0.75rem; font-style: italic; }
 
-    .btn-admin:hover {
-      transform: translateY(-2px);
-    }
-
+    /* Activity Form */
     .activity-form {
       background: white;
-      padding: 2rem;
       border-radius: 1rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
       margin-bottom: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-
     .activity-form h2 {
-      margin-bottom: 1.5rem;
+      font-size: 1.3rem;
       color: #111827;
-    }
-
-    .form-group {
       margin-bottom: 1.5rem;
-      position: relative;
     }
 
+    .form-group { margin-bottom: 1.25rem; position: relative; }
     .form-group label {
       display: block;
       margin-bottom: 0.5rem;
       font-weight: 600;
       color: #374151;
+      font-size: 0.9rem;
     }
+    .form-group small { font-size: 0.78rem; color: #6b7280; margin-top: 0.35rem; display: block; }
 
     .form-control {
       width: 100%;
       padding: 0.75rem;
+      background: white;
       border: 2px solid #e5e7eb;
       border-radius: 0.5rem;
-      font-size: 1rem;
+      font-size: 0.95rem;
+      color: #111827;
       transition: border-color 0.2s;
+      font-family: inherit;
     }
+    .form-control:focus { outline: none; border-color: #10B981; }
+    .form-control::placeholder { color: #9ca3af; }
+    .form-control:disabled { background: #f9fafb; cursor: not-allowed; color: #6b7280; }
 
-    .form-control:focus {
-      outline: none;
-      border-color: #10B981;
-    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
+    /* Dropdown */
     .activities-dropdown {
       position: absolute;
       top: 100%;
       left: 0;
       right: 0;
       background: white;
-      border: 2px solid #10B981;
+      border: 2px solid #e5e7eb;
       border-top: none;
-      border-radius: 0 0 0.5rem 0.5rem;
-      max-height: 300px;
+      border-radius: 0 0 0.75rem 0.75rem;
+      max-height: 280px;
       overflow-y: auto;
-      z-index: 10;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 20;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     }
-
     .activity-option {
-      padding: 1rem;
+      padding: 0.85rem 1rem;
       cursor: pointer;
       border-bottom: 1px solid #f3f4f6;
-      transition: background 0.2s;
+      transition: background 0.15s;
     }
-
-    .activity-option:hover {
-      background: #f9fafb;
-    }
-
-    .activity-option strong {
-      color: #111827;
-      margin-right: 0.5rem;
-    }
+    .activity-option:hover { background: #f0fdf4; }
+    .activity-option:last-child { border-bottom: none; }
+    .activity-option strong { color: #111827; margin-right: 0.5rem; font-size: 0.95rem; }
+    .activity-option small  { color: #6b7280; font-size: 0.8rem; display: block; margin-top: 0.2rem; }
 
     .category-badge {
-      background: #dbeafe;
-      color: #1e40af;
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.25rem;
-      font-size: 0.75rem;
+      background: #e0f2fe;
+      color: #0891b2;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.3rem;
+      font-size: 0.72rem;
+      font-weight: 600;
       text-transform: capitalize;
     }
 
     .selected-activity {
       background: #f0fdf4;
-      padding: 1.5rem;
-      border-radius: 0.5rem;
+      border: 2px solid #bbf7d0;
+      padding: 1.25rem;
+      border-radius: 0.75rem;
       margin-top: 1rem;
     }
-
-    .selected-activity h3 {
-      color: #065f46;
-      margin-bottom: 0.5rem;
-    }
+    .selected-activity h3 { color: #065f46; margin-bottom: 0.4rem; font-size: 1rem; font-weight: 600; }
+    .selected-activity p  { color: #6b7280; font-size: 0.875rem; }
 
     .impact-preview {
-      background: white;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
       padding: 1rem;
       border-radius: 0.5rem;
       margin: 1rem 0;
     }
+    .impact-preview h4 { margin-bottom: 0.7rem; color: #374151; font-size: 0.875rem; }
 
-    .impact-preview h4 {
-      margin-bottom: 0.75rem;
-      color: #374151;
-    }
+    .impacts { display: flex; gap: 0.65rem; flex-wrap: wrap; }
 
-    .impacts {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
+    .activity-impacts { display: flex; gap: 0.65rem; flex-wrap: wrap; margin-top: 0.5rem; }
 
     .impact {
-      padding: 0.5rem 1rem;
+      padding: 0.3rem 0.8rem;
       border-radius: 1rem;
       font-weight: 600;
-      font-size: 0.875rem;
+      font-size: 0.8rem;
     }
+    .impact.co2         { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+    .impact.water       { background: #e0f2fe; color: #0891b2; border: 1px solid #7dd3fc; }
+    .impact.electricity { background: #fef9c3; color: #ca8a04; border: 1px solid #fde047; }
 
-    .impact.co2 {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    .impact.water {
-      background: #dbeafe;
-      color: #1e40af;
-    }
-
-    .impact.electricity {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    /* Recurring Activity Styles */
+    /* Recurring */
     .recurring-section {
-      background: #f0f9ff;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
       padding: 1rem;
       border-radius: 0.5rem;
       margin: 1rem 0;
-      border: 1px solid #bfdbfe;
     }
-
     .toggle-label {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       cursor: pointer;
       font-weight: 600;
-      color: #1e40af;
-      margin-bottom: 1rem;
+      color: #1d4ed8;
+      margin-bottom: 0;
     }
-
-    .toggle-checkbox {
-      width: 1.25rem;
-      height: 1.25rem;
-      cursor: pointer;
-      accent-color: #06B6D4;
-    }
-
-    .toggle-text {
-      user-select: none;
-    }
+    .toggle-checkbox { width: 1.15rem; height: 1.15rem; cursor: pointer; accent-color: #06B6D4; }
+    .toggle-text { user-select: none; font-size: 0.9rem; }
 
     .recurring-options {
       background: white;
       padding: 1rem;
       border-radius: 0.5rem;
       margin-top: 1rem;
-      border-left: 4px solid #06B6D4;
+      border-left: 3px solid #06B6D4;
     }
-
     .recurring-info {
       margin-top: 1rem;
-      padding: 0.75rem;
+      padding: 0.7rem 1rem;
       background: #f0fdf4;
-      border-radius: 0.25rem;
+      border-radius: 0.4rem;
       font-size: 0.875rem;
       color: #15803d;
-      border-left: 3px solid #22c55e;
+      border-left: 3px solid #10B981;
     }
 
-    .recurring-card {
-      border-left: 4px solid #06B6D4;
-    }
-
+    .recurring-card { border-left: 3px solid #06B6D4 !important; }
     .recurring-badge {
       display: inline-block;
-      background: #06B6D4;
-      color: white;
-      padding: 0.25rem 0.5rem;
-      border-radius: 0.25rem;
-      font-size: 0.75rem;
+      background: #e0f2fe;
+      color: #0891b2;
+      border: 1px solid #7dd3fc;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.3rem;
+      font-size: 0.72rem;
       font-weight: 600;
       margin-left: 0.5rem;
     }
 
     .btn-submit {
       width: 100%;
-      padding: 1rem;
+      padding: 0.9rem;
       background: linear-gradient(135deg, #10B981, #06B6D4);
       color: white;
       border: none;
@@ -744,336 +707,125 @@ import { Subscription } from 'rxjs';
       font-size: 1rem;
       font-weight: 600;
       cursor: pointer;
-      transition: opacity 0.2s;
+      transition: all 0.3s;
     }
+    .btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .btn-submit:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
+    /* Category filter */
     .category-filter {
       display: flex;
-      gap: 0.75rem;
-      margin-bottom: 2rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
+      margin-bottom: 1.5rem;
     }
-
     .category-btn {
-      padding: 0.5rem 1rem;
+      padding: 0.5rem 1.5rem;
       border: 2px solid #e5e7eb;
-      background: white;
       border-radius: 2rem;
+      background: white;
+      color: #374151;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s;
       font-weight: 500;
+      font-size: 0.85rem;
     }
-
-    .category-btn:hover {
-      border-color: #10B981;
-    }
-
+    .category-btn:hover { border-color: #10B981; color: #10B981; }
     .category-btn.active {
       background: linear-gradient(135deg, #10B981, #06B6D4);
       color: white;
       border-color: transparent;
     }
 
-    .activities-list {
+    /* Activities lists */
+    .guest-preview-list {
       background: white;
-      padding: 2rem;
       border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
+    .guest-preview-list h2 { color: #111827; margin-bottom: 0.4rem; font-size: 1.25rem; }
+    .preview-note { color: #6b7280; font-size: 0.85rem; margin-bottom: 1rem; font-style: italic; }
 
-    .activities-list h2 {
-      margin-bottom: 1.5rem;
-      color: #111827;
-    }
+    .activities-list-wrapper { position: relative; }
 
-    .activity-cards {
+    .blurred { filter: blur(5px); pointer-events: none; user-select: none; }
+
+    .locked-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
       display: flex;
-      flex-direction: column;
-      gap: 1rem;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 1rem 2rem;
+      border-radius: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
+    .locked-overlay:hover { transform: translate(-50%, -50%) scale(1.05); box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2); }
+    .locked-overlay .lock-text { font-weight: 600; color: #374151; font-size: 0.95rem; }
+
+    .sample-activities { opacity: 0.6; }
+
+    .activities-list {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .activities-list h2 {
+      font-size: 1.5rem;
+      color: #111827;
+      margin-bottom: 1.25rem;
+    }
+
+    .activity-cards { display: flex; flex-direction: column; gap: 0.75rem; }
 
     .activity-card {
       background: #f9fafb;
-      padding: 1.5rem;
-      border-radius: 0.5rem;
-      transition: transform 0.2s;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.1rem 1.25rem;
+      transition: all 0.2s;
     }
-
-    .activity-card:hover {
-      transform: translateX(4px);
-    }
+    .activity-card:hover { background: #f0fdf4; border-color: #bbf7d0; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1); }
 
     .activity-main {
       display: flex;
       justify-content: space-between;
-      align-items: start;
-      margin-bottom: 1rem;
+      align-items: flex-start;
+      margin-bottom: 0.5rem;
     }
-
-    .activity-main h3 {
-      font-size: 1.125rem;
-      color: #111827;
-      margin-bottom: 0.25rem;
-    }
-
-    .activity-main p {
-      font-size: 0.875rem;
-      color: #6b7280;
-    }
+    .activity-main h3 { font-size: 0.95rem; font-weight: 600; color: #111827; margin-bottom: 0.2rem; }
+    .activity-main p  { font-size: 0.8rem; color: #6b7280; }
 
     .btn-delete {
-      background: none;
-      border: none;
-      font-size: 1.25rem;
+      padding: 0.35rem 0.75rem;
+      background: #fff5f5;
+      border: 1px solid #fca5a5;
+      border-radius: 0.375rem;
+      color: #ef4444;
       cursor: pointer;
-      opacity: 0.5;
-      transition: opacity 0.2s;
-    }
-
-    .btn-delete:hover {
-      opacity: 1;
-    }
-
-    .activity-impacts {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .no-data {
-      text-align: center;
-      color: #6b7280;
-      padding: 3rem;
-      font-style: italic;
-    }
-
-    /* Admin Menu */
-    .admin-menu {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: flex-end;
-      align-items: flex-start;
-      z-index: 1000;
-      padding-top: 4rem;
-      padding-right: 2rem;
-    }
-
-    .admin-menu-content {
-      background: white;
-      border-radius: 0.75rem;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-      padding: 1.5rem;
-      min-width: 220px;
-      animation: slideIn 0.2s ease-out;
-    }
-
-    @keyframes slideIn {
-      from { transform: translateX(10px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
-
-    .admin-menu-content h3 {
-      margin: 0 0 1rem 0;
-      color: #111827;
-      font-size: 1.125rem;
-    }
-
-    .menu-btn {
-      display: block;
-      width: 100%;
-      padding: 0.75rem 1rem;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      text-align: left;
-      margin-bottom: 0.5rem;
       transition: all 0.2s;
-      font-weight: 500;
-    }
-
-    .menu-btn:hover {
-      background: #f3f4f6;
-      border-color: #d1d5db;
-    }
-
-    .menu-btn.close-btn {
-      background: #f3f4f6;
-      margin-top: 1rem;
-    }
-
-    /* Import Dialog */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      padding: 1rem;
-    }
-
-    .modal-content {
-      background: white;
-      border-radius: 1rem;
-      box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
-      padding: 2rem;
-      max-width: 500px;
-      width: 100%;
-      animation: modalIn 0.3s ease-out;
-    }
-
-    /* Toast */
-    .toast {
-      position: fixed;
-      top: 1.25rem;
-      right: 1.25rem;
-      z-index: 3000;
-      padding: 0.9rem 1.2rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      color: #0b2537;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      font-size: 0.8rem;
       font-weight: 600;
+      flex-shrink: 0;
     }
+    .btn-delete:hover { background: #fee2e2; border-color: #ef4444; }
 
-    .success-toast {
-      background: linear-gradient(135deg, #d1fae5, #bbf7d0);
-      border: 1px solid #34d399;
-    }
-
-    @keyframes modalIn {
-      from { transform: scale(0.95); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .modal-content h2 {
-      margin-top: 0;
-      margin-bottom: 0.5rem;
-      color: #111827;
-    }
-
-    .modal-content p {
-      color: #6b7280;
-      margin-bottom: 1.5rem;
-    }
-
-    .import-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .export-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .option-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
-      border: 2px solid #e5e7eb;
-      border-radius: 0.75rem;
-      background: white;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-align: center;
-    }
-
-    .option-btn:hover {
-      border-color: #10B981;
-      background: #f0fdf4;
-    }
-
-    .option-btn.replace:hover {
-      border-color: #8B5CF6;
-      background: #f5f3ff;
-    }
-
-    .option-btn.csv:hover {
-      border-color: #06B6D4;
-      background: #f0f9fc;
-    }
-
-    .option-btn.xlsx:hover {
-      border-color: #10B981;
-      background: #f0fdf4;
-    }
-
-    .option-btn .icon {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .option-btn .label {
-      font-weight: 600;
-      color: #111827;
-      margin-bottom: 0.25rem;
-      display: block;
-    }
-
-    .option-btn .desc {
-      font-size: 0.75rem;
-      color: #6b7280;
-      display: block;
-    }
-
-    .btn-cancel {
-      width: 100%;
-      padding: 0.75rem 1.5rem;
-      background: #e5e7eb;
-      color: #111827;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .btn-cancel:hover {
-      background: #d1d5db;
-    }
+    .no-data { text-align: center; color: #6b7280; padding: 2rem; font-style: italic; }
 
     @media (max-width: 768px) {
-      .activities-container {
-        padding: 1rem;
-      }
-
-      .activities-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-      }
-
-      .import-options {
-        grid-template-columns: 1fr;
-      }
-
-      .form-row {
-        grid-template-columns: 1fr;
-      }
+      .activities-container { padding: 1rem; }
+      .activities-header { flex-direction: column; align-items: flex-start; }
+      .form-row { grid-template-columns: 1fr; }
     }
   `]
 })
@@ -1084,6 +836,11 @@ export class ActivitiesComponent implements OnInit, OnDestroy {
   private userSubscription?: Subscription;
   userActivities: UserActivity[] = [];
   filteredActivities: Activity[] = [];
+
+  // Only show recurring templates and one-off entries — hide auto-generated daily entries
+  get visibleUserActivities(): UserActivity[] {
+    return this.userActivities.filter(a => !a.sourceRecurringId);
+  }
   
   showForm = false;
   showDropdown = false;

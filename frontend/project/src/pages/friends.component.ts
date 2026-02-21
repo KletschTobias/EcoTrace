@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -265,817 +265,246 @@ import { Subscription } from 'rxjs';
   `,
   styles: [`
     .friends-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem;
+      max-width: 1200px; margin: 0 auto; padding: 2rem;
+      animation: fadeUp 0.5s cubic-bezier(0.22,0.61,0.36,1) both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Wrappers for positioning overlays */
-    .add-friend-wrapper,
-    .friends-list-wrapper,
-    .leaderboard-wrapper {
-      position: relative;
-    }
-
-    /* Guest Mode Styles */
-    .blurred {
-      filter: blur(5px);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    /* Locked Overlay - simple text over blur */
-    .locked-overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 1rem 2rem;
-      border-radius: 2rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .locked-overlay:hover {
-      transform: translate(-50%, -50%) scale(1.05);
-      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
-    }
-
-    .locked-overlay .lock-icon {
-      font-size: 1.5rem;
-    }
-
-    .locked-overlay .lock-text {
-      font-weight: 600;
-      color: #374151;
-      font-size: 1rem;
-      white-space: nowrap;
-    }
-
-    .sample-friends, .sample-leaderboard {
-      opacity: 0.7;
-    }
-
-    .friends-header {
-      margin-bottom: 2rem;
-    }
-      margin-bottom: 1rem;
-    }
-
-    .prompt-content h2 {
-      font-size: 1.5rem;
-      color: #111827;
-      margin-bottom: 0.5rem;
-    }
-
-    .prompt-content > p {
-      color: #6b7280;
-      margin-bottom: 1.5rem;
-    }
-
-    .prompt-features {
-      text-align: left;
-      background: #f0fdf4;
-      padding: 1rem 1.5rem;
-      border-radius: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .feature {
-      padding: 0.5rem 0;
-      color: #065f46;
-      font-weight: 500;
-    }
-
-    .prompt-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .prompt-buttons .btn-register {
-      padding: 1rem 2rem;
-      background: linear-gradient(135deg, #10B981, #06B6D4);
-      color: white;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .prompt-buttons .btn-register:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-    }
-
-    .prompt-buttons .btn-login {
-      background: none;
-      border: none;
-      color: #6b7280;
-      cursor: pointer;
-      font-size: 0.875rem;
-    }
-
-    .prompt-buttons .btn-login:hover {
-      color: #10B981;
-    }
-
-    .friends-header {
-      margin-bottom: 2rem;
-    }
-
+    .friends-header { margin-bottom: 2rem; }
     .friends-header h1 {
-      font-size: 2.5rem;
+      font-family: 'Fraunces', Georgia, serif; font-size: 2.25rem; font-weight: 700;
       background: linear-gradient(135deg, #10B981, #06B6D4);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 0.5rem;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 0.3rem; letter-spacing: -0.03em;
+    }
+    .friends-header p { color: rgba(122,173,138,0.65); font-size: 0.9rem; }
+
+    .friends-layout { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; align-items: start; }
+
+    .friends-main { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    /* Cards */
+    .add-friend-wrapper, .friends-list-wrapper { position: relative; }
+
+    .add-friend-card, .friends-list-card {
+      background: rgba(14,35,22,0.75); border: 1px solid rgba(16,185,129,0.15);
+      border-radius: 1.25rem; padding: 1.75rem;
+      backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+    .add-friend-card h2, .friends-list-card h2 {
+      font-family: 'Fraunces',serif; font-size: 1.2rem; color: #d4eedc;
+      margin-bottom: 1.25rem; letter-spacing: -0.02em;
     }
 
-    .friends-layout {
-      display: grid;
-      grid-template-columns: 1fr 350px;
-      gap: 2rem;
-    }
-
-    .friends-main {
-      display: flex;
-      flex-direction: column;
-      gap: 2rem;
-    }
-
-    .add-friend-card, .friends-list-card, .leaderboard-card {
-      background: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .add-friend-card h2, .friends-list-card h2, .leaderboard-card h2 {
-      margin-bottom: 1rem;
-      color: #111827;
-    }
-
-    .add-friend-card form {
-      display: flex;
-      gap: 0.75rem;
-    }
+    .add-friend-card form { display: flex; gap: 0.75rem; align-items: flex-end; }
 
     .form-control {
-      flex: 1;
-      padding: 0.75rem;
-      border: 2px solid #e5e7eb;
-      border-radius: 0.5rem;
-      font-size: 1rem;
+      flex: 1; padding: 0.7rem 1rem;
+      background: rgba(7,20,12,0.8); border: 1px solid rgba(16,185,129,0.2);
+      border-radius: 0.5rem; font-size: 0.95rem; color: #d4eedc;
+      transition: border-color 0.2s; font-family: inherit;
     }
-
-    .form-control:focus {
-      outline: none;
-      border-color: #10B981;
-    }
+    .form-control:focus { outline: none; border-color: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+    .form-control::placeholder { color: rgba(122,173,138,0.4); }
 
     .btn-add {
-      padding: 0.75rem 1.5rem;
+      padding: 0.7rem 1.4rem;
       background: linear-gradient(135deg, #10B981, #06B6D4);
-      color: white;
-      border: none;
-      border-radius: 0.5rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
+      color: #071410; border: none; border-radius: 0.5rem;
+      font-weight: 700; font-size: 0.9rem; cursor: pointer;
+      transition: all 0.25s; white-space: nowrap; font-family: inherit;
     }
+    .btn-add:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+    .btn-add:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .btn-add:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .error-message { color: #f87171; font-size: 0.875rem; margin-top: 0.75rem; }
 
-    .error-message {
-      color: #dc2626;
-      margin-top: 0.5rem;
-      font-size: 0.875rem;
-    }
-
+    /* Friends grid */
     .friends-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1rem;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem; margin-top: 0.5rem;
     }
-
     .friend-card {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem;
-      background: linear-gradient(135deg, #f0fdf4, #e0f2fe);
-      border-radius: 0.75rem;
-      border: 2px solid #10B981;
-      transition: all 0.2s;
-      cursor: pointer;
+      background: rgba(7,20,12,0.7); border: 1px solid rgba(16,185,129,0.12);
+      border-radius: 1rem; padding: 1.25rem;
+      display: flex; flex-direction: column; align-items: center; gap: 0.65rem;
+      cursor: pointer; transition: all 0.25s; text-align: center;
     }
-
     .friend-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-      border-color: #059669;
+      background: rgba(16,185,129,0.09); border-color: rgba(16,185,129,0.3);
+      transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
-
     .friend-avatar {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 1.5rem;
-      font-weight: bold;
-      overflow: hidden;
-      position: relative;
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 700; font-size: 1.3rem;
+      border: 2px solid rgba(16,185,129,0.3); overflow: hidden;
     }
-
-    .friend-avatar .avatar-image,
-    .user-avatar .avatar-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    .friend-info {
-      flex: 1;
-    }
-
-    .friend-info h3 {
-      font-size: 1.125rem;
-      color: #111827;
-      margin-bottom: 0.25rem;
-    }
-
-    .friend-info p {
-      font-size: 0.875rem;
-      color: #6b7280;
-      margin-bottom: 0.5rem;
-    }
-
+    .avatar-image { width: 100%; height: 100%; object-fit: cover; }
+    .friend-info h3 { font-size: 0.9rem; font-weight: 600; color: #d4eedc; margin-bottom: 0.2rem; }
+    .friend-info p  { font-size: 0.78rem; color: rgba(122,173,138,0.55); }
     .friend-stats span {
-      background: white;
-      padding: 0.25rem 0.75rem;
-      border-radius: 1rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #10B981;
+      font-size: 0.78rem; color: #4ade80;
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(16,185,129,0.1); padding: 0.2rem 0.55rem;
+      border-radius: 0.4rem; border: 1px solid rgba(16,185,129,0.2);
     }
+    .sample-friends { opacity: 0.5; }
+
+    .no-data { color: rgba(122,173,138,0.5); font-style: italic; padding: 1.5rem 0; font-size: 0.9rem; }
+
+    /* Pending Requests */
+    .pending-requests {
+      margin-top: 1.25rem; padding-top: 1.25rem;
+      border-top: 1px solid rgba(16,185,129,0.1);
+    }
+    .pending-requests h3 { color: #d4eedc; font-size: 1rem; margin-bottom: 1rem; }
+    .request-card {
+      background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2);
+      border-radius: 0.75rem; padding: 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.75rem; margin-bottom: 0.6rem;
+    }
+    .request-info h4 { font-size: 0.9rem; color: #d4eedc; }
+    .request-info p  { font-size: 0.78rem; color: rgba(122,173,138,0.6); }
+    .request-actions { display: flex; gap: 0.5rem; }
+    .btn-accept {
+      padding: 0.4rem 0.9rem; background: rgba(16,185,129,0.2);
+      border: 1px solid rgba(16,185,129,0.4); border-radius: 0.4rem;
+      color: #4ade80; cursor: pointer; font-weight: 600;
+      font-size: 0.82rem; transition: all 0.2s; font-family: inherit;
+    }
+    .btn-accept:hover { background: rgba(16,185,129,0.35); }
+    .btn-reject {
+      padding: 0.4rem 0.9rem; background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.2); border-radius: 0.4rem;
+      color: #f87171; cursor: pointer; font-weight: 600;
+      font-size: 0.82rem; transition: all 0.2s; font-family: inherit;
+    }
+    .btn-reject:hover { background: rgba(239,68,68,0.2); }
+
+    /* Success message */
+    .success-message { color: #4ade80; font-size: 0.875rem; margin-top: 0.75rem; }
+
+    /* Leaderboard sidebar */
+    .leaderboard-wrapper { position: sticky; top: 90px; }
 
     .leaderboard-card {
-      position: sticky;
-      top: 2rem;
-      max-height: calc(100vh - 4rem);
-      overflow-y: auto;
+      background: rgba(14,35,22,0.75); border: 1px solid rgba(16,185,129,0.15);
+      border-radius: 1.25rem; padding: 1.75rem;
+      backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
-
-    .leaderboard-subtitle {
-      color: #6b7280;
-      font-size: 0.875rem;
-      margin-bottom: 1rem;
+    .leaderboard-card h2 {
+      font-family: 'Fraunces',serif; font-size: 1.2rem; color: #d4eedc;
+      margin-bottom: 0.25rem; letter-spacing: -0.02em;
     }
+    .leaderboard-subtitle { color: rgba(122,173,138,0.6); font-size: 0.82rem; margin-bottom: 1.25rem; }
 
-    .view-toggle {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      background: #f3f4f6;
-      padding: 0.25rem;
-      border-radius: 0.5rem;
-    }
-
+    .view-toggle { display: flex; gap: 0.4rem; margin-bottom: 1rem; }
     .toggle-btn {
-      flex: 1;
-      padding: 0.5rem 1rem;
-      border: none;
-      background: transparent;
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: #6b7280;
+      flex: 1; padding: 0.5rem 0.75rem;
+      background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.15);
+      border-radius: 0.5rem; color: rgba(122,173,138,0.65);
+      cursor: pointer; font-size: 0.82rem; font-weight: 600;
+      transition: all 0.2s; font-family: inherit;
     }
-
     .toggle-btn.active {
-      background: white;
-      color: #111827;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      background: rgba(16,185,129,0.18); color: #4ade80;
+      border-color: rgba(16,185,129,0.4);
     }
+    .toggle-btn:hover:not(.active) { background: rgba(16,185,129,0.1); color: #d4eedc; }
 
-    .toggle-btn:hover:not(.active) {
-      color: #374151;
-    }
-
-    .period-tabs {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-    }
-
+    .period-tabs { display: flex; gap: 0.35rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
     .period-tab {
-      padding: 0.5rem 1rem;
-      border: 2px solid #e5e7eb;
-      background: white;
-      border-radius: 2rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: #6b7280;
+      padding: 0.35rem 0.85rem;
+      background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.12);
+      border-radius: 1rem; color: rgba(122,173,138,0.6);
+      cursor: pointer; font-size: 0.78rem; font-weight: 600;
+      transition: all 0.2s; font-family: inherit;
     }
-
-    .period-tab:hover {
-      border-color: #10B981;
-      color: #10B981;
-    }
-
     .period-tab.active {
-      background: linear-gradient(135deg, #10B981, #06B6D4);
-      border-color: transparent;
-      color: white;
+      background: rgba(16,185,129,0.18); color: #4ade80;
+      border-color: rgba(16,185,129,0.4);
     }
 
-    .reset-timer {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      background: linear-gradient(135deg, #fef3c7, #fde68a);
-      border-radius: 0.5rem;
-      margin-bottom: 1rem;
-      font-size: 0.875rem;
-      color: #92400e;
-    }
+    .leaderboard-list { display: flex; flex-direction: column; gap: 0.5rem; }
 
-    .timer-icon {
-      font-size: 1.25rem;
-    }
-
-    .user-status {
-      padding: 1rem;
-      border-radius: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    .user-status.eligible {
-      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-      border: 2px solid #10B981;
-    }
-
-    .user-status.ineligible {
-      background: linear-gradient(135deg, #fef3c7, #fde68a);
-      border: 2px solid #f59e0b;
-    }
-
-    .status-header {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .status-icon {
-      font-size: 1.25rem;
-    }
-
-    .status-text {
-      font-weight: 600;
-      color: #111827;
-    }
-
-    .tracking-progress {
-      margin-bottom: 0.5rem;
-    }
-
-    .tracking-progress span {
-      font-size: 0.75rem;
-      color: #6b7280;
-    }
-
-    .progress-bar {
-      height: 8px;
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 4px;
-      margin-top: 0.25rem;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(135deg, #10B981, #06B6D4);
-      border-radius: 4px;
-      transition: width 0.3s ease;
-    }
-
-    .eligibility-hint {
-      font-size: 0.75rem;
-      color: #92400e;
-      margin: 0;
-    }
-
-    .disqualification-reason {
-      font-size: 0.75rem;
-      color: #dc2626;
-      margin: 0.5rem 0 0;
-    }
-
-    .leaderboard-count {
-      text-align: center;
-      color: #6b7280;
-      font-size: 0.875rem;
-      margin-bottom: 0.75rem;
-      font-weight: 500;
-    }
-
-    .leaderboard-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .leaderboard-item {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 0.75rem;
-      background: #f9fafb;
-      border-radius: 0.5rem;
+    .leaderboard-entry {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.75rem 1rem; border-radius: 0.75rem;
+      background: rgba(7,20,12,0.6); border: 1px solid rgba(16,185,129,0.08);
       transition: all 0.2s;
-      cursor: pointer;
+    }
+    .leaderboard-entry:hover { background: rgba(16,185,129,0.07); border-color: rgba(16,185,129,0.18); }
+    .leaderboard-entry.is-you {
+      background: rgba(16,185,129,0.12); border-color: rgba(16,185,129,0.35);
+      box-shadow: 0 0 12px rgba(16,185,129,0.15);
     }
 
-    .leaderboard-item:hover {
-      background: #e5e7eb;
-      transform: translateX(4px);
+    .entry-rank {
+      font-family: 'JetBrains Mono', monospace; font-weight: 700;
+      font-size: 0.9rem; color: rgba(122,173,138,0.6); min-width: 24px; text-align: center;
+    }
+    .entry-rank.top-1 { color: #fbbf24; }
+    .entry-rank.top-2 { color: #94a3b8; }
+    .entry-rank.top-3 { color: #cd7c3a; }
+
+    .entry-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 700; font-size: 0.9rem;
+      border: 1px solid rgba(16,185,129,0.2); overflow: hidden; flex-shrink: 0;
+    }
+    .entry-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .entry-name { flex: 1; font-size: 0.875rem; font-weight: 600; color: #d4eedc; }
+    .you-label { font-size: 0.7rem; color: #4ade80; font-weight: 600; }
+
+    .entry-score {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem; color: #4ade80; font-weight: 600;
     }
 
-    .leaderboard-item.current-user {
-      background: linear-gradient(135deg, #d1fae5, #cffafe);
-      border: 2px solid #10B981;
-    }
-
-    .leaderboard-item.current-user:hover {
-      transform: translateX(4px);
-    }
-
-    .leaderboard-item.ineligible {
-      opacity: 0.6;
-      background: #f3f4f6;
-    }
-
-    .leaderboard-item.ineligible .rank-badge {
-      color: #9ca3af;
-    }
-
-    .rank-badge {
-      font-size: 1.5rem;
-      min-width: 40px;
+    .next-reset {
+      margin-top: 1rem; padding: 0.65rem 1rem;
+      background: rgba(6,182,212,0.08); border: 1px solid rgba(6,182,212,0.15);
+      border-radius: 0.5rem; font-size: 0.78rem; color: rgba(122,173,138,0.6);
       text-align: center;
     }
+    .next-reset span { color: #22d3ee; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
 
-    .rank-badge.top3 {
-      font-size: 2rem;
+    /* Guest overlays */
+    .locked-overlay {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%); z-index: 10;
+      display: flex; align-items: center; gap: 0.75rem;
+      background: rgba(10,26,15,0.96); border: 1px solid rgba(16,185,129,0.35);
+      padding: 0.85rem 2rem; border-radius: 2rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.5); cursor: pointer;
+      transition: all 0.3s; backdrop-filter: blur(8px);
+    }
+    .locked-overlay:hover { transform: translate(-50%, -50%) scale(1.04); }
+    .lock-icon { font-size: 1.35rem; }
+    .lock-text { font-weight: 600; color: #4ade80; font-size: 0.95rem; }
+    .blurred { filter: blur(5px); pointer-events: none; user-select: none; }
+
+    .no-leaderboard {
+      text-align: center; color: rgba(122,173,138,0.5);
+      padding: 1.5rem 0; font-size: 0.875rem; font-style: italic;
     }
 
-    .user-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: bold;
-      overflow: hidden;
-      position: relative;
+    @media (max-width: 900px) {
+      .friends-layout { grid-template-columns: 1fr; }
+      .leaderboard-wrapper { position: static; }
     }
-
-    .user-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .user-info strong {
-      color: #111827;
-      font-size: 0.875rem;
-    }
-
-    .user-info small {
-      color: #6b7280;
-      font-size: 0.75rem;
-    }
-
-    .status-badge {
-      display: inline-block;
-      padding: 0.125rem 0.5rem;
-      border-radius: 1rem;
-      font-size: 0.625rem;
-      font-weight: 600;
-      margin-top: 0.25rem;
-    }
-
-    .ineligible-badge {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    .invalid-badge {
-      background: #fee2e2;
-      color: #dc2626;
-    }
-
-    .eco-badge {
-      position: absolute;
-      font-size: 0.625rem;
-      bottom: -2px;
-      right: -2px;
-    }
-
-    .eco-badge.solar {
-      right: -2px;
-    }
-
-    .eco-badge.pump {
-      right: 10px;
-    }
-
-    .no-data {
-      text-align: center;
-      color: #6b7280;
-      padding: 2rem;
-      font-style: italic;
-    }
-
-    @media (max-width: 1024px) {
-      .friends-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .leaderboard-card {
-        position: static;
-        max-height: none;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .friends-container {
-        padding: 1rem;
-      }
-
-      .friends-header h1 {
-        font-size: 1.75rem;
-      }
-
-      .add-friend-card form {
-        flex-direction: column;
-      }
-
-      .friends-grid {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 640px) {
+      .friends-container { padding: 1rem; }
+      .friends-grid { grid-template-columns: 1fr 1fr; }
     }
   `]
-})
-export class FriendsComponent implements OnInit, OnDestroy {
-  currentUser: User | null = null;
-  friends: User[] = [];
-  leaderboard: User[] = [];
-  enhancedLeaderboard: LeaderboardEntry[] = [];
-  globalLeaderboard: LeaderboardEntry[] = [];
-  friendEmail = '';
-  isAdding = false;
-  errorMessage = '';
-
-  // Guest mode
-  isGuest = false;
-  showPrompt = false;
-  private guestSubscription?: Subscription;
-
-  // Leaderboard period settings
-  periods: PeriodType[] = ['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'];
-  selectedPeriod: PeriodType = 'WEEKLY';
-  leaderboardView: 'friends' | 'global' = 'friends';
-  resetTime: ResetTime | null = null;
-  userEntry: LeaderboardEntry | null = null;
-  private resetTimerInterval: any = null;
-
-  constructor(
-    private authService: AuthService,
-    private guestService: GuestService,
-    private friendshipService: FriendshipService,
-    private leaderboardService: LeaderboardService,
-    private router: Router
-  ) {}
-
-  ngOnInit(): void {
-    this.isGuest = this.guestService.isGuest();
-    this.currentUser = this.authService.getCurrentUser();
-
-    // Subscribe to guest mode changes (for when user logs in)
-    this.guestSubscription = this.guestService.isGuestMode$.subscribe(isGuest => {
-      this.isGuest = isGuest;
-      this.currentUser = this.authService.getCurrentUser();
-      if (this.currentUser && !this.isGuest) {
-        this.loadFriends();
-        this.loadLeaderboard();
-        this.loadEnhancedLeaderboard();
-        this.startResetTimer();
-      }
-    });
-
-    if (this.currentUser && !this.isGuest) {
-      this.loadFriends();
-      this.loadLeaderboard();
-      this.loadEnhancedLeaderboard();
-      this.startResetTimer();
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.guestSubscription?.unsubscribe();
-    if (this.resetTimerInterval) {
-      clearInterval(this.resetTimerInterval);
-    }
-  }
-
-  handleAddFriend(): void {
-    if (this.isGuest) {
-      this.showPrompt = true;
-      return;
-    }
-    this.addFriend();
-  }
-
-  showRegisterPrompt(): void {
-    this.showPrompt = true;
-  }
-
-  goToRegister(): void {
-    this.showPrompt = false;
-    window.dispatchEvent(new CustomEvent('openAuthModal', { detail: { mode: 'register' } }));
-  }
-
-  goToLogin(): void {
-    this.showPrompt = false;
-    window.dispatchEvent(new CustomEvent('openAuthModal', { detail: { mode: 'login' } }));
-  }
-
-  loadFriends(): void {
-    if (!this.currentUser) return;
-
-    this.friendshipService.getUserFriends().subscribe({
-      next: (friends: User[]) => {
-        this.friends = friends;
-      },
-      error: (error: any) => console.error('Error loading friends:', error)
-    });
-  }
-
-  loadLeaderboard(): void {
-    if (!this.currentUser) return;
-
-    this.friendshipService.getLeaderboard().subscribe({
-      next: (users: User[]) => {
-        this.leaderboard = users;
-      },
-      error: (error: any) => console.error('Error loading leaderboard:', error)
-    });
-  }
-
-  addFriend(): void {
-    if (!this.currentUser || !this.friendEmail) return;
-
-    this.isAdding = true;
-    this.errorMessage = '';
-
-    if (this.friendEmail === this.currentUser.email) {
-      this.errorMessage = 'You cannot add yourself as a friend!';
-      this.isAdding = false;
-      return;
-    }
-
-    this.friendshipService.addFriend(this.friendEmail).subscribe({
-      next: () => {
-        this.isAdding = false;
-        this.friendEmail = '';
-        this.loadFriends();
-        this.loadLeaderboard();
-      },
-      error: (error: any) => {
-        this.isAdding = false;
-        this.errorMessage = error.error?.message || 'Error adding friend';
-        console.error('Error adding friend:', error);
-      }
-    });
-  }
-
-    viewFriendDetail(friendId: number): void {
-        this.router.navigate(['/friend', friendId]);
-    }
-
-    viewUserProfile(userId: number): void {
-        if (userId === this.currentUser?.id) {
-            this.router.navigate(['/profile']);
-        } else {
-            this.router.navigate(['/friend', userId]);
-        }
-    }
-
-    getProfileImageUrl(url: string | undefined): string {
-        if (!url) return '';
-        if (url.startsWith('http')) return url;
-        return `http://localhost:8081${url}`;
-    }
-
-    // Enhanced Leaderboard Methods
-    selectPeriod(period: PeriodType): void {
-        this.selectedPeriod = period;
-        this.loadEnhancedLeaderboard();
-        this.loadResetTime();
-    }
-
-    loadEnhancedLeaderboard(): void {
-        if (!this.currentUser) return;
-
-        // Load friends leaderboard
-        this.leaderboardService.getLeaderboardForUserAndFriends(this.currentUser.id, this.selectedPeriod).subscribe({
-            next: (entries) => {
-                this.enhancedLeaderboard = entries;
-            },
-            error: (error) => {
-                console.error('Error loading enhanced leaderboard:', error);
-                this.enhancedLeaderboard = [];
-            }
-        });
-
-        // Load global leaderboard
-        this.leaderboardService.getLeaderboard(this.selectedPeriod).subscribe({
-            next: (entries) => {
-                this.globalLeaderboard = entries;
-            },
-            error: (error) => {
-                console.error('Error loading global leaderboard:', error);
-                this.globalLeaderboard = [];
-            }
-        });
-
-        this.leaderboardService.getUserEntry(this.currentUser.id, this.selectedPeriod).subscribe({
-            next: (entry) => {
-                this.userEntry = entry;
-            },
-            error: () => {
-                this.userEntry = null;
-            }
-        });
-    }
-
-    get currentLeaderboard(): LeaderboardEntry[] {
-        return this.leaderboardView === 'friends' ? this.enhancedLeaderboard : this.globalLeaderboard;
-    }
-
-    switchLeaderboardView(view: 'friends' | 'global'): void {
-        this.leaderboardView = view;
-    }
-
-    loadResetTime(): void {
-        this.leaderboardService.getTimeUntilReset(this.selectedPeriod).subscribe({
-            next: (time) => {
-                this.resetTime = time;
-            },
-            error: (error) => console.error('Error loading reset time:', error)
-        });
-    }
-
-    startResetTimer(): void {
-        this.loadResetTime();
-
-        // Update reset time every second
-        this.resetTimerInterval = setInterval(() => {
-            if (this.resetTime && this.resetTime.millisUntilReset > 0) {
-                this.resetTime.millisUntilReset -= 1000;
-
-                // Recalculate time remaining
-                const seconds = Math.floor(this.resetTime.millisUntilReset / 1000);
-                const minutes = Math.floor(seconds / 60);
-                const hours = Math.floor(minutes / 60);
                 const days = Math.floor(hours / 24);
 
                 this.resetTime.timeRemaining = {

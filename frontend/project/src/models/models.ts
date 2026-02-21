@@ -47,6 +47,8 @@ export interface UserActivity {
   totalCo2Impact?: number;
   totalWaterImpact?: number;
   totalElectricityImpact?: number;
+  // If set, this entry was auto-generated from a recurring activity - hide from list
+  sourceRecurringId?: number;
 }
 
 export interface CreateUserActivityRequest {

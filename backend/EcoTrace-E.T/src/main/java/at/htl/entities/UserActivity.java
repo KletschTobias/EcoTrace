@@ -58,6 +58,14 @@ public class UserActivity extends PanacheEntity {
     @Column(name = "weeks_per_year")
     public Integer weeksPerYear = 52;
 
+    // Tracks up to which date daily entries have been generated for this recurring activity
+    @Column(name = "last_generated_date")
+    public LocalDate lastGeneratedDate;
+
+    // If not null, this entry was auto-generated from the recurring activity with this ID
+    @Column(name = "source_recurring_id")
+    public Long sourceRecurringId;
+
     @PrePersist
     public void prePersist() {
         this.createdDate = LocalDateTime.now();

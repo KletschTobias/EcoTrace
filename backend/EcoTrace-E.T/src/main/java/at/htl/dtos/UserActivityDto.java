@@ -25,6 +25,9 @@ public class UserActivityDto {
     public Double totalWaterImpact;
     public Double totalElectricityImpact;
 
+    // If set, this entry was auto-generated from a recurring activity
+    public Long sourceRecurringId;
+
     public UserActivityDto() {}
 
     public UserActivityDto(UserActivity userActivity) {
@@ -48,6 +51,7 @@ public class UserActivityDto {
         this.totalCo2Impact = userActivity.getTotalCo2Impact();
         this.totalWaterImpact = userActivity.getTotalWaterImpact();
         this.totalElectricityImpact = userActivity.getTotalElectricityImpact();
+        this.sourceRecurringId = userActivity.sourceRecurringId;
     }
 
     public static UserActivityDto from(UserActivity userActivity) {

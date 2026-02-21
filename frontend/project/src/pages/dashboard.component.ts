@@ -20,7 +20,7 @@ Chart.register(...registerables);
   template: `
     <div class="dashboard-container">
       <div class="dashboard-header">
-        <h1>{{ isGuest ? 'Welcome to EcoTrace! 🌱' : ('Welcome back, ' + (user?.fullName || 'Eco Warrior') + '! 🌱') }}</h1>
+        <h1>{{ isGuest ? 'Welcome to EcoTrace! 🌱' : ('Welcome back, ' + (user?.fullName || 'Eco Warrior') + '!') }}</h1>
         <div class="badges" *ngIf="!isGuest && (user?.hasSolarPanels || user?.hasHeatPump)">
           <span *ngIf="user?.hasSolarPanels" class="badge solar">☀️ Solar Panels</span>
           <span *ngIf="user?.hasHeatPump" class="badge heat">🌡️ Heat Pump</span>
@@ -121,7 +121,7 @@ Chart.register(...registerables);
             <div *ngFor="let activity of recentActivities" class="activity-item">
               <div class="activity-info">
                 <h4>{{ activity.activityName }}</h4>
-                <p>{{ activity.quantity }} {{ activity.unit }} • {{ formatDate(activity.date) }}</p>
+                <p>{{ activity.quantity | number:'1.0-1' }} {{ activity.unit }} • {{ formatDate(activity.date) }}</p>
               </div>
               <div class="activity-impacts">
                 <span *ngIf="activity.co2Impact > 0" class="impact co2">
@@ -777,7 +777,7 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
         }).subscribe({
             next: (result) => {
                 this.stats = result.stats;
-                this.recentActivities = result.activities.slice(0, 10);
+                this.recentActivities = result.activities.filter((a: UserActivity) => !a.sourceRecurringId).slice(0, 10);
                 this.updateCharts();
                 this.isLoading = false;
             },
