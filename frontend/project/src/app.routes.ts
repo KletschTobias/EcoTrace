@@ -6,6 +6,8 @@ import { DashboardComponent } from './pages/dashboard.component';
 import { ActivitiesComponent } from './pages/activities.component';
 import { FriendsComponent } from './pages/friends.component';
 import { AchievementsComponent } from './pages/achievements.component';
+import { LeaguesComponent } from './pages/leagues.component';
+import { LeagueDetailComponent } from './pages/league-detail.component';
 
 export const routes: Routes = [
   {
@@ -32,6 +34,14 @@ export const routes: Routes = [
       {
         path: 'achievements',
         component: AchievementsComponent
+      },
+      {
+        path: 'leagues',
+        component: LeaguesComponent
+      },
+      {
+        path: 'leagues/:id',
+        component: LeagueDetailComponent
       }
     ]
   },
