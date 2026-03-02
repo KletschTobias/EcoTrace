@@ -39,6 +39,24 @@ public class User extends PanacheEntity {
     @Column(name = "total_electricity")
     public Double totalElectricity = 0.0;
 
+    @Column(name = "external_id", unique = true)
+    public String externalId;
+
+    @Column(name = "is_admin")
+    public Boolean isAdmin = false;
+
+    @Column(name = "profile_image_url")
+    public String profileImageUrl;
+
+    @Column(name = "biography", length = 500)
+    public String biography;
+
+    @Column(name = "has_solar_panels")
+    public Boolean hasSolarPanels = false;
+
+    @Column(name = "has_heat_pump")
+    public Boolean hasHeatPump = false;
+
     @Column(name = "created_date")
     public LocalDateTime createdDate;
 
@@ -69,5 +87,9 @@ public class User extends PanacheEntity {
 
     public static User findByUsername(String username) {
         return find("username", username).firstResult();
+    }
+
+    public static User findByExternalId(String externalId) {
+        return find("externalId", externalId).firstResult();
     }
 }
