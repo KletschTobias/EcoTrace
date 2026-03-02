@@ -7,7 +7,7 @@ import { League, LeagueMember, CreateLeagueRequest } from '../models/models';
   providedIn: 'root'
 })
 export class LeagueService {
-  private apiUrl = 'http://localhost:8081/api/leagues';
+  private apiUrl = 'http://localhost:8080/api/leagues';
 
   constructor(private http: HttpClient) {}
 
