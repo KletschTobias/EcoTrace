@@ -26,7 +26,7 @@
             }
           },
           "options": {
-            "assets": [],
+            "assets": ["src/silent-check-sso.html"],
             "index": "src/index.html",
             "browser": "src/main.ts",
             "outputPath": "dist/demo",
