@@ -1,5 +1,15 @@
 -- Predefined Activities
 INSERT INTO activities (id, name, category, co2_per_unit, water_per_unit, electricity_per_unit, unit, icon, description) VALUES
+(nextval('activities_seq'), 'Music Speaker', 'home', 0,0, 0,0, 0,1, 'hours', '🔊', 'Listening to music on speakers'),
+(nextval('activities_seq'), 'Restaurant Meal', 'food', 10,0, 5000,0, 0,0, 'times', '🍴', 'Eating a restaurant meal'),
+(nextval('activities_seq'), 'Fast Food Meal', 'food', 7,0, 3500,0, 0,0, 'times', '🍔', 'Eating a fast food meal'),
+(nextval('activities_seq'), 'Takeaway Delivery', 'food', 4,0, 2000,0, 0,0, 'times', '📦', 'Ordering food delivery'),
+(nextval('activities_seq'), 'Car Drive', 'transport', 192,0, 0,0, 0,0, 'km', '🚗', 'Driving a gasoline car'),
+(nextval('activities_seq'), 'Electric Car', 'transport', 53,0, 0,0, 0,3, 'km', '⚡', 'Driving an electric vehicle'),
+(nextval('activities_seq'), 'Bus Ride', 'transport', 89,0, 0,0, 0,0, 'km', '🚌', 'Taking public bus transportation'),
+(nextval('activities_seq'), 'Train Journey', 'transport', 41,0, 0,0, 0,0, 'km', '🚆', 'Traveling by train'),
+(nextval('activities_seq'), 'Flight', 'transport', 255,0, 0,0, 0,0, 'km', '✈️', 'Air travel'),
+(nextval('activities_seq'), 'E-Bike Ride', 'transport', 15,0, 0,0, 0,0, 'km', '🚲', 'Riding an electric bicycle'),
 (nextval('activities_seq'), 'Shower', 'home', 0,5, 50,0, 1,5, 'minutes', '🚿', 'Taking a shower'),
 (nextval('activities_seq'), 'Bath', 'home', 0,8, 150,0, 2,5, 'times', '🛁', 'Taking a bath'),
 (nextval('activities_seq'), 'Dishwasher', 'home', 0,8, 15,0, 1,5, 'times', '🍽️', 'Running dishwasher'),
@@ -27,20 +37,7 @@ INSERT INTO activities (id, name, category, co2_per_unit, water_per_unit, electr
 (nextval('activities_seq'), 'Air Fryer Use', 'home', 0,3, 0,0, 0,5, 'times', '🍟', 'Cooking food in an air fryer'),
 (nextval('activities_seq'), 'Kettle Boil', 'home', 0,0, 0,0, 0,1, 'times', '☕', 'Boiling water in an electric kettle'),
 (nextval('activities_seq'), 'Dehumidifier Use', 'home', 0,1, 0,0, 0,2, 'hours', '💦', 'Running a room dehumidifier'),
-(nextval('activities_seq'), 'Streaming Video', 'home', 0,1, 0,0, 0,2, 'hours', '📹', 'Streaming video online'),
-(nextval('activities_seq'), 'Music Speaker', 'home', 0,0, 0,0, 0,1, 'hours', '🔊', 'Listening to music on speakers'),
-(nextval('activities_seq'), 'Restaurant Meal', 'food', 10,0, 5000,0, 0,0, 'times', '🍴', 'Eating a restaurant meal'),
-(nextval('activities_seq'), 'Fast Food Meal', 'food', 7,0, 3500,0, 0,0, 'times', '🍔', 'Eating a fast food meal'),
-(nextval('activities_seq'), 'Takeaway Delivery', 'food', 4,0, 2000,0, 0,0, 'times', '📦', 'Ordering food delivery'),
-(nextval('activities_seq'), 'Car Drive', 'transport', 192,0, 0,0, 0,0, 'km', '🚗', 'Driving a gasoline car'),
-(nextval('activities_seq'), 'Electric Car', 'transport', 53,0, 0,0, 0,3, 'km', '⚡', 'Driving an electric vehicle'),
-(nextval('activities_seq'), 'Bus Ride', 'transport', 89,0, 0,0, 0,0, 'km', '🚌', 'Taking public bus transportation'),
-(nextval('activities_seq'), 'Train Journey', 'transport', 41,0, 0,0, 0,0, 'km', '🚆', 'Traveling by train'),
-(nextval('activities_seq'), 'Flight', 'transport', 255,0, 0,0, 0,0, 'km', '✈️', 'Air travel'),
-(nextval('activities_seq'), 'E-Bike Ride', 'transport', 15,0, 0,0, 0,0, 'km', '🚲', 'Riding an electric bicycle'),
-(nextval('activities_seq'), 'Test', 'test', 1,0, 1000,0, 0,0, 'km', 'f', 'danffnsdnfjd'),
-(nextval('activities_seq'), 'fsfsdf', 'sdfsdfsd', 0,0, 0,0, 0,0, 'km', 'f', 'sdfsd'),
-(nextval('activities_seq'), 'hello', 'sdfsdfsd', 0,0, 0,0, 0,0, 'km', 'f', 'sdfsd');
+(nextval('activities_seq'), 'Streaming Video', 'home', 0,1, 0,0, 0,2, 'hours', '📹', 'Streaming video online');
 
 -- Demo Users
 INSERT INTO users (id, username, email, password, full_name, avatar_color, total_co2, total_water, total_electricity, created_date, updated_date) VALUES
