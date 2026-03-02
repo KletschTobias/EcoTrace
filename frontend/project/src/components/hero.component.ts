@@ -48,7 +48,7 @@ type TimePeriod = 'daily' | 'week' | 'month' | 'year';
             Join the movement towards a sustainable future with real-time environmental insights.
           </p>
           <div class="cta-buttons">
-            <button class="btn-primary" (click)="showAuthModal = true">Start Tracking</button>
+            <button class="btn-primary" (click)="startTracking()">Start Tracking</button>
           </div>
         </div>
         
@@ -837,6 +837,17 @@ export class HeroComponent implements OnInit, OnDestroy {
 
   trackParticle(index: number, particle: any) {
     return index;
+  }
+
+  startTracking(): void {
+    // Check if user is already authenticated
+    if (this.authService.isAuthenticated()) {
+      // Already logged in, go to activities
+      this.router.navigate(['/activities']);
+    } else {
+      // Not logged in, redirect to Keycloak login
+      this.authService.login();
+    }
   }
 
   login(): void {
