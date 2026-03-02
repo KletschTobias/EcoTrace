@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoTrace - Business Case</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reset.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/theme/white.css">
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #2196F3;
+            --accent: #FF9800;
+        }
+
+        .reveal {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .reveal h1 {
+            color: var(--secondary);
+            font-size: 2em;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.3em;
+        }
+
+        .reveal h2 {
+            color: var(--secondary);
+            font-size: 1.3em;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.3em;
+        }
+
+        .reveal h3 {
+            color: var(--primary);
+            font-size: 1em;
+            margin-bottom: 0.2em;
+        }
+
+        .reveal .subtitle {
+            color: #999;
+            font-size: 1.2em;
+            margin-top: -0.2em;
+        }
+
+        .reveal .slides section {
+            text-align: left;
+            padding: 0.3em 1.2em;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .reveal .slides section.center {
+            text-align: center;
+        }
+
+        .divider {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            margin: 0.2em 0 0.4em 0;
+        }
+
+        .box {
+            padding: 0.5em;
+            margin: 0.3em 0;
+            border-radius: 6px;
+            font-size: 0.8em;
+            border-left: 3px solid;
+        }
+
+        .box-red {
+            background: linear-gradient(135deg, #ffebee, #fce4ec);
+            border-color: #F44336;
+        }
+
+        .box-orange {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            border-color: #FF9800;
+        }
+
+        .box-green {
+            background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+            border-color: var(--primary);
+        }
+
+        .box h3 {
+            margin: 0 0 0.2em 0;
+            font-size: 0.95em;
+        }
+
+        .box ul {
+            margin: 0.2em 0 0 1em;
+        }
+
+        .box ul li {
+            margin: 0.15em 0;
+        }
+
+        .card {
+            background: white;
+            padding: 0.4em;
+            margin: 0.2em 0;
+            border-radius: 6px;
+            border-left: 3px solid var(--secondary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            font-size: 0.8em;
+        }
+
+        .card-icon {
+            font-size: 1.8em;
+            min-width: 35px;
+            text-align: center;
+            margin-right: 25px;
+        }
+
+        .card h4 {
+            margin: 0 0 0.2em 0;
+            font-size: 1em;
+            color: var(--secondary);
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1em;
+            margin-top: 1em;
+        }
+
+        .metric {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 0.8em;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: 700;
+            margin: 0.1em 0;
+        }
+
+        .metric-label {
+            font-size: 0.8em;
+            opacity: 0.95;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8em;
+            margin-top: 0.8em;
+        }
+
+        .tech-item {
+            text-align: center;
+            padding: 0.3em;
+        }
+
+        .tech-item .icon {
+            font-size: 1.8em;
+            margin-bottom: 0.15em;
+        }
+
+        .tech-item h3 {
+            font-size: 0.95em;
+            margin: 0.15em 0;
+        }
+
+        .tech-item p {
+            font-size: 0.75em;
+            line-height: 1.2;
+            margin: 0.05em 0;
+        }
+
+        .reveal ul {
+            font-size: 0.8em;
+            line-height: 1.4;
+        }
+
+        .reveal ul li {
+            margin: 0.2em 0;
+        }
+
+        .reveal strong {
+            color: var(--primary);
+        }
+
+        /* Business Table Styles */
+        .business-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.55em;
+            margin-top: 0.5em;
+        }
+        .business-table th {
+            background: #f8f9fa;
+            border-bottom: 2px solid var(--secondary);
+            color: var(--secondary);
+            padding: 8px;
+            text-align: left;
+        }
+        .business-table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #eee;
+        }
+        .row-highlight {
+            background: rgba(76, 175, 80, 0.1);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            
+            <section class="center">
+                <h1>BUSINESS CASE</h1>
+                <p class="subtitle">Finanzielle Planung & Projektion</p>
+                <div style="margin: 2em 0;">
+                    <div style="width: 120px; height: 120px; margin: 0 auto; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">📈</div>
+                </div>
+                <h2 style="color: var(--primary); margin-top: 1em;">EcoTrace</h2>
+                <p style="font-size: 1.1em; color: #666;">Von 100k Usern zum profitablen Business</p>
+            </section>
+
+            <section>
+                <h2>DAS PROBLEM</h2>
+                <div class="divider"></div>
+                <div class="box box-red">
+                    <h3>🌍 Fehlende Incentivierung</h3>
+                    <p>Nutzer brechen ab, weil Nachhaltigkeit keine unmittelbaren Vorteile bietet. EcoTrace löst dies durch Gamification.</p>
+                </div>
+                <div class="box box-orange">
+                    <h3>📊 Monetarisierungslücke</h3>
+                    <p>Viele Grüne Apps scheitern an einem unklaren Business Modell. Wir setzen auf <strong>Freemium + B2B</strong>.</p>
+                </div>
+            </section>
+
+            <section>
+                <h2>ZIELGRUPPE & SKALIERUNG</h2>
+                <div class="divider"></div>
+                <div class="grid-2">
+                    <div class="metric">
+                        <div class="metric-label">Jahr 1 Ziel</div>
+                        <div class="metric-value">100.000</div>
+                        <div class="metric-label">Aktive User</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">Pro-Conversion</div>
+                        <div class="metric-value">3%</div>
+                        <div class="metric-label">User zahlen 4,99€</div>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>BUSINESS CASE: MONATLICHE RECHNUNG</h2>
+                <div class="divider"></div>
+                
+                <table class="business-table">
+                    <thead>
+                        <tr>
+                            <th>Monat</th>
+                            <th>User (Gesamt)</th>
+                            <th>Pro-User (3%)</th>
+                            <th>Umsatz (B2C + B2B)</th>
+                            <th>Kosten (Fix+Var)</th>
+                            <th>Netto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>M1</td>
+                            <td>2.000</td>
+                            <td>60</td>
+                            <td>300 €</td>
+                            <td>18.000 €</td>
+                            <td style="color: #F44336;">-17.700 €</td>
+                        </tr>
+                        <tr>
+                            <td>M6</td>
+                            <td>30.000</td>
+                            <td>900</td>
+                            <td>7.500 € (4,5k + 3k B2B)</td>
+                            <td>35.000 €</td>
+                            <td style="color: #F44336;">-27.500 €</td>
+                        </tr>
+                        <tr>
+                            <td>M12</td>
+                            <td>100.000</td>
+                            <td>3.000</td>
+                            <td>30.000 € (15k + 15k B2B)</td>
+                            <td>60.000 €</td>
+                            <td style="color: #F44336;">-30.000 €</td>
+                        </tr>
+                        <tr class="row-highlight">
+                            <td>M18</td>
+                            <td>200.000</td>
+                            <td>6.000</td>
+                            <td>85.000 € (30k + 55k B2B)</td>
+                            <td>80.000 €</td>
+                            <td style="color: var(--primary);">+5.000 €</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="box box-green" style="margin-top: 1em; font-size: 0.7em;">
+                    <strong>Erklärung:</strong> Bei 2.000 Usern zahlen 60 Leute das 4,99 € Abo (= ~300 €). 
+                    Der <strong>Break-Even</strong> wird in Monat 18 durch starkes B2B-Wachstum (Firmenlizenzen) erreicht.
+                </div>
+            </section>
+
+            <section>
+                <h2>MONETARISIERUNGS-DETAILS</h2>
+                <div class="divider"></div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-icon">📱  </div>
+                        <div>
+                            <h4>B2C Premium (4,99 €)</h4>
+                            <p>Zusätzliche Analyse-Tools, exklusive Partner-Rabatte und werbefreies Tracking.</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🏢   </div>
+                        <div>
+                            <h4>B2B Enterprise</h4>
+                            <p>10 € / Mitarbeiter pro Jahr. Firmen nutzen EcoTrace für ihre CSR-Bilanz.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-grid" style="margin-top: 1em;">
+                    <div class="metric" style="background: #eee; color: #333; padding: 0.5em;">
+                        <div class="metric-label" style="font-size: 0.6em;">CAC (Akquisekosten)</div>
+                        <div class="metric-value" style="font-size: 1.2em;">1,50 €</div>
+                    </div>
+                    <div class="metric" style="background: #eee; color: #333; padding: 0.5em;">
+                        <div class="metric-label" style="font-size: 0.6em;">LTV (Kundenwert)</div>
+                        <div class="metric-value" style="font-size: 1.2em; color: var(--primary);">14,50 €</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="center">
+                <h2 style="color: var(--primary);">EXIT-STRATEGIE & POTENZIAL</h2>
+                <div class="divider"></div>
+                <p style="font-size: 0.8em;">Skalierung auf 5 Mio. Nutzer weltweit bis Jahr 5.</p>
+                
+                <div class="grid-2" style="max-width: 600px; margin: 1em auto;">
+                    <div class="metric">
+                        <div class="metric-value">€25M</div>
+                        <div class="metric-label">Umsatzpotenzial</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">15-20%</div>
+                        <div class="metric-label">CO₂-Reduktion/User</div>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.6em; color: #888;">EcoTrace"Made in Leonding"</p>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.0/dist/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            transition: 'convex',
+            width: 960,
+            height: 700,
+            controls: true,
+            progress: true,
+            slideNumber: true,
+            center: false
+        });
+    </script>
+</body>
+</html>

@@ -1,43 +1,19 @@
+version: '3.8'
+
 services:
   postgres:
     image: postgres:15
     container_name: postgres-eco-tracker
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-      POSTGRES_DB: ET
+      POSTGRES_USER: ecotrace
+      POSTGRES_PASSWORD: ecotrace
+      POSTGRES_DB: ecotrace
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U app -d ET"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 8s
-
-  keycloak:
-    build:
-      context: ./keycloak
-    container_name: keycloak-ET
-    command: ["start-dev", "--import-realm"]  
-    environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_DB: postgres
-      KC_DB_USERNAME: app
-      KC_DB_PASSWORD: app
-      KC_DB_URL: jdbc:postgresql://postgres:5432/ET
-      KC_HOSTNAME: localhost
-      KC_IMPORT : /opt/keycloak/data/import/eco-tracer-realm.json
-    ports:
-      - "8082:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8080 || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ecotrace -d ecotrace"]
       interval: 10s
       timeout: 5s
       retries: 5

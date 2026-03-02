@@ -1,19 +1,12 @@
 export interface User {
   id: number;
-  externalId: string;  // Keycloak user ID (sub claim)
+  username: string;
+  email: string;
+  fullName: string;
   avatarColor: string;
-  profileImageUrl?: string;
-  biography?: string;
-  hasSolarPanels?: boolean;
-  hasHeatPump?: boolean;
   totalCo2: number;
   totalWater: number;
   totalElectricity: number;
-  isAdmin?: boolean;  // Admin flag
-  // Optional profile fields (from Keycloak token)
-  username?: string;
-  email?: string;
-  fullName?: string;
 }
 
 export interface Activity {
@@ -39,16 +32,6 @@ export interface UserActivity {
   waterImpact: number;
   electricityImpact: number;
   date: string;
-  // Recurring activity fields
-  isRecurring?: boolean;
-  timesPerWeek?: number;
-  weeksPerYear?: number;
-  // Calculated total impacts (including recurring multiplier)
-  totalCo2Impact?: number;
-  totalWaterImpact?: number;
-  totalElectricityImpact?: number;
-  // If set, this entry was auto-generated from a recurring activity - hide from list
-  sourceRecurringId?: number;
 }
 
 export interface CreateUserActivityRequest {
@@ -60,10 +43,6 @@ export interface CreateUserActivityRequest {
   waterImpact?: number;
   electricityImpact?: number;
   date: string;
-  // Recurring activity fields
-  isRecurring?: boolean;
-  timesPerWeek?: number;
-  weeksPerYear?: number;
 }
 
 export interface Friendship {
@@ -104,54 +83,6 @@ export interface Achievement {
   points: number;
   unlockedAt?: string;
   progress: number;
-  isNew: boolean;
+  isNew?: boolean;
   isUnlocked: boolean;
-}
-
-export interface FriendRequest {
-  id: number;
-  sender: User;
-  receiver: User;
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface League {
-  id: number;
-  name: string;
-  description?: string;
-  leagueType: 'PUBLIC' | 'PRIVATE';
-  host: User;
-  startDate: string;
-  endDate?: string;
-  maxParticipants: number;
-  currentMembers: number;
-  isPermanent: boolean;
-  isActive: boolean;
-  isFull: boolean;
-  isUserMember: boolean;
-  createdAt: string;
-}
-
-export interface LeagueMember {
-  id: number;
-  user: User;
-  status: 'INVITED' | 'ACTIVE' | 'KICKED';
-  joinedAt: string;
-  lastActivity: string;
-  totalCo2: number;
-  totalWater: number;
-  totalElectricity: number;
-  score: number;
-  rank: number;
-}
-
-export interface CreateLeagueRequest {
-  name: string;
-  description?: string;
-  leagueType: 'PUBLIC' | 'PRIVATE';
-  startDate: string;
-  endDate?: string;
-  maxParticipants?: number;
 }

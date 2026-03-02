@@ -7,10 +7,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.jboss.logging.Logger;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,27 +77,21 @@ public class ActivityImportExportService {
     }
 
     /**
-     * Import activities from Excel file (file path version)
-     * @param filePath Path to Excel file
-     * @param overwrite If true, overwrites existing activities with same name
-     * @return ImportResult with statistics
-     */
-    @Transactional
-    public ImportResult importActivities(String filePath, boolean overwrite) throws Exception {
-        try (FileInputStream inputStream = new FileInputStream(new File(filePath))) {
-            return importActivities(inputStream, overwrite);
-        }
-    }
-
-    /**
      * Import activities from Excel file
      * @param inputStream Excel file input stream
-     * @param overwrite If true, overwrites existing activities with same name
+     * @param syncMode If true, deletes all existing activities first (full sync)
      * @return ImportResult with statistics
      */
     @Transactional
-    public ImportResult importActivities(InputStream inputStream, boolean overwrite) throws Exception {
+    public ImportResult importActivities(InputStream inputStream, boolean syncMode) throws Exception {
         ImportResult result = new ImportResult();
+        
+        // If sync mode: delete all existing activities first
+        if (syncMode) {
+            long deletedCount = Activity.deleteAll();
+            result.deletedCount = (int) deletedCount;
+            LOG.info("Sync mode: Deleted " + deletedCount + " existing activities");
+        }
         
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
@@ -117,6 +109,7 @@ public class ActivityImportExportService {
                     continue;
                 }
                 
+                // Read row data
                 String name = getCellStringValue(row.getCell(0));
                 String category = getCellStringValue(row.getCell(1));
                 Double co2PerUnit = getCellNumericValue(row.getCell(2));
@@ -133,11 +126,10 @@ public class ActivityImportExportService {
                     continue;
                 }
                 
-                // Check for existing activity
-                Activity existing = Activity.findByName(name);
-                
-                if (existing != null) {
-                    if (overwrite) {
+                // In sync mode, always create new. Otherwise check for existing
+                if (!syncMode) {
+                    Activity existing = Activity.findByName(name);
+                    if (existing != null) {
                         // Update existing activity
                         existing.category = category;
                         existing.co2PerUnit = co2PerUnit;
@@ -149,26 +141,23 @@ public class ActivityImportExportService {
                         existing.persist();
                         result.updatedCount++;
                         LOG.info("Updated activity: " + name);
-                    } else {
-                        // Duplicate, skip
-                        result.duplicateCount++;
-                        result.duplicates.add(name);
+                        continue;
                     }
-                } else {
-                    // Create new activity
-                    Activity newActivity = new Activity();
-                    newActivity.name = name;
-                    newActivity.category = category;
-                    newActivity.co2PerUnit = co2PerUnit;
-                    newActivity.waterPerUnit = waterPerUnit;
-                    newActivity.electricityPerUnit = electricityPerUnit;
-                    newActivity.unit = unit;
-                    newActivity.icon = icon;
-                    newActivity.description = description;
-                    newActivity.persist();
-                    result.importedCount++;
-                    LOG.info("Imported new activity: " + name);
                 }
+                
+                // Create new activity
+                Activity newActivity = new Activity();
+                newActivity.name = name;
+                newActivity.category = category;
+                newActivity.co2PerUnit = co2PerUnit;
+                newActivity.waterPerUnit = waterPerUnit;
+                newActivity.electricityPerUnit = electricityPerUnit;
+                newActivity.unit = unit;
+                newActivity.icon = icon;
+                newActivity.description = description;
+                newActivity.persist();
+                result.importedCount++;
+                LOG.info("Imported new activity: " + name);
             }
         }
         
@@ -208,6 +197,108 @@ public class ActivityImportExportService {
     }
 
     /**
+     * Sync import.sql file with current database state
+     * Automatically updates the activities section in import.sql
+     */
+    @Transactional
+    public void syncImportSql() {
+        try {
+            // Path to import.sql
+            Path importSqlPath = Paths.get("src/main/resources/import.sql");
+            
+            if (!Files.exists(importSqlPath)) {
+                LOG.warn("import.sql file not found at: " + importSqlPath.toAbsolutePath());
+                return;
+            }
+            
+            // Read current import.sql
+            String content = Files.readString(importSqlPath);
+            
+            // Generate new activities SQL
+            String newActivitiesSql = generateActivitiesSql();
+            
+            // Find and replace activities section
+            String updatedContent = replaceActivitiesSection(content, newActivitiesSql);
+            
+            // Write back to file
+            Files.writeString(importSqlPath, updatedContent);
+            
+            LOG.info("✅ import.sql synchronized successfully!");
+            
+        } catch (IOException e) {
+            LOG.error("Failed to sync import.sql: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Generate SQL INSERT statements for all activities
+     */
+    private String generateActivitiesSql() {
+        List<Activity> activities = Activity.listAll();
+        StringBuilder sql = new StringBuilder();
+        
+        sql.append("-- Predefined Activities\n");
+        sql.append("INSERT INTO activities (id, name, category, co2_per_unit, water_per_unit, electricity_per_unit, unit, icon, description) VALUES\n");
+        
+        for (int i = 0; i < activities.size(); i++) {
+            Activity a = activities.get(i);
+            sql.append(String.format("(nextval('activities_seq'), '%s', '%s', %.1f, %.1f, %.1f, '%s', '%s', '%s')",
+                a.name.replace("'", "''"),
+                a.category,
+                a.co2PerUnit != null ? a.co2PerUnit : 0.0,
+                a.waterPerUnit != null ? a.waterPerUnit : 0.0,
+                a.electricityPerUnit != null ? a.electricityPerUnit : 0.0,
+                a.unit,
+                a.icon != null ? a.icon : "",
+                a.description != null ? a.description.replace("'", "''") : ""));
+            
+            if (i < activities.size() - 1) {
+                sql.append(",\n");
+            } else {
+                sql.append(";\n");
+            }
+        }
+        
+        return sql.toString();
+    }
+
+    /**
+     * Replace activities section in import.sql content
+     */
+    private String replaceActivitiesSection(String content, String newActivitiesSql) {
+        // Pattern to match activities section (from "-- Predefined Activities" to before "-- Demo Users" or "-- New CSV activities" or end)
+        String startMarker = "-- Predefined Activities";
+        String endMarker = "-- Demo Users";
+        
+        int startIdx = content.indexOf(startMarker);
+        if (startIdx == -1) {
+            // Fallback: look for old marker
+            startMarker = "-- Activities";
+            startIdx = content.indexOf(startMarker);
+        }
+        
+        int endIdx = content.indexOf(endMarker, startIdx);
+        
+        if (startIdx != -1 && endIdx != -1) {
+            // Replace the section
+            return content.substring(0, startIdx) + newActivitiesSql + "\n" + content.substring(endIdx);
+        } else if (startIdx != -1) {
+            // Only start marker found, replace till end
+            return content.substring(0, startIdx) + newActivitiesSql;
+        } else {
+            LOG.warn("Could not find activities section markers in import.sql");
+            return content;
+        }
+    }
+
+    /**
+     * Generate import.sql INSERT statements from current database
+     */
+    public String generateImportSql() {
+        return generateActivitiesSql();
+    }
+
+    /**
      * Result object for import operation
      */
     public static class ImportResult {
@@ -215,12 +306,16 @@ public class ActivityImportExportService {
         public int updatedCount = 0;
         public int duplicateCount = 0;
         public int skippedCount = 0;
+        public int deletedCount = 0;
         public List<String> duplicates = new ArrayList<>();
         public List<String> errors = new ArrayList<>();
         
         public String getMessage() {
             StringBuilder sb = new StringBuilder();
             sb.append("Import completed: ");
+            if (deletedCount > 0) {
+                sb.append(deletedCount).append(" deleted, ");
+            }
             sb.append(importedCount).append(" new, ");
             sb.append(updatedCount).append(" updated, ");
             sb.append(duplicateCount).append(" duplicates skipped, ");
