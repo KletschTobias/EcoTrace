@@ -20,8 +20,7 @@ public class User extends PanacheEntity {
     @Column(unique = true, nullable = false)
     public String email;
 
-    @NotBlank(message = "Password is required")
-    @Column(nullable = false)
+    @Column(nullable = true)
     public String password;
 
     @Column(name = "full_name")
