@@ -1,12 +1,15 @@
 export interface User {
   id: number;
-  username: string;
-  email: string;
-  fullName: string;
+  username?: string;
+  email?: string;
+  fullName?: string;
   avatarColor: string;
   totalCo2: number;
   totalWater: number;
   totalElectricity: number;
+  externalId?: string;
+  isAdmin?: boolean;
+  profileImageUrl?: string;
 }
 
 export interface Activity {
@@ -85,4 +88,12 @@ export interface Achievement {
   progress: number;
   isNew?: boolean;
   isUnlocked: boolean;
+}
+
+export interface FriendRequest {
+  id: number;
+  sender: User;
+  receiver: User;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  createdAt: string;
 }

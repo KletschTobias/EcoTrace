@@ -514,7 +514,7 @@ export class DashboardComponent implements OnInit {
     const { startDate, endDate } = this.getDateRange();
 
     // Load stats
-    this.userActivityService.getUserStats(this.user.id, startDate, endDate).subscribe({
+    this.userActivityService.getUserStats(startDate, endDate).subscribe({
       next: (stats) => {
         this.stats = stats;
       },
@@ -522,7 +522,7 @@ export class DashboardComponent implements OnInit {
     });
 
     // Load recent activities
-    this.userActivityService.getUserActivitiesByDateRange(this.user.id, startDate, endDate).subscribe({
+    this.userActivityService.getUserActivitiesByDateRange(startDate, endDate).subscribe({
       next: (activities) => {
         this.recentActivities = activities.slice(0, 10);
       },
