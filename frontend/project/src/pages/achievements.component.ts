@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { Achievement } from '../models/models';
 import { AchievementService } from '../services/achievement.service';
 import { AuthService } from '../services/auth.service';
@@ -297,11 +299,21 @@ export class AchievementsComponent implements OnInit {
 
   constructor(
     private achievementService: AchievementService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit() {
     this.loadAchievements();
+    
+    // Reload achievements whenever user navigates to this page
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        if (this.router.url.includes('/achievements')) {
+          this.loadAchievements();
+        }
+      });
   }
 
   loadAchievements() {

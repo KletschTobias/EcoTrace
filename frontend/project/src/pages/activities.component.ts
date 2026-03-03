@@ -71,7 +71,7 @@ import { format } from 'date-fns';
       <!-- Activity Form -->
       <div *ngIf="showForm" class="activity-form">
         <h2>Log New Activity</h2>
-        <form (ngSubmit)="submitActivity()">
+        <form #activityForm="ngForm" (ngSubmit)="submitActivity()" novalidate>
           <div class="form-group">
             <label>Search Activity</label>
             <input 
@@ -79,7 +79,7 @@ import { format } from 'date-fns';
               [(ngModel)]="searchTerm"
               name="searchTerm"
               (input)="filterActivities()"
-              (focus)="showDropdown = true"
+              (focus)="showDropdown = true; filterActivities()"
               placeholder="Type to search activities..."
               class="form-control">
             
@@ -110,8 +110,7 @@ import { format } from 'date-fns';
                   name="quantity"
                   min="0.1"
                   step="0.1"
-                  class="form-control"
-                  required>
+                  class="form-control">
                 <small>Unit: {{ selectedActivity.unit }}</small>
               </div>
 
@@ -121,8 +120,7 @@ import { format } from 'date-fns';
                   type="date" 
                   [(ngModel)]="date"
                   name="date"
-                  class="form-control"
-                  required>
+                  class="form-control">
               </div>
             </div>
 
@@ -692,7 +690,14 @@ export class ActivitiesComponent implements OnInit {
   }
 
   submitActivity(): void {
-    if (!this.user || !this.selectedActivity) return;
+    console.log('Submit activity called');
+    console.log('User:', this.user);
+    console.log('Selected Activity:', this.selectedActivity);
+    
+    if (!this.user || !this.selectedActivity) {
+      console.warn('Cannot submit: user or selectedActivity is null');
+      return;
+    }
 
     this.isSubmitting = true;
     const request: CreateUserActivityRequest = {
@@ -706,8 +711,11 @@ export class ActivitiesComponent implements OnInit {
       date: this.date
     };
 
+    console.log('Sending request:', request);
+
     this.userActivityService.createUserActivity(request).subscribe({
       next: () => {
+        console.log('Activity saved successfully');
         this.isSubmitting = false;
         this.showForm = false;
         this.resetForm();

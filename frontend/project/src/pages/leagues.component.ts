@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { LeagueService } from '../services/league.service';
 import { AuthService } from '../services/auth.service';
 import { League, User } from '../models/models';
@@ -9,7 +9,7 @@ import { League, User } from '../models/models';
 @Component({
   selector: 'app-leagues',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="leagues-container">
       <div class="leagues-header">
@@ -481,6 +481,6 @@ export class LeaguesComponent implements OnInit {
   }
 
   viewLeague(leagueId: number): void {
-    this.router.navigate(['/league', leagueId]);
+    this.router.navigate(['/leagues', leagueId]);
   }
 }

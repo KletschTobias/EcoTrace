@@ -97,3 +97,43 @@ export interface FriendRequest {
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
   createdAt: string;
 }
+
+export interface League {
+  id: number;
+  name: string;
+  description: string;
+  leagueType: 'PUBLIC' | 'PRIVATE';
+  host: User;
+  startDate: string;
+  endDate?: string;
+  maxParticipants: number;
+  isPermanent: boolean;
+  createdAt: string;
+  updatedAt: string;
+  memberCount?: number;
+  isFull?: boolean;
+  isUserMember?: boolean;
+  currentMembers?: number;
+}
+
+export interface LeagueMember {
+  id: number;
+  league: League;
+  user: User;
+  score: number;
+  rank: number;
+  joinedAt: string;
+  totalCo2?: number;
+  totalWater?: number;
+  totalElectricity?: number;
+}
+
+export interface CreateLeagueRequest {
+  name: string;
+  description: string;
+  leagueType: 'PUBLIC' | 'PRIVATE';
+  startDate: string;
+  endDate?: string;
+  maxParticipants: number;
+  isPermanent: boolean;
+}

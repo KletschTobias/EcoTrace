@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LeagueService } from '../services/league.service';
 import { AuthService } from '../services/auth.service';
 import { League, LeagueMember, User } from '../models/models';
@@ -9,7 +9,7 @@ import { League, LeagueMember, User } from '../models/models';
 @Component({
   selector: 'app-league-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   template: `
     <div class="league-detail-container" *ngIf="league">
       <div class="league-header-section">
@@ -75,15 +75,15 @@ import { League, LeagueMember, User } from '../models/models';
             <div class="member-stats">
               <div class="stat-item">
                 <span class="stat-icon">💨</span>
-                <span>{{ member.totalCo2.toFixed(1) }} kg</span>
+                <span>{{ (member.totalCo2 || 0).toFixed(1) }} kg</span>
               </div>
               <div class="stat-item">
                 <span class="stat-icon">💧</span>
-                <span>{{ member.totalWater.toFixed(0) }} L</span>
+                <span>{{ (member.totalWater || 0).toFixed(0) }} L</span>
               </div>
               <div class="stat-item">
                 <span class="stat-icon">⚡</span>
-                <span>{{ member.totalElectricity.toFixed(1) }} kWh</span>
+                <span>{{ (member.totalElectricity || 0).toFixed(1) }} kWh</span>
               </div>
             </div>
             <div class="member-actions" *ngIf="isHost && member.user.id !== currentUser?.id">
